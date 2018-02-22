@@ -60,7 +60,7 @@
         "default-case": "error",
         "dot-notation": ["error", {"allowKeywords": true, "allowPattern": "^[a-zA-Z]+(_[a-zA-Z]+)+$"}],
         "eqeqeq": "error",
-        "guard-for-in": "error",
+        "guard-for-in": "off",
         "no-alert": "off",
         "no-caller": "error",
         "no-case-declarations": "error",

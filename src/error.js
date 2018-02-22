@@ -1,19 +1,22 @@
 // @flow
 
+/*
+*	Error handling
+*/
+
 const util = require('util');
 
-function error(err: mixed) {
-	let text = '';
-
+function error(msg: string, err: mixed) {
 	if (err instanceof Error) {
-		text = err.toString() + '\n' + err.stack;
+		msg += msg.length > 0 ? '\n' : '';
+		msg += err.toString() + '\n' + err.stack;
 	} else if (typeof err === 'string') {
-		error(new Error(err));
+		error(msg, new Error(err));
 	} else {
-		error(new Error(util.inspect(err)));
+		error(msg, new Error(util.inspect(err)));
 	}
 
-	console.error(text);
+	console.error(msg);
 
 	process.exit(1);
 }

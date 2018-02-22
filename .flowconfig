@@ -1,15 +1,18 @@
-[include]
-src
-
 [libs]
+./interfaces
 
 [ignore]
-dist
-doc
-node_modules
-
-[lints]
-all=warn
+.*/dist/.*
+.*/doc/.*
+.*/node_modules/.*
+.*/original/.*
 
 [options]
 include_warnings=true
+
+[lints]
+all=warn
+unclear-type=off
+unsafe-getters-setters=off
+;untyped-import=off
+;sketchy-null=off

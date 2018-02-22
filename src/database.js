@@ -1,14 +1,13 @@
 // @flow
 
-const debug = require('debug')('database');
+/*
+*	Oracle databse interface
+*/
+
+const debug = require('debug')('oracleExpressMiddleware:database');
 const fs = require('fs');
 const util = require('util');
 const oracledb = require('oracledb');
-
-type oracledb$connection = any;
-type oracledb$connectionpool = {
-	getConnection: () => Promise<oracledb$connection>
-};
 
 class Database {
 	_connectionPool: oracledb$connectionpool | null;
@@ -42,7 +41,7 @@ class Database {
 			connectString: connectString
 		};
 
-		// if we already have a connection poolo, just open a connection
+		// if we already have a connection pool, just open a connection
 		if (that._connectionPool !== null) {
 			that._connection = await that._connectionPool.getConnection();
 			return Promise.resolve();
@@ -71,19 +70,37 @@ class Database {
 	* Execute the code and return a promise.
 	*
 	* @param {string} sql - A sql statement
-	* @param {Array<mixed>} bind - An object containing the bindings for the statement
+	* @param {oracledb$bindingType} [bind={}] - An object containing the bindings for the statement
+	* @param {Object} [options={}] - An object containing the options for the statement
 	* @returns {Promise<void>} Promise
 	*/
-	execute(sql: string, bind: Array<mixed>): Promise<any> {
-		const that = this;
+	execute(sql: string, bind?: oracledb$bindingType = {}, options?: Object = {}): Promise<*> {
+		debug('execute "' + sql + '"', bind);
 
-		debug('execute');
+		const that = this;
 
 		if (that._connection === null) {
 			return Promise.reject(new Error('the connection has not been opened'));
 		}
 
-		return that._connection.execute(sql, bind);
+		return that._connection.execute(sql, bind, options);
+	}
+
+	/**
+	* Execute the code and return a promise.
+	*
+	* @returns {Promise<void>} Promise
+	*/
+	commit(): Promise<any> {
+		debug('commit');
+
+		const that = this;
+
+		if (that._connection === null) {
+			return Promise.reject(new Error('the connection has not been opened'));
+		}
+
+		return that._connection.commit();
 	}
 
 	/**
@@ -103,7 +120,7 @@ class Database {
 
 				try {
 					const sqlScript = fs.readFileSync(filename, 'utf8');
-					await that.execute(sqlScript, []);
+					await that.execute(sqlScript, {});
 				} catch (err) {
 					reject(new Error(err));
 				}
@@ -142,6 +159,19 @@ class Database {
 
 		return that._connection ? versionAsString(that._connection.oracleServerVersion) : '';
 	}
+
+	/* eslint-disable brace-style */
+	static get BIND_IN() {return oracledb.BIND_IN;}
+	static get BIND_INOUT() {return oracledb.BIND_INOUT;}
+	static get BIND_OUT() {return oracledb.BIND_OUT;}
+	static get STRING() {return oracledb.STRING;}
+	static get NUMBER() {return oracledb.NUMBER;}
+	static get DATE() {return oracledb.DATE;}
+	static get CURSOR() {return oracledb.CURSOR;}
+	static get BUFFER() {return oracledb.BUFFER;}
+	static get CLOB() {return oracledb.CLOB;}
+	static get BLOB() {return oracledb.BLOB;}
+	/* eslint-enable brace-style */
 }
 
 /**

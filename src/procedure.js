@@ -1,7 +1,7 @@
 // @flow
 
 /*
-*	Execute the Oracle proceduure
+*	Invoke the Oracle procedure and return the raw content of the page
 */
 
 const debug = require('debug')('oracleExpressMiddleware:procedure');
@@ -9,7 +9,6 @@ const _ = require('lodash');
 const Database = require('./database');
 const files = require('./files');
 
-import type {oracledb$bindingType} from './database';
 import type {oracleExpressMiddleware$options} from './index';
 import type {filesUploadType} from './files';
 
@@ -31,10 +30,15 @@ async function invoke(procedure: string, argObj: Object, cgiObj: Object, filesTo
 	files.uploadFiles(filesToUpload, options.doctable, database);
 
 	// Get the code to execute depending on a fixed or variable number of argumnent
-	const code = (procedure.substring(0, 1) === '!') ? await getVarArgsPara(procedure, argObj) : await getFixArgsPara(procedure, argObj, database);
+	let para;
+	if (procedure.substring(0, 1) === '!') {
+		para = await getVarArgsPara(procedure, argObj);
+	} else {
+		para = await getFixArgsPara(procedure, argObj, database);
+	}
 
 	// Invoke the procedure and return the page contents
-	return await executeProcedure(code, cgiObj, options, database);
+	return await executeProcedure(para, cgiObj, options, database);
 }
 
 /*
@@ -80,8 +84,7 @@ async function getFixArgsPara(procedure: string, argObj: Object, database: Datab
 
 	// bindings for the statement
 	let sql = procedure + '(';
-	for (const key in argObj) {
-		const value = argObj[key];
+	_.forEach(argObj, (value, key) => {
 		const parameterName = 'p' + (index + 1).toString();
 
 		// prepend the separator, if this is not the first argument
@@ -109,7 +112,7 @@ async function getFixArgsPara(procedure: string, argObj: Object, database: Datab
 		} else if (typeof value === 'string') {
 			bind[parameterName].val = value;
 		}
-	}
+	});
 	sql += ');';
 
 	return Promise.resolve({
@@ -121,7 +124,7 @@ async function getFixArgsPara(procedure: string, argObj: Object, database: Datab
 /*
 *	Run the procedure where "procStatement" is the sql statement to execute and "procBindings" are the additional bindings to be added.
 */
-async function executeProcedure(code: {sql: string, bind: oracledb$bindingType}, cgiObj: Object, options: oracleExpressMiddleware$options, database: Database): Promise<string> {
+async function executeProcedure(para: {sql: string, bind: oracledb$bindingType}, cgiObj: Object, options: oracleExpressMiddleware$options, database: Database): Promise<string> {
 	debug('executeProcedure: start');
 
 	const HTBUF_LEN = 63;
@@ -156,10 +159,10 @@ async function executeProcedure(code: {sql: string, bind: oracledb$bindingType},
 
 	// execute the procedure
 	sql.push('BEGIN');
-	sql.push('   ' + code.sql);
+	sql.push('   ' + para.sql);
 	sql.push('EXCEPTION');
 	sql.push('   WHEN OTHERS THEN');
-	sql.push('      raise_application_error(-20000, \'Error executing ' + code.sql + '\'||CHR(10)||SUBSTR(dbms_utility.format_error_stack()||CHR(10)||dbms_utility.format_error_backtrace(), 1, 2000));');
+	sql.push('      raise_application_error(-20000, \'Error executing ' + para.sql + '\'||CHR(10)||SUBSTR(dbms_utility.format_error_stack()||CHR(10)||dbms_utility.format_error_backtrace(), 1, 2000));');
 	sql.push('END;');
 
 	// retrieve the page
@@ -171,7 +174,7 @@ async function executeProcedure(code: {sql: string, bind: oracledb$bindingType},
 	sql.push('END;');
 
 	// execute procedure and retrieve page
-	const result = await database.execute(sql.join('\n'), Object.assign(bind, code.bind));
+	const result = await database.execute(sql.join('\n'), Object.assign(bind, para.bind));
 
 	// Make sure that we have retrieved all the rows
 	if (result.outBinds.irows > MAX_IROWS) {

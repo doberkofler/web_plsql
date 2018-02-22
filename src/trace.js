@@ -1,5 +1,9 @@
 // @flow
 
+/*
+*	Trace utilities
+*/
+
 const util = require('util');
 const _ = require('lodash');
 

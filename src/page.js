@@ -1,188 +1,147 @@
-'use strict';
+// @flow
 
-/**
-* Module dependencies.
+/*
+*	Page the raw page content and return the content to the client
 */
 
-const debug = require('debug')('node_plsql:parse');
-const _ = require('underscore');
-const log = require('./log');
+const debug = require('debug')('oracleExpressMiddleware:page');
+const _ = require('lodash');
+
+import type {oracleExpressMiddleware$options} from './index';
 
 /**
-* Parse the text returned by the PL/SQL procedure
+*	Parse the text returned by Oracle and send it back to the client
 *
-* @param {String} text - The text returned from the PL/SQL procedure
-* @return {Object} An object with the parsed components: body, headers, cookies
-* @api public
+* @param {$Request} req - The req object represents the HTTP request.
+* @param {$Response} res - The res object represents the HTTP response that an Express app sends when it gets an HTTP request.
+* @param {oracleExpressMiddleware$options} options - the options for the middleware.
+* @param {string} text - The text returned from the PL/SQL procedure.
 */
-function parseContent(text) {
-	let headerAndBody,
-		message;
+function parseAndSend(req: $Request, res: $Response, options: oracleExpressMiddleware$options, text: string): void {
+	debug('parseAndSend: start');
 
-	// debug
-	debug('parseContent');
+	// parse the content
+	const message = parse(text);
 
-	// validate
-	if (arguments.length !== 1 || typeof text !== 'string') {
-		log.exit(new Error('invalid arguments'));
+	// add "Server" header
+	//	TODO	message.head.Server = cgiObj.SERVER_SOFTWARE;
+
+	// Send the "cookies"
+	message.head.cookies.forEach((cookie) => {
+		res.cookie(cookie.name, cookie.value, _.omit(cookie, ['name', 'value']));
+	});
+
+	// Is the a "redirectLocation" header
+	if (typeof message.head.redirectLocation === 'string' && message.head.redirectLocation.length > 0) {
+		res.redirect(302, message.head.redirectLocation);
+		return;
 	}
 
-	// separate header and body
-	headerAndBody = _getHeaderAndBody(text);
+	// Is the a "contentType" header
+	if (typeof message.head.contentType === 'string' && message.head.contentType.length > 0) {
+		res.set('Content-Type', message.head.contentType);
+	}
 
-	// parse the header
-	message = _parseHeader(headerAndBody.header);
-	message.body = headerAndBody.body;
+	// Iterate over the headers object
+	_.each(message.head.otherHeaders, (value, key) => {
+		res.set(key, value);
+	});
 
-	return message;
+	// Process the body
+	if (typeof message.body === 'string' && message.body.length > 0) {
+		res.send(message.body);
+	}
 }
 
 /*
-
-/**
-* Parse the text returned by the procedure and separate header and body
-* @param {String} text - An http page
-* @return {Object} An object with a header and body property
-* @api private
+*	Parse the header and split it up into the individual components
 */
-function _getHeaderAndBody(text) {
-	let obj = {
-		header: '',
-		body: ''
+function parse(text: string) {
+	const page = {
+		body: '',
+		head: {
+			cookies: [],
+			contentType: '',
+			contentLength: '',
+			statusCode: 0,
+			statusDescription: '',
+			redirectLocation: '',
+			otherHeaders: {}
+		}
 	};
-	let headerEndPosition;
-
-	if (typeof text !== 'string' || text.length === 0) {
-		return obj;
-	}
 
 	// Split up the text in header and body
-	if (_containsHttpHeader(text)) {
+	let head = '';
+	if (containsHttpHeader(text)) {
 		// Find the end of the header identified by \n\n
-		headerEndPosition = text.indexOf('\n\n');
+		let headerEndPosition = text.indexOf('\n\n');
 
 		// If we find no end of header marker, we only received a header without actual body
 		if (headerEndPosition === -1) {
-			obj.header = text;
+			head = text;
 		} else {
 			headerEndPosition += 2;
-			obj.header = text.substring(0, headerEndPosition);
-			obj.body = text.substring(headerEndPosition);
+			head = text.substring(0, headerEndPosition);
+			page.body = text.substring(headerEndPosition);
 		}
 	} else {
-		obj.body = text;
+		page.body = text;
 	}
 
-	return obj;
-}
-
-/**
-* Parse the header and split it up into the individual components
-*
-* @param {String} text - The http header as text
-* @return {Object} An object with the parsed components: body, headers, cookies
-* @api private
-*/
-function _parseHeader(text) {
-	let message = {
-			redirectLocation: null,
-			contentType: null,
-			contentLength: null,
-			statusCode: null,
-			statusDescription: null,
-			headers: {},
-			cookies: []
-		},
-		headerLines,
-		headerLine,
-		cookie,
-		index,
-		s,
-		t,
-		i;
-
-	if (typeof text !== 'string' || text.length === 0) {
-		return message;
-	}
-
-	// split the header text into lines
-	headerLines = text.split('\n');
-
-	// parse the individual header lines
-	for (i = 0; i < headerLines.length; i++) {
-		headerLine = headerLines[i];
-
+	// parse the headers
+	head.split('\n').forEach((headerLine) => {
 		// Set-Cookie
 		if (headerLine.indexOf('Set-Cookie: ') === 0) {
-			cookie = _parseCookie(headerLine.substr(12));
+			const cookie = parseCookie(headerLine.substr(12));
 			if (cookie) {
-				message.cookies.push(cookie);
+				page.head.cookies.push(cookie);
 			}
 
 		// Content-type
 		} else if (headerLine.indexOf('Content-type: ') === 0) {
-			message.contentType = headerLine.substr(14);
+			page.head.contentType = headerLine.substr(14);
 
 		// X-DB-Content-length
 		} else if (headerLine.indexOf('X-DB-Content-length: ') === 0) {
-			message.contentLength = parseInt(headerLine.substr(21), 10);
+			page.head.contentLength = headerLine.substr(21);
 
 		// Status
 		} else if (headerLine.indexOf('Status: ') === 0) {
-			s = headerLine.substr(8);
-			t = s.split(' ')[0];
-			message.statusCode = parseInt(t, 10);
-			message.statusDescription = s.substr(t.length + 1);
+			const s = headerLine.substr(8);
+			const t = s.split(' ')[0];
+			page.head.statusCode = parseInt(t, 10);
+			page.head.statusDescription = s.substr(t.length + 1);
 
 		// Location
 		} else if (headerLine.indexOf('Location: ') === 0) {
-			message.redirectLocation = headerLine.substr(10);
+			page.head.redirectLocation = headerLine.substr(10);
 
 		// Other headers
 		} else {
-			index = headerLine.indexOf(':');
-			debug('index=' + index + ' headerLine=' + headerLine);
+			const index = headerLine.indexOf(':');
 			if (index !== -1) {
-				message.headers[headerLine.substr(0, index)] = headerLine.substr(index + 2);
+				page.head.otherHeaders[headerLine.substr(0, index)] = headerLine.substr(index + 2);
 			}
 		}
-	}
+	});
 
-	return message;
+	return page;
 }
 
-/**
-* Does the body contain a HTTP header
-* @param {String} text - A body
-* @return {Boolean} true if the body constains an HTTP header
-* @api private
+/*
+*	Does the body contain a HTTP header
 */
-function _containsHttpHeader(text) {
-	let t = text.toUpperCase();
+function containsHttpHeader(text: string): boolean {
+	const t = text.toUpperCase();
 
 	return (t.indexOf('CONTENT-TYPE: ') !== -1 || t.indexOf('SET-COOKIE: ') !== -1 || t.indexOf('LOCATION: ') !== -1 || t.indexOf('STATUS: ') !== -1 || t.indexOf('X-DB-CONTENT-LENGTH: ') !== -1 || t.indexOf('WWW-AUTHENTICATE: ') !== -1);
 }
 
-/**
-* Parses a cookie string
-* @param {String} text - String containing a cookie
-* @return {Object} An object representing the cookie
-* @api private
+/*
+*	Parses a cookie string
 */
-function _parseCookie(text) {
-	let Undefined,
-		cookieElements,
-		index,
-		cookie = {};
-
-	function tryDecodeDate(str) {
-		try {
-			return new Date(str);
-		} catch (err) {
-			/* istanbul ignore next */
-			return null;
-		}
-	}
+function parseCookie(text: string) {
+	let Undefined;
 
 	// validate
 	if (typeof text !== 'string' || text.trim().length === 0) {
@@ -190,19 +149,18 @@ function _parseCookie(text) {
 	}
 
 	// split the cookie into it's parts
-	cookieElements = text.split(';');
+	let cookieElements = text.split(';');
 
 	// trim cookie elements
-	cookieElements = _.map(cookieElements, function (element) {
-		return element.trim();
-	});
+	cookieElements = cookieElements.map((element) => element.trim());
 
 	// get name and value
-	index = cookieElements[0].indexOf('=');
+	const index = cookieElements[0].indexOf('=');
 	if (index <= 0) {
 		// if the index is -1, there is no equal sign and if it's 0 the name is empty
 		return Undefined;
 	}
+	const cookie = {};
 	cookie.name = cookieElements[0].substring(0, index).trim();
 	cookie.value = cookieElements[0].substring(index + 1).trim();
 
@@ -210,7 +168,7 @@ function _parseCookie(text) {
 	cookieElements.shift();
 
 	// get the other options
-	_.each(cookieElements, function (element) {
+	cookieElements.forEach((element) => {
 		if (element.indexOf('path=') === 0) {
 			cookie.path = element.substring(5);
 		} else if (element.toLowerCase().indexOf('domain=') === 0) {
@@ -218,8 +176,7 @@ function _parseCookie(text) {
 		} else if (element.toLowerCase().indexOf('secure=') === 0) {
 			cookie.secure = element.substring(7);
 		} else if (element.toLowerCase().indexOf('expires=') === 0) {
-			let date = tryDecodeDate(element.substring(8));
-			/* istanbul ignore else */
+			const date = tryDecodeDate(element.substring(8));
 			if (date) {
 				cookie.expires = date;
 			}
@@ -231,6 +188,15 @@ function _parseCookie(text) {
 	return cookie;
 }
 
-module.exports = {
-	parseContent: parseContent
-};
+/*
+*	Decode a date
+*/
+function tryDecodeDate(value: string): Date | null {
+	try {
+		return new Date(value);
+	} catch (err) {
+		return null;
+	}
+}
+
+module.exports = parseAndSend;

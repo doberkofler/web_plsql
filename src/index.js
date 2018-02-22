@@ -1,43 +1,36 @@
 // @flow
 
-//const debug = require('debug')('index');
+/*
+*	Express middleware for Oracle PL/SQL
+*/
+
+const debug = require('debug')('oracleExpressMiddleware');
 const Database = require('./database');
+const processRequest = require('./request');
 const error = require('./error');
 
 type $NextFunction = () => void;
-type PlSqlMiddleware$options = {
-	user: string,
-	password: string,
-	connectString: string
+export type oracleExpressMiddleware$options = {
+	oracleUser: string,
+	oraclePassword: string,
+	oracleConnection: string,
+	doctable: string
 };
 
 process.on('unhandledRejection', (reason, p) => {
-	console.log('Unhandled Rejection: ', reason);
+	debug('Unhandled Rejection: ', reason);
 	error(p);
 });
 
-const database = new Database();
+module.exports = function (options: oracleExpressMiddleware$options) {
+	debug('oracleExpressMiddleware: initialized');
+	const database = new Database();
 
-module.exports = function (options: PlSqlMiddleware$options) {
 	return function (req: $Request, res: $Response, next: $NextFunction) {
-		middleware(req, res, next, options);
+		processRequest(req, res, options, database).then(() => {
+			next();
+		}).catch(() => {
+			next();
+		});
 	};
 };
-
-async function middleware(req: $Request, res: $Response, next: $NextFunction, options: PlSqlMiddleware$options) {
-	if (req.method === 'GET') {
-		try {
-			await database.open(options.user, options.password, options.connectString);
-
-			const result = await database.execute('SELECT SYSDATE FROM DUAL', []);
-
-			res.send(`Current date and time: "${result.rows[0][0]}"`);
-
-			await database.close();
-		} catch (err) {
-			error(err);
-		}
-	} else {
-		next();
-	}
-}

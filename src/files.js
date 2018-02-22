@@ -1,5 +1,9 @@
 // @flow
 
+/*
+*	Process file uploads
+*/
+
 const debug = require('debug')('oracleExpressMiddleware:files');
 const _ = require('lodash');
 const path = require('path');
@@ -73,7 +77,7 @@ function uploadFiles(files: filesUploadType, docTableName: string, database: Dat
 *	Upload the given file and return a promise.
 */
 async function uploadFile(file: fileUploadType, docTableName: string, database: Database): Promise<void> {
-	debug('uploadFile', file);
+	debug(`uploadFile: "${file.physicalFilename}"`);
 
 	const sql = `INSERT INTO ${docTableName} (name, mime_type, doc_size, dad_charset, last_updated, content_type, blob_content) VALUES (:name, :mime_type, :doc_size, 'ascii', SYSDATE, 'BLOB', EMPTY_BLOB()) RETURNING blob_content INTO :lobbv`;
 	const bind = {
