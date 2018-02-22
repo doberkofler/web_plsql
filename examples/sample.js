@@ -1,3 +1,4 @@
+const path = require('path');
 const express = require('express');
 const bodyParser = require('body-parser');
 const multipart = require('connect-multiparty');
@@ -18,6 +19,9 @@ const myPath = '/base';
 // create express app
 console.log('Starting the Oracle PL/SQL Express Middleware example...');
 const app = express();
+
+// serving static files
+app.use('/static', express.static(path.join(process.cwd(), 'examples/static')));
 
 // add middleware
 app.use(multipart());

@@ -7,7 +7,7 @@ PROCEDURE closePage;
 PROCEDURE pageIndex(p IN VARCHAR2 DEFAULT NULL)
 IS
 BEGIN
-	openPage('NODE-PLSQL SERVER - Index Page');
+	openPage('web_plsql - Index Page');
 	htp.p('<ul>');
 	htp.p('<li><a href="sample.pageSimple?text=some-text">Simple page</a></li>');
 	htp.p('<li><a href="sample.pageTable?text=some-text">Simple page with a PL/SQL table argument</a></li>');
@@ -27,7 +27,7 @@ END pageIndex;
 PROCEDURE pageSimple(text IN VARCHAR2 DEFAULT NULL)
 IS
 BEGIN
-	openPage('NODE-PLSQL SERVER - Simple page');
+	openPage('web_plsql - Simple page');
 	htp.p('<p>'||text||'</p>');
 	closePage();
 END pageSimple;
@@ -35,7 +35,7 @@ END pageSimple;
 PROCEDURE pageTable(text IN vc_arr DEFAULT empty_vc_arr)
 IS
 BEGIN
-	openPage('NODE-PLSQL SERVER - Simple page with a PL/SQL table argument');
+	openPage('web_plsql - Simple page with a PL/SQL table argument');
 	htp.p('<table>');
 	htp.p('<tr><th>value</th></tr>');
 	FOR i IN 1 .. text.COUNT LOOP
@@ -48,7 +48,7 @@ END pageTable;
 PROCEDURE pageArray(text IN vc_arr DEFAULT empty_vc_arr)
 IS
 BEGIN
-	openPage('NODE-PLSQL SERVER - Array parameter passing');
+	openPage('web_plsql - Array parameter passing');
 	htp.p('<table>');
 	htp.p('<tr><th>value</th></tr>');
 	FOR i IN 1 .. text.COUNT LOOP
@@ -61,7 +61,7 @@ END pageArray;
 PROCEDURE pageFlexible(name_array IN owa.vc_arr, value_array IN owa.vc_arr)
 IS
 BEGIN
-	openPage('NODE-PLSQL SERVER - Flexible parameter passing');
+	openPage('web_plsql - Flexible parameter passing');
 	htp.p('<table>');
 	htp.p('<tr><th>name</th><th>value</th></tr>');
 	FOR i IN 1 .. name_array.COUNT LOOP
@@ -74,7 +74,7 @@ END pageFlexible;
 PROCEDURE pageCGI
 IS
 BEGIN
-	openPage('NODE-PLSQL SERVER - CGI');
+	openPage('web_plsql - CGI');
 	htp.p('<table>');
 	htp.p('<tr><th>name</th><th>value</th></tr>');
 	FOR i IN 1 .. owa.num_cgi_vars LOOP
@@ -96,7 +96,7 @@ BEGIN
 	owa_cookie.send('demoCookie', TO_CHAR(SYSDATE, 'YYYY.MM.DD HH24:MI:SS'));
 	owa_util.http_header_close;
 
-	openPage('NODE-PLSQL SERVER - Cookies');
+	openPage('web_plsql - Cookies');
 	htp.p('<table>');
 	htp.p('<tr><th>name</th><th>value</th></tr>');
 	FOR i IN 1 .. num_vals LOOP
@@ -109,7 +109,7 @@ END pageCookie;
 PROCEDURE pageForm
 IS
 BEGIN
-	openPage('NODE-PLSQL SERVER - Form');
+	openPage('web_plsql - Form');
 	htp.p('<form method="POST" action="sample.pageFormProcess">');
 	htp.p('<table>');
 	htp.p('<tr><td>First name:</td><td><input type="text" name="firstname"></td></tr>');
@@ -133,7 +133,7 @@ IS
 		htp.p('<tr><th>'||name||'</th><td>'||value||'</td></tr>');
 	END line;
 BEGIN
-	openPage('NODE-PLSQL SERVER - Form processed');
+	openPage('web_plsql - Form processed');
 	htp.p('<table>');
 	line('firstname', firstname);
 	line('lastname', lastname);
@@ -149,7 +149,7 @@ END pageFormProcess;
 PROCEDURE pageFileUpload
 IS
 BEGIN
-	openPage('NODE-PLSQL SERVER - File upload');
+	openPage('web_plsql - File upload');
 	htp.p('<form enctype="multipart/form-data" method="POST" action="!sample.pageFileUploaded">');
 	htp.p('<p>File 1: <input type="file" name="file1" id="file1" /></p>');
 	htp.p('<p>File 2: <input type="file" name="file2" id="file2" /></p>');
@@ -161,7 +161,7 @@ END pageFileUpload;
 PROCEDURE pageFileUploaded(name_array IN owa.vc_arr, value_array IN owa.vc_arr)
 IS
 BEGIN
-	openPage('NODE-PLSQL SERVER - File uploaded');
+	openPage('web_plsql - File uploaded');
 	htp.p('<table>');
 	htp.p('<tr><th>name</th><th>value</th></tr>');
 	FOR i IN 1 .. name_array.COUNT LOOP
@@ -176,7 +176,7 @@ IS
 	MINUTES		CONSTANT	PLS_INTEGER	:=	TRUNC(secs / 60, 0);
 	SECONDS		CONSTANT	PLS_INTEGER	:=	secs - MINUTES * 60;
 BEGIN
-	openPage('NODE-PLSQL SERVER - Blocking');
+	openPage('web_plsql - Blocking');
 
 	htp.p('<div id="countdown"></div>');
 
@@ -228,7 +228,7 @@ IS
 BEGIN
 	dbms_lock.sleep(secs);
 
-	openPage('NODE-PLSQL SERVER - Blocking');
+	openPage('web_plsql - Blocking');
 	htp.p('<p>This page has been blocking for "'||secs||'" seconds.</p>');
 	closePage();
 END pageDoesBlock;
@@ -245,7 +245,7 @@ END pageRedirect;
 PROCEDURE pageLocation
 IS
 BEGIN
-	openPage('NODE-PLSQL SERVER - pageLocation');
+	openPage('web_plsql - pageLocation');
 	htp.p('<script>self.top.location.replace("sample.pageOther");</script>');
 	closePage();
 END pageLocation;
@@ -253,22 +253,30 @@ END pageLocation;
 PROCEDURE pageOther
 IS
 BEGIN
-	openPage('NODE-PLSQL SERVER - Other page');
+	openPage('web_plsql - Other page');
 	closePage();
 END pageOther;
 
 PROCEDURE openPage(title IN VARCHAR2)
 IS
 BEGIN
-	htp.p('<html><head><title>'||title||'</title></head><body><h1>'||title||'</h1>');
-	htp.p('<p>'||TO_CHAR(SYSDATE, 'YYYY.MM.DD HH24:MI:SS')||'</p>');
+	htp.p('<!DOCTYPE html>');
+	htp.p('<html>');
+	htp.p('<head>');
+	htp.p('<title>'||title||'</title>');
+	htp.p('<meta charset="utf-8">');
+	htp.p('<link rel="stylesheet" type="text/css" href="/static/sample.css" />');
+	htp.p('</head>');
+	htp.p('<body>');
+	htp.p('<h1>'||title||'</h1>');
 	htp.p('<p><a href="sample.pageIndex">Menu</a></p>');
 END openPage;
 
 PROCEDURE closePage
 IS
 BEGIN
-	htp.p('</body></html>');
+	htp.p('</body>');
+	htp.p('</html>');
 END closePage;
 
 END sample;
