@@ -1,9 +1,8 @@
 {
-  "name": "oracleExpressMiddleware",
-  "author": "Dieter Oberkofler <doberkofler.github@gmail.com>",
+  "name": "web_plsql",
+  "author": "Dieter Oberkofler <dieter.oberkofler@gmail.com>",
   "description": "The Express Middleware for Oracle PL/SQL",
   "keywords": [
-    "nodejs",
     "node",
     "nodejs",
     "express",
@@ -12,10 +11,11 @@
     "plsql",
     "pl/sql",
     "oracle",
+    "ohs",
     "ords",
     "apex"
   ],
-  "homepage": "https://github.com/doberkofler/oracleExpressMiddleware",
+  "homepage": "https://github.com/doberkofler/web_plsql",
   "license": "MIT",
   "engines": {
     "node": ">=8"
@@ -27,22 +27,21 @@
     }
   ],
   "bugs": {
-    "url": "https://github.com/doberkofler/oracleExpressMiddleware/issues"
+    "url": "https://github.com/doberkofler/web_plsql/issues"
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/doberkofler/oracleExpressMiddleware.git"
+    "url": "git://github.com/doberkofler/web_plsql.git"
   },
   "version": "0.0.1",
   "scripts": {
-    "build": "npm run clean && mkdirp dist && babel --out-dir=./dist ./src ./tests",
     "clean": "rimraf dist",
-    "flow": "flow check --show-all-errors",
+    "build": "npm run clean && mkdirp dist && babel --out-dir=./dist ./src ./examples",
     "flow-typed": "flow-typed install",
-    "lint": "eslint ./src",
+    "lint": "eslint --report-unused-disable-directives ./src ./examples && flow check --show-all-errors",
     "test": "npm run clean && npm run build && mocha",
     "run-watch": "nodemon --watch ./dist ./dist/test.js",
-    "build-watch": "npm run clean && mkdirp dist && babel --source-maps --watch --out-dir=./dist ./src ./tests"
+    "build-watch": "babel --source-maps --watch --out-dir=./dist ./src ./examples"
   },
   "dependencies": {
     "babel-polyfill": "^6.23.0",
