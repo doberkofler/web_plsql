@@ -211,7 +211,7 @@
 
         // ECMAScript 6
         "arrow-body-style": ["warn", "as-needed"],
-        "arrow-parens": ["warn", "always"],
+        "arrow-parens": ["warn", "as-needed"],
         "arrow-spacing": ["warn", {"before": true, "after": true}],
         "constructor-super": "error",
         "generator-star-spacing": ["warn", {"before": true, "after": false}],

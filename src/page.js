@@ -4,7 +4,7 @@
 *	Page the raw page content and return the content to the client
 */
 
-const debug = require('debug')('oracleExpressMiddleware:page');
+const debug = require('debug')('web_plsql:page');
 const _ = require('lodash');
 
 import type {oracleExpressMiddleware$options} from './index';
@@ -27,7 +27,7 @@ function parseAndSend(req: $Request, res: $Response, options: oracleExpressMiddl
 	//	TODO	message.head.Server = cgiObj.SERVER_SOFTWARE;
 
 	// Send the "cookies"
-	message.head.cookies.forEach((cookie) => {
+	message.head.cookies.forEach(cookie => {
 		res.cookie(cookie.name, cookie.value, _.omit(cookie, ['name', 'value']));
 	});
 
@@ -89,7 +89,7 @@ function parse(text: string) {
 	}
 
 	// parse the headers
-	head.split('\n').forEach((headerLine) => {
+	head.split('\n').forEach(headerLine => {
 		// Set-Cookie
 		if (headerLine.indexOf('Set-Cookie: ') === 0) {
 			const cookie = parseCookie(headerLine.substr(12));
@@ -152,7 +152,7 @@ function parseCookie(text: string) {
 	let cookieElements = text.split(';');
 
 	// trim cookie elements
-	cookieElements = cookieElements.map((element) => element.trim());
+	cookieElements = cookieElements.map(element => element.trim());
 
 	// get name and value
 	const index = cookieElements[0].indexOf('=');
@@ -168,7 +168,7 @@ function parseCookie(text: string) {
 	cookieElements.shift();
 
 	// get the other options
-	cookieElements.forEach((element) => {
+	cookieElements.forEach(element => {
 		if (element.indexOf('path=') === 0) {
 			cookie.path = element.substring(5);
 		} else if (element.toLowerCase().indexOf('domain=') === 0) {

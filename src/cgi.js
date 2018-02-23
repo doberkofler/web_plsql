@@ -4,7 +4,7 @@
 *	Prepare the CGI information
 */
 
-const debug = require('debug')('oracleExpressMiddleware:cgi');
+const debug = require('debug')('web_plsql:cgi');
 const os = require('os');
 
 /**

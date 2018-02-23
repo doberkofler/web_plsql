@@ -4,8 +4,7 @@
 *	Process file uploads
 */
 
-const debug = require('debug')('oracleExpressMiddleware:files');
-const _ = require('lodash');
+const debug = require('debug')('web_plsql:files');
 const path = require('path');
 const fs = require('fs');
 const Database = require('./database');
@@ -38,8 +37,11 @@ function getFiles(req: $Request): filesUploadType {
 		return files;
 	}
 
-	_.forEach(req.files, (file) => {
-		if (file.originalFilename && file.originalFilename.length > 0) {
+	// process the files
+	for (const key in req.files) {
+		const file = req.files[key];
+
+		if (typeof file.originalFilename === 'string' && file.originalFilename.length > 0) {
 			// get a temporary filename
 			const filename = getRandomizedFilename(file.originalFilename);
 
@@ -56,7 +58,7 @@ function getFiles(req: $Request): filesUploadType {
 				size: file.size
 			});
 		}
-	});
+	}
 
 	return files;
 }
@@ -70,14 +72,18 @@ function getFiles(req: $Request): filesUploadType {
 * @returns {Promise<void>} - Promise that resolves when the request has been fullfilled.
 */
 function uploadFiles(files: filesUploadType, docTableName: string, database: Database) {
-	return Promise.all(files.map((file) => uploadFile(file, docTableName, database)));
+	return Promise.all(files.map(file => uploadFile(file, docTableName, database)));
 }
 
 /*
 *	Upload the given file and return a promise.
 */
 async function uploadFile(file: fileUploadType, docTableName: string, database: Database): Promise<void> {
-	debug(`uploadFile: "${file.physicalFilename}"`);
+	debug(`uploadFile: insert "${file.physicalFilename}" into "${docTableName}"`);
+
+	if (typeof docTableName !== 'string' || docTableName.length === 0) {
+		throw new Error('The option "docTableName" has not been defined or the name is empty');
+	}
 
 	const sql = `INSERT INTO ${docTableName} (name, mime_type, doc_size, dad_charset, last_updated, content_type, blob_content) VALUES (:name, :mime_type, :doc_size, 'ascii', SYSDATE, 'BLOB', EMPTY_BLOB()) RETURNING blob_content INTO :lobbv`;
 	const bind = {
@@ -105,7 +111,7 @@ async function uploadFile(file: fileUploadType, docTableName: string, database: 
 	});
 
 	const inStream = fs.createReadStream(file.physicalFilename);
-	inStream.on('error', (err) => {
+	inStream.on('error', err => {
 		throw new Error('inStream.on "error" event: ' + err.message);
 	});
 

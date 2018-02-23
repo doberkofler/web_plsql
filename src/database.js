@@ -4,7 +4,7 @@
 *	Oracle databse interface
 */
 
-const debug = require('debug')('oracleExpressMiddleware:database');
+const debug = require('debug')('web_plsql:database');
 const fs = require('fs');
 const util = require('util');
 const oracledb = require('oracledb');
@@ -72,18 +72,16 @@ class Database {
 	* @param {string} sql - A sql statement
 	* @param {oracledb$bindingType} [bind={}] - An object containing the bindings for the statement
 	* @param {Object} [options={}] - An object containing the options for the statement
-	* @returns {Promise<void>} Promise
+	* @returns {Promise<*>} Promise
 	*/
-	execute(sql: string, bind?: oracledb$bindingType = {}, options?: Object = {}): Promise<*> {
+	execute(sql: string, bind: oracledb$bindingType = {}, options: Object = {}): Promise<*> {
 		debug('execute "' + sql + '"', bind);
 
-		const that = this;
-
-		if (that._connection === null) {
+		if (!this._connection) {
 			return Promise.reject(new Error('the connection has not been opened'));
 		}
 
-		return that._connection.execute(sql, bind, options);
+		return this._connection.execute(sql, bind, options);
 	}
 
 	/**
@@ -115,7 +113,7 @@ class Database {
 		debug('installScripts', util.inspect(scriptFileNames, {showHidden: false, depth: null, colors: true}));
 
 		return new Promise((resolve, reject) => {
-			scriptFileNames.forEach(async (filename) => {
+			scriptFileNames.forEach(async filename => {
 				debug(`Process file "${filename}"...`);
 
 				try {

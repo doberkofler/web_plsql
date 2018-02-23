@@ -4,7 +4,7 @@
 *	Process the http request
 */
 
-const debug = require('debug')('oracleExpressMiddleware:request');
+const debug = require('debug')('web_plsql:request');
 const util = require('util');
 const _ = require('lodash');
 const trace = require('./trace');
@@ -69,12 +69,21 @@ async function executeRequest(req: $Request, res: $Response, options: oracleExpr
 	const cgiObj = getCGI(req);
 	debug('executeRequest: cgiObj', cgiObj);
 
+	// Add the query properties
+	let argObj = _.assignIn({}, req.query);
+
 	// Does the request contain any files
 	const filesToUpload = files.getFiles(req);
 	debug('executeRequest: filesToUpload', filesToUpload);
 
+	// Add the files to the arguments
+	filesToUpload.reduce((aggregator, file) => {
+		aggregator[file.fieldValue] = file.filename;
+		return aggregator;
+	}, argObj);
+
 	// Does the request contain a body
-	const argObj = _.assign(req.query, normalizeBody(req.body));
+	argObj = _.assignIn(argObj, normalizeBody(req.body));
 
 	// do we have a procedure to execute
 	if (typeof req.params.name === 'string' && req.params.name.length > 0) {
@@ -109,8 +118,8 @@ function normalizeBody(body: any): Object {
 /*
 *	Is the given value a string or an array of strings
 */
-function isStringOrArrayOfString(obj: any): boolean {
-	return typeof obj === 'string' || (Array.isArray(obj) && _.every(obj, (element) => typeof element === 'string'));
+function isStringOrArrayOfString(value: any): boolean {
+	return typeof value === 'string' || (Array.isArray(value) && value.every(element => typeof element === 'string'));
 }
 
 module.exports = processRequest;

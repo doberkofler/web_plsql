@@ -4,3 +4,4 @@ node_modules
 original
 coverage
 /package-lock.json
+/access.log
