@@ -40,8 +40,8 @@
     "flow-typed": "flow-typed install",
     "lint": "eslint --report-unused-disable-directives ./src ./examples && flow check --show-all-errors",
     "test": "npm run clean && npm run build && mocha",
-    "run-watch": "nodemon --watch ./dist ./dist/sample.js -- --trace-warnings",
-    "build-watch": "babel --source-maps --watch --out-dir=./dist ./src ./examples"
+    "watch-run": "nodemon --watch ./dist ./dist/sample.js -- --trace-warnings",
+    "watch-build": "babel --source-maps --watch --out-dir=./dist ./src ./examples"
   },
   "dependencies": {
     "babel-polyfill": "^6.23.0",
@@ -73,6 +73,6 @@
     "rimraf": "^2.6.1"
   },
   "optionalDependencies": {
-    "oracledb": "2.0.15"
+    "oracledb": "^2.1.2"
   }
 }

@@ -78,46 +78,43 @@ function uploadFiles(files: filesUploadType, docTableName: string, database: Dat
 /*
 *	Upload the given file and return a promise.
 */
-async function uploadFile(file: fileUploadType, docTableName: string, database: Database): Promise<void> {
+function uploadFile(file: fileUploadType, docTableName: string, database: Database): Promise<void> {
 	debug(`uploadFile: insert "${file.physicalFilename}" into "${docTableName}"`);
 
-	if (typeof docTableName !== 'string' || docTableName.length === 0) {
-		throw new Error('The option "docTableName" has not been defined or the name is empty');
-	}
+	return new Promise((resolve, reject) => {
 
-	const sql = `INSERT INTO ${docTableName} (name, mime_type, doc_size, dad_charset, last_updated, content_type, blob_content) VALUES (:name, :mime_type, :doc_size, 'ascii', SYSDATE, 'BLOB', EMPTY_BLOB()) RETURNING blob_content INTO :lobbv`;
-	const bind = {
-		'name': file.fieldValue,
-		'mime_type': file.mimetype,
-		'doc_size': file.size,
-		'lobbv': {type: Database.BLOB, dir: Database.BIND_OUT}
-	};
+		if (typeof docTableName !== 'string' || docTableName.length === 0) {
+			reject(new Error('The option "docTableName" has not been defined or the name is empty'));
+		}
 
-	const result = await database.execute(sql, bind, {autoCommit: false});
+		let blobContent;
+		try {
+			blobContent = fs.readFileSync(file.physicalFilename);
+		} catch (e) {
+			reject(new Error(`Unable to read file "${file.physicalFilename}"\n` + e.toString()));
+			return;
+		}
 
-	if (result.rowsAffected !== 1 || result.outBinds.lobbv.length !== 1) {
-		throw new Error('Error getting a LOB locator');
-	}
+		const sql = `INSERT INTO ${docTableName} (name, mime_type, doc_size, dad_charset, last_updated, content_type, blob_content) VALUES (:name, :mime_type, :doc_size, 'ascii', SYSDATE, 'BLOB', :blob_content)`;
+		const bind = {
+			'name': file.fieldValue,
+			'mime_type': file.mimetype,
+			'doc_size': file.size,
+			'blob_content': blobContent
+		};
 
-	const lob = result.outBinds.lobbv[0];
+		database.execute(sql, bind, {autoCommit: true})
+			.then(result => {
+				if (result.rowsAffected !== 1) {
+					reject(new Error(`Invalid number of affected rows "${result.rowsAffected}"`));
+				} else {
+					resolve();
+				}
 
-	lob.on('error', function (err) {
-		throw new Error('lob.on "error" event: ' + err.message);
+			}).catch(e => {
+				reject(new Error(`Unable to insert file "${file.physicalFilename}"\n` + e.toString()));
+			});
 	});
-
-	lob.on('finish', async () => {
-		await database.commit();
-		Promise.resolve();
-	});
-
-	const inStream = fs.createReadStream(file.physicalFilename);
-	inStream.on('error', err => {
-		throw new Error('inStream.on "error" event: ' + err.message);
-	});
-
-	inStream.pipe(lob);  // copies the text to the BLOB
-
-	return Promise.resolve();
 }
 
 /*

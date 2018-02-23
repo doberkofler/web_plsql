@@ -16,7 +16,7 @@ type oracledb$bindingType = {
 		maxArraySize?: number,
 		maxSize?: number,
 		val?: mixed
-	} | string | number
+	} | string | number | Buffer
 };
 
 declare module 'oracledb' {
