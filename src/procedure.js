@@ -9,7 +9,7 @@ const _ = require('lodash');
 const Database = require('./database');
 const files = require('./files');
 
-import type {oracleExpressMiddleware$options} from './index';
+import type {oracleExpressMiddleware$options} from './config';
 import type {filesUploadType} from './files';
 
 /**

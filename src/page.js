@@ -7,7 +7,7 @@
 const debug = require('debug')('web_plsql:page');
 const _ = require('lodash');
 
-import type {oracleExpressMiddleware$options} from './index';
+import type {oracleExpressMiddleware$options} from './config';
 
 /**
 *	Parse the text returned by Oracle and send it back to the client

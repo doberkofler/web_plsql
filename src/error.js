@@ -4,21 +4,35 @@
 *	Error handling
 */
 
-const util = require('util');
+function getErrorMessage(msg: string, err?: Error): string {
+	// error message
+	let errorMessage = (typeof msg === 'string' && msg.length > 0) ? msg : '';
 
-function error(msg: string, err: mixed) {
-	if (err instanceof Error) {
-		msg += msg.length > 0 ? '\n' : '';
-		msg += err.toString() + '\n' + err.stack;
-	} else if (typeof err === 'string') {
-		error(msg, new Error(err));
-	} else {
-		error(msg, new Error(util.inspect(err)));
+	// stack trace
+	if (!(err instanceof Error)) {
+		err = new Error();
 	}
+	errorMessage += '\n' + err.toString() + '\n' + err.stack;
 
-	console.error(msg);
+	return errorMessage;
+}
+
+function errorPage(res: $Response, msg: string, err?: Error): void {
+	const errorMessage = getErrorMessage(msg, err);
+
+	console.error(errorMessage);
+
+	res.status(500).send(errorMessage);
+}
+
+function exit(msg: string, err?: Error): void {
+	console.error(getErrorMessage(msg, err));
 
 	process.exit(1);
 }
 
-module.exports = error;
+module.exports = {
+	getErrorMessage: getErrorMessage,
+	errorPage: errorPage,
+	exit: exit
+};

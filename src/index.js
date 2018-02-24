@@ -8,19 +8,14 @@ const debug = require('debug')('web_plsql:index');
 const Database = require('./database');
 const processRequest = require('./request');
 const config = require('./config');
+const trace = require('./trace');
 const error = require('./error');
 
+import type {oracleExpressMiddleware$options} from './config';
 type $NextFunction = () => void;
-export type oracleExpressMiddleware$options = {
-	oracleUser: string,
-	oraclePassword: string,
-	oracleConnection: string,
-	doctable: string
-};
 
 process.on('unhandledRejection', (reason, p) => {
-	debug('Unhandled Rejection: ', reason);
-	error(p);
+	error.exit(reason, p);
 });
 
 module.exports = function (options: oracleExpressMiddleware$options) {
@@ -33,10 +28,7 @@ module.exports = function (options: oracleExpressMiddleware$options) {
 	const database = new Database();
 
 	return function (req: $Request, res: $Response, next: $NextFunction) {
-		processRequest(req, res, options, database).then(() => {
-			next();
-		}).catch(() => {
-			next();
-		});
+		trace.trace('web_plsql middleware request\n' + trace.reqToString(req));
+		processRequest(req, res, options, database).then(next).catch(next);
 	};
 };

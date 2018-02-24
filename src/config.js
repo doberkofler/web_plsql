@@ -6,7 +6,13 @@
 
 const debug = require('debug')('web_plsql:config');
 
-import type {oracleExpressMiddleware$options} from './index';
+export type oracleExpressMiddleware$options = {
+	oracleUser: string,
+	oraclePassword: string,
+	oracleConnection: string,
+	doctable: string,
+	cgi?: {[string]: string}
+};
 
 function validate(options: oracleExpressMiddleware$options) {
 	debug('validate', options);
@@ -29,6 +35,14 @@ function validate(options: oracleExpressMiddleware$options) {
 
 	if (typeof options.doctable !== 'string' || options.doctable.length === 0) {
 		error('The option "doctable" must be of type string and cannot be empty');
+	}
+
+	if (typeof options.cgi === 'object') {
+		if (!Object.keys(options.cgi).every(key => typeof key === 'string') || !Object.values(options.cgi).every(value => typeof value === 'string')) {
+			error('The option "cgi" must be an object where all keys and values are of type string');
+		}
+	} else {
+		options.cgi = {};
 	}
 }
 

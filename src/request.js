@@ -7,7 +7,6 @@
 const debug = require('debug')('web_plsql:request');
 const util = require('util');
 const _ = require('lodash');
-const trace = require('./trace');
 const Database = require('./database');
 const invoke = require('./procedure');
 const getCGI = require('./cgi');
@@ -15,7 +14,7 @@ const files = require('./files');
 const parseAndSend = require('./page');
 const error = require('./error');
 
-import type {oracleExpressMiddleware$options} from './index';
+import type {oracleExpressMiddleware$options} from './config';
 
 /**
 * Process the request
@@ -33,21 +32,22 @@ async function processRequest(req: $Request, res: $Response, options: oracleExpr
 	try {
 		await database.open(options.oracleUser, options.oraclePassword, options.oracleConnection);
 	} catch (err) {
-		error('Unable to open database connection', err);
+		error.errorPage(res, 'Unable to open database connection', err);
+		return Promise.resolve();
 	}
 
 	// execute request
 	try {
 		await executeRequest(req, res, options, database);
 	} catch (err) {
-		error('Unable to execute request', err);
+		error.errorPage(res, 'Unable to execute request', err);
 	}
 
 	// close database connection
 	try {
 		await database.close();
 	} catch (err) {
-		error('Unable to close database connection', err);
+		error.errorPage(res, 'Unable to close database connection', err);
 	}
 
 	return Promise.resolve();
@@ -63,10 +63,10 @@ async function processRequest(req: $Request, res: $Response, options: oracleExpr
 * @returns {Promise<void>} - Promise resolving to th page
 */
 async function executeRequest(req: $Request, res: $Response, options: oracleExpressMiddleware$options, database: Database): Promise<void> {
-	debug('executeRequest: start', trace.traceReq(req));
+	debug('executeRequest: start');
 
 	// Get the CGI
-	const cgiObj = getCGI(req);
+	const cgiObj = getCGI(req, options);
 	debug('executeRequest: cgiObj', cgiObj);
 
 	// Add the query properties
@@ -107,7 +107,7 @@ function normalizeBody(body: any): Object {
 			if (isStringOrArrayOfString(value)) {
 				args[key] = value;
 			} else {
-				error(`The element "${key}" in the body is not a string or an array of strings!\n` + util.inspect(body, {showHidden: false, depth: null, colors: false}));
+				error.errorPage(`The element "${key}" in the body is not a string or an array of strings!\n` + util.inspect(body, {showHidden: false, depth: null, colors: false}));
 			}
 		});
 	}

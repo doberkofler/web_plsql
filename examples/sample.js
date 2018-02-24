@@ -13,14 +13,17 @@ const statusMonitor = require('express-status-monitor')();
 const oracleExpressMiddleware = require('../dist');
 
 // configuration
+const PORT = 8000;
+const PATH = '/base';
 const CONFIG = {
 	oracleUser: 'sample',
 	oraclePassword: 'sample',
 	oracleConnection: 'localhost:1521/TEST',
-	doctable: 'docTable'
+	doctable: 'docTable',
+	cgi: {
+		'DAD_NAME': PATH
+	}
 };
-const PORT = 8000;
-const PATH = '/base';
 
 // create express app
 console.log('Starting the Oracle PL/SQL Express Middleware example...');
