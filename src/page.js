@@ -5,7 +5,6 @@
 */
 
 const debug = require('debug')('web_plsql:page');
-const _ = require('lodash');
 
 import type {oracleExpressMiddleware$options} from './config';
 
@@ -17,7 +16,7 @@ import type {oracleExpressMiddleware$options} from './config';
 * @param {oracleExpressMiddleware$options} options - the options for the middleware.
 * @param {string} text - The text returned from the PL/SQL procedure.
 */
-function parseAndSend(req: $Request, res: $Response, options: oracleExpressMiddleware$options, text: string): void {
+module.exports = function parseAndSend(req: $Request, res: $Response, options: oracleExpressMiddleware$options, text: string): void {
 	debug('parseAndSend: start');
 
 	// parse the content
@@ -28,7 +27,13 @@ function parseAndSend(req: $Request, res: $Response, options: oracleExpressMiddl
 
 	// Send the "cookies"
 	message.head.cookies.forEach(cookie => {
-		res.cookie(cookie.name, cookie.value, _.omit(cookie, ['name', 'value']));
+		const name = cookie.name;
+		const value = cookie.value;
+
+		delete cookie.name;
+		delete cookie.value;
+
+		res.cookie(name, value, cookie);
 	});
 
 	// Is the a "redirectLocation" header
@@ -43,15 +48,15 @@ function parseAndSend(req: $Request, res: $Response, options: oracleExpressMiddl
 	}
 
 	// Iterate over the headers object
-	_.each(message.head.otherHeaders, (value, key) => {
-		res.set(key, value);
-	});
+	for (const key in message.head.otherHeaders) {
+		res.set(key, message.head.otherHeaders[key]);
+	}
 
 	// Process the body
 	if (typeof message.body === 'string' && message.body.length > 0) {
 		res.send(message.body);
 	}
-}
+};
 
 /*
 *	Parse the header and split it up into the individual components
@@ -198,5 +203,3 @@ function tryDecodeDate(value: string): Date | null {
 		return null;
 	}
 }
-
-module.exports = parseAndSend;

@@ -40,7 +40,8 @@
     "flow-typed": "flow-typed install",
     "lint": "eslint --report-unused-disable-directives ./src ./examples && flow check --show-all-errors",
     "test": "npm run clean && npm run build && mocha",
-    "watch-run": "nodemon --watch ./dist ./dist/sample.js -- --trace-warnings",
+    "watch-run": "nodemon --watch ./dist ./dist/sample.js",
+    "watch-run-lj": "nodemon --watch ./dist ./dist/lj.js",
     "watch-build": "babel --source-maps --watch --out-dir=./dist ./src ./examples"
   },
   "dependencies": {
@@ -53,9 +54,7 @@
     "cookie-parser": "^1.4.1",
     "debug": "^3.1.0",
     "express": "^4.16.2",
-    "express-status-monitor": "^1.0.1",
     "http-parser-js": "^0.4.10",
-    "lodash": "^4.17.5",
     "morgan": "^1.9.0"
   },
   "devDependencies": {
@@ -64,12 +63,12 @@
     "babel-plugin-transform-flow-strip-types": "^6.22.0",
     "babel-preset-env": "^1.6.1",
     "chai": "^4.1.2",
-    "eslint": "^4.18.1",
+    "eslint": "^4.18.2",
     "eslint-plugin-flowtype": "^2.46.1",
     "flow-bin": "^0.66.0",
     "flow-typed": "^2.3.0",
     "mocha": "^5.0.1",
-    "nodemon": "^1.15.1",
+    "nodemon": "^1.17.1",
     "rimraf": "^2.6.1"
   },
   "optionalDependencies": {

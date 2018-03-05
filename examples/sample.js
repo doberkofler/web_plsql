@@ -8,8 +8,6 @@ const multipart = require('connect-multiparty');
 const cookieParser = require('cookie-parser');
 const compression = require('compression');
 
-const statusMonitor = require('express-status-monitor')();
-
 const oracleExpressMiddleware = require('../dist');
 
 // configuration
@@ -50,9 +48,6 @@ app.use(PATH + '/:name?', oracleExpressMiddleware(CONFIG));
 app.route(PATH).get((req, res/*, next*/) => {
 	res.redirect(PATH + '/sample.pageIndex');
 });
-
-// status monitor
-app.use(statusMonitor);
 
 // listen on port
 console.log(`Waiting on http://localhost:${PORT}${PATH}`);

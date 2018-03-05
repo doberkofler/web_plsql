@@ -7,7 +7,6 @@
 const debug = require('debug')('web_plsql:files');
 const path = require('path');
 const fs = require('fs');
-const Database = require('./database');
 
 export type fileUploadType = {
 	fieldValue: string,
@@ -68,21 +67,20 @@ function getFiles(req: $Request): filesUploadType {
 *
 * @param {Array<string>} files - array of file path's.
 * @param {string} docTableName - name of the oracle table holding the uploaded files.
-* @param {Database} database - Database instance.
+* @param {oracledb$connection} databaseConnection - Database connection.
 * @returns {Promise<void>} - Promise that resolves when the request has been fullfilled.
 */
-function uploadFiles(files: filesUploadType, docTableName: string, database: Database) {
-	return Promise.all(files.map(file => uploadFile(file, docTableName, database)));
+function uploadFiles(files: filesUploadType, docTableName: string, databaseConnection: oracledb$connection) {
+	return Promise.all(files.map(file => uploadFile(file, docTableName, databaseConnection)));
 }
 
 /*
 *	Upload the given file and return a promise.
 */
-function uploadFile(file: fileUploadType, docTableName: string, database: Database): Promise<void> {
+function uploadFile(file: fileUploadType, docTableName: string, databaseConnection: oracledb$connection): Promise<void> {
 	debug(`uploadFile: insert "${file.physicalFilename}" into "${docTableName}"`);
 
 	return new Promise((resolve, reject) => {
-
 		if (typeof docTableName !== 'string' || docTableName.length === 0) {
 			reject(new Error('The option "docTableName" has not been defined or the name is empty'));
 		}
@@ -103,7 +101,7 @@ function uploadFile(file: fileUploadType, docTableName: string, database: Databa
 			'blob_content': blobContent
 		};
 
-		database.execute(sql, bind, {autoCommit: true})
+		databaseConnection.execute(sql, bind, {autoCommit: true})
 			.then(result => {
 				if (result.rowsAffected !== 1) {
 					reject(new Error(`Invalid number of affected rows "${result.rowsAffected}"`));

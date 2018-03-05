@@ -7,6 +7,7 @@
 const debug = require('debug')('web_plsql:cgi');
 const os = require('os');
 
+export type environmentType = {[string]: string};
 import type {oracleExpressMiddleware$options} from './config';
 
 /**
@@ -16,14 +17,14 @@ import type {oracleExpressMiddleware$options} from './config';
 * @param {oracleExpressMiddleware$options} options - the options for the middleware.
 * @returns {string} CGI object
 */
-module.exports = function getCGI(req: $Request, options: oracleExpressMiddleware$options) {
+module.exports = function getCGI(req: $Request, options: oracleExpressMiddleware$options): environmentType {
 	debug('getCGI: start');
 
 	const PROTOCOL = req.protocol ? req.protocol.toUpperCase() : '';
 	const CHARSET = 'UTF8';
 	const IANA_CHARSET = 'UTF-8';
 
-	const DEFAULT_CGI = {
+	const DEFAULT_CGI: environmentType = {
 		'PLSQL_GATEWAY': 'WebDb',
 		'GATEWAY_IVERSION': '2',
 		'SERVER_SOFTWARE': 'web_plsql',
@@ -55,11 +56,7 @@ module.exports = function getCGI(req: $Request, options: oracleExpressMiddleware
 		'SCRIPT_PREFIX': '/'
 	};
 
-	for (const key in options.cgi) {
-		DEFAULT_CGI[key] = options.cgi[key];
-	}
-
-	return DEFAULT_CGI;
+	return Object.assign(DEFAULT_CGI, options.cgi);
 };
 
 /*

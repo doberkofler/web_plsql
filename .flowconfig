@@ -1,11 +1,13 @@
+[ignore]
+./dist/.*
+./node_modules/.*
+./temp/.*
+
+[include]
+./src/.*
+
 [libs]
 ./interfaces
-
-[ignore]
-.*/dist/.*
-.*/doc/.*
-.*/node_modules/.*
-.*/original/.*
 
 [options]
 include_warnings=true

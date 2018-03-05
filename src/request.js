@@ -6,13 +6,11 @@
 
 const debug = require('debug')('web_plsql:request');
 const util = require('util');
-const _ = require('lodash');
-const Database = require('./database');
 const invoke = require('./procedure');
 const getCGI = require('./cgi');
 const files = require('./files');
 const parseAndSend = require('./page');
-const error = require('./error');
+const RequestError = require('./requestError');
 
 import type {oracleExpressMiddleware$options} from './config';
 
@@ -22,35 +20,39 @@ import type {oracleExpressMiddleware$options} from './config';
 * @param {$Request} req - The req object represents the HTTP request.
 * @param {$Response} res - The res object represents the HTTP response that an Express app sends when it gets an HTTP request.
 * @param {oracleExpressMiddleware$options} options - the options for the middleware.
-* @param {Database} database - Database instance.
-* @returns {Promise<void>} - Promise that resolves when the request has been fullfilled.
+* @param {Promise<oracledb$connectionpool>} databasePoolPromise - Promise returning a database pool.
+* returns {Promise<void>} - Promise that resolves when the request has been fullfilled.
 */
-async function processRequest(req: $Request, res: $Response, options: oracleExpressMiddleware$options, database: Database): Promise<void> {
+async function processRequest(req: $Request, res: $Response, options: oracleExpressMiddleware$options, databasePoolPromise: Promise<oracledb$connectionpool>): Promise<void> {
 	debug('processRequest: start');
+
+	let databasePool;
+	let databaseConnection;
+
+	// wait until the database pool has been allocated
+	try {
+		databasePool = await databasePoolPromise;
+	} catch (e) {
+		throw new RequestError(`Unable to create database pool.\n${e.message}`);
+	}
 
 	// open database connection
 	try {
-		await database.open(options.oracleUser, options.oraclePassword, options.oracleConnection);
-	} catch (err) {
-		error.errorPage(res, 'Unable to open database connection', err);
-		return Promise.resolve();
+		databaseConnection = await databasePool.getConnection();
+	} catch (e) {
+		throw new RequestError(`Unable to open database connection\n${e.message}`);
 	}
 
 	// execute request
-	try {
-		await executeRequest(req, res, options, database);
-	} catch (err) {
-		error.errorPage(res, 'Unable to execute request', err);
-	}
+	await executeRequest(req, res, options, databaseConnection);
 
 	// close database connection
 	try {
-		await database.close();
-	} catch (err) {
-		error.errorPage(res, 'Unable to close database connection', err);
+		await databaseConnection.release();
+	} catch (e) {
+		//throw new RequestError(`Unable to release database connection\n${e.message}`);
+		console.error(`Unable to release database connection\n${e.message}`);
 	}
-
-	return Promise.resolve();
 }
 
 /**
@@ -59,10 +61,10 @@ async function processRequest(req: $Request, res: $Response, options: oracleExpr
 * @param {$Request} req - The req object represents the HTTP request.
 * @param {$Response} res - The res object represents the HTTP response that an Express app sends when it gets an HTTP request.
 * @param {oracleExpressMiddleware$options} options - the options for the middleware.
-* @param {Database} database - Database instance.
+* @param {oracledb$connection} databaseConnection - Database connection.
 * @returns {Promise<void>} - Promise resolving to th page
 */
-async function executeRequest(req: $Request, res: $Response, options: oracleExpressMiddleware$options, database: Database): Promise<void> {
+async function executeRequest(req: $Request, res: $Response, options: oracleExpressMiddleware$options, databaseConnection: oracledb$connection): Promise<void> {
 	debug('executeRequest: start');
 
 	// Get the CGI
@@ -70,11 +72,15 @@ async function executeRequest(req: $Request, res: $Response, options: oracleExpr
 	debug('executeRequest: cgiObj', cgiObj);
 
 	// Add the query properties
-	let argObj = _.assignIn({}, req.query);
+	const argObj = {};
+	Object.assign(argObj, req.query);
 
 	// Does the request contain any files
 	const filesToUpload = files.getFiles(req);
 	debug('executeRequest: filesToUpload', filesToUpload);
+	if (filesToUpload.length > 0 && (typeof options.doctable !== 'string' || options.doctable.length === 0)) {
+		throw new RequestError('Unable to upload files if no document table "doctable" has been configured');
+	}
 
 	// Add the files to the arguments
 	filesToUpload.reduce((aggregator, file) => {
@@ -83,16 +89,13 @@ async function executeRequest(req: $Request, res: $Response, options: oracleExpr
 	}, argObj);
 
 	// Does the request contain a body
-	argObj = _.assignIn(argObj, normalizeBody(req.body));
+	Object.assign(argObj, normalizeBody(req));
 
-	// do we have a procedure to execute
-	if (typeof req.params.name === 'string' && req.params.name.length > 0) {
-		// invoke the Oracle procedure and get the page contenst
-		const pageContent = await invoke(req.params.name, argObj, cgiObj, filesToUpload, options, database);
+	// invoke the Oracle procedure and get the page contenst
+	const pageContent = await invoke(req, res, argObj, cgiObj, filesToUpload, options, databaseConnection);
 
-		// Process the content and send the results to the client
-		parseAndSend(req, res, options, pageContent);
-	}
+	// Process the content and send the results to the client
+	parseAndSend(req, res, options, pageContent);
 
 	return Promise.resolve();
 }
@@ -100,16 +103,17 @@ async function executeRequest(req: $Request, res: $Response, options: oracleExpr
 /*
 *	Normalize the body by making sure that only "simple" parameters and no nested objects are submitted
 */
-function normalizeBody(body: any): Object {
+function normalizeBody(req: $Request): Object {
 	const args = {};
-	if (typeof body === 'object') {
-		_.forEach(body, (value, key) => {
+	if (typeof req.body === 'object') {
+		for (const key in req.body) {
+			const value = req.body[key];
 			if (isStringOrArrayOfString(value)) {
 				args[key] = value;
 			} else {
-				error.errorPage(`The element "${key}" in the body is not a string or an array of strings!\n` + util.inspect(body, {showHidden: false, depth: null, colors: false}));
+				throw new RequestError(`The element "${key}" in the body is not a string or an array of strings!\n` + util.inspect(req.body, {showHidden: false, depth: null, colors: false}));
 			}
-		});
+		}
 	}
 
 	return args;

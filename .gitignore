@@ -1,7 +1,5 @@
 dist
 flow-typed
 node_modules
-original
-coverage
-/package-lock.json
-/access.log
+*.log
+package-lock.json

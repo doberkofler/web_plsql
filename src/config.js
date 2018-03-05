@@ -6,15 +6,22 @@
 
 const debug = require('debug')('web_plsql:config');
 
+import type {environmentType} from './cgi';
 export type oracleExpressMiddleware$options = {
 	oracleUser: string,
 	oraclePassword: string,
 	oracleConnection: string,
-	doctable: string,
-	cgi?: {[string]: string}
+	defaultPage?: string,
+	doctable?: string,
+	cgi?: environmentType
 };
 
-function validate(options: oracleExpressMiddleware$options) {
+/**
+* Validation the configuration options.
+*
+* @param {Object} options - The configuration options.
+*/
+module.exports = function validate(options: oracleExpressMiddleware$options) {
 	debug('validate', options);
 
 	if (typeof options !== 'object') {
@@ -33,7 +40,11 @@ function validate(options: oracleExpressMiddleware$options) {
 		error('The option "oracleConnection" must be of type string');
 	}
 
-	if (typeof options.doctable !== 'string' || options.doctable.length === 0) {
+	if (typeof options.defaultPage !== 'undefined' && (typeof options.defaultPage !== 'string' || options.defaultPage.length === 0)) {
+		error('The option "defaultPage" must be of type string and cannot be empty');
+	}
+
+	if (typeof options.doctable !== 'undefined' && (typeof options.doctable !== 'string' || options.doctable.length === 0)) {
 		error('The option "doctable" must be of type string and cannot be empty');
 	}
 
@@ -44,13 +55,9 @@ function validate(options: oracleExpressMiddleware$options) {
 	} else {
 		options.cgi = {};
 	}
-}
+};
 
 function error(err: string): void {
 	console.error('web_plsql middleware usage error: ' + err);
 	process.exit(1);
 }
-
-module.exports = {
-	validate: validate
-};
