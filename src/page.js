@@ -4,9 +4,8 @@
 *	Page the raw page content and return the content to the client
 */
 
-const debug = require('debug')('web_plsql:page');
-
 import type {oracleExpressMiddleware$options} from './config';
+import type {Trace} from './trace';
 
 /**
 *	Parse the text returned by Oracle and send it back to the client
@@ -14,16 +13,18 @@ import type {oracleExpressMiddleware$options} from './config';
 * @param {$Request} req - The req object represents the HTTP request.
 * @param {$Response} res - The res object represents the HTTP response that an Express app sends when it gets an HTTP request.
 * @param {oracleExpressMiddleware$options} options - the options for the middleware.
+* @param {Object} cgiObj - The cgi of the procedure to invoke.
 * @param {string} text - The text returned from the PL/SQL procedure.
+* @param {Trace} trace - Tracing object.
 */
-module.exports = function parseAndSend(req: $Request, res: $Response, options: oracleExpressMiddleware$options, text: string): void {
-	debug('parseAndSend: start');
+module.exports = function parseAndSend(req: $Request, res: $Response, options: oracleExpressMiddleware$options, cgiObj: Object, text: string, trace: Trace): void {
+	trace.write('parseAndSend: ENTER');
 
 	// parse the content
 	const message = parse(text);
 
 	// add "Server" header
-	//	TODO	message.head.Server = cgiObj.SERVER_SOFTWARE;
+	message.head.server = cgiObj.SERVER_SOFTWARE;
 
 	// Send the "cookies"
 	message.head.cookies.forEach(cookie => {
@@ -34,28 +35,37 @@ module.exports = function parseAndSend(req: $Request, res: $Response, options: o
 		delete cookie.value;
 
 		res.cookie(name, value, cookie);
+		trace.append(`parseAndSend: res.cookie("${name}", "${value}")\n`);
 	});
 
 	// Is the a "redirectLocation" header
 	if (typeof message.head.redirectLocation === 'string' && message.head.redirectLocation.length > 0) {
 		res.redirect(302, message.head.redirectLocation);
+		trace.append(`parseAndSend: res.redirect(302, "${message.head.redirectLocation}")\n`);
 		return;
 	}
 
 	// Is the a "contentType" header
 	if (typeof message.head.contentType === 'string' && message.head.contentType.length > 0) {
 		res.set('Content-Type', message.head.contentType);
+		trace.append(`parseAndSend: res.set("Content-Type", "${message.head.contentType}")\n`);
 	}
 
 	// Iterate over the headers object
 	for (const key in message.head.otherHeaders) {
-		res.set(key, message.head.otherHeaders[key]);
+		if (key !== 'X-ORACLE-IGNORE') {
+			res.set(key, message.head.otherHeaders[key]);
+			trace.append(`parseAndSend: res.set("${key}", "${message.head.otherHeaders[key]}")\n`);
+		}
 	}
 
 	// Process the body
 	if (typeof message.body === 'string' && message.body.length > 0) {
 		res.send(message.body);
+		trace.append(`parseAndSend: res.send\n${'-'.repeat(30)}${message.body}\n${'-'.repeat(30)}\n`);
 	}
+
+	trace.write('parseAndSend: EXIT');
 };
 
 /*
@@ -65,6 +75,7 @@ function parse(text: string) {
 	const page = {
 		body: '',
 		head: {
+			server: '',
 			cookies: [],
 			contentType: '',
 			contentLength: '',

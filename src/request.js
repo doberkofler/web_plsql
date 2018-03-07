@@ -8,7 +8,6 @@ const util = require('util');
 const invokeProcedure = require('./procedure');
 const getCGI = require('./cgi');
 const files = require('./files');
-const parseAndSend = require('./page');
 const RequestError = require('./requestError');
 
 import type {oracleExpressMiddleware$options} from './config';
@@ -100,10 +99,7 @@ async function executeRequest(req: $Request, res: $Response, options: oracleExpr
 	Object.assign(argObj, normalizeBody(req));
 
 	// invoke the Oracle procedure and get the page contenst
-	const pageContent = await invokeProcedure(req, res, argObj, cgiObj, filesToUpload, options, databaseConnection, trace);
-
-	// Process the content and send the results to the client
-	parseAndSend(req, res, options, pageContent);
+	await invokeProcedure(req, res, argObj, cgiObj, filesToUpload, options, databaseConnection, trace);
 
 	trace.write('executeRequest: EXIT');
 
