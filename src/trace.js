@@ -16,6 +16,11 @@ class Trace {
 	_filename: string;
 	_id: number;
 
+	/**
+	* Instantiate a new trace object.
+	*
+	* @param {string} [directory] - The optional static trace directory.
+	*/
 	constructor(directory: ?string) {
 		this._directory = typeof directory === 'string' && directory.length > 0 ? directory : getTimestampDirectory();
 		this._filename = '';
@@ -34,6 +39,11 @@ class Trace {
 		}
 	}
 
+	/**
+	* Start a new trace session by adding a trace line to the trace.log file and creating a new request trace file.
+	*
+	* @param {$Request} req - The req object represents the HTTP request.
+	*/
 	start(req: $Request) {
 		// Create the next unique request id
 		req.uniqueRequestID = ++this._id;
@@ -53,15 +63,14 @@ class Trace {
 			'\n');
 	}
 
+	/**
+	* Write new message to the trace file.
+	*
+	* @param {string} text - Text to append.
+	*/
 	write(text: string): void {
 		if (this._filename.length > 0) {
-			this.append(getTimestamp() + ':\n' + trimRight(text) + '\n' + SEPARATOR_LINE + '\n');
-		}
-	}
-
-	error(text: string): void {
-		if (this._filename.length > 0) {
-			this.append(trimRight(text) + '\n' + SEPARATOR_LINE + '\n');
+			this.append(`${getTimestamp()}:\n${trimRight(text)}\n${SEPARATOR_LINE}\n`);
 		}
 	}
 

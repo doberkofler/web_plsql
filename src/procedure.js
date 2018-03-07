@@ -49,12 +49,90 @@ module.exports = async function invokeProcedure(req: $Request, res: $Response, a
 
 	// Invoke the procedure and return the page contents
 	trace.write('invokeProcedure: executeProcedure');
-	const page = executeProcedure(para, cgiObj, options, databaseConnection);
+	const page = executeProcedure(para, cgiObj, options, databaseConnection, trace);
 
 	trace.write('invokeProcedure: EXIT');
 
 	return page;
 };
+
+/*
+*	Run the procedure where "procStatement" is the sql statement to execute and "procBindings" are the additional bindings to be added.
+*/
+async function executeProcedure(para: {sql: string, bind: oracledb$bindingType}, cgiObj: Object, options: oracleExpressMiddleware$options, databaseConnection: oracledb$connection, trace: Trace): Promise<string> {
+	trace.write('executeProcedure: ENTER');
+
+	const HTBUF_LEN = 63;
+	const MAX_IROWS = 100000;
+
+	const irows = MAX_IROWS;
+	const sql = [];
+	const bind = {};
+
+	// BEGIN
+	sql.push('BEGIN');
+
+	// Ensure a stateless environment by resetting package state (dbms_session.reset_package)
+	sql.push('dbms_session.modify_package_state(dbms_session.reinitialize);');
+
+	// initialize the cgi
+	const cgiKeys = Object.keys(cgiObj);
+	if (cgiKeys.length > 0) {
+		sql.push('owa.init_cgi_env(:cgicount, :cginames, :cgivalues);');
+		bind.cgicount = {dir: oracledb.BIND_IN, type: oracledb.NUMBER, val: cgiKeys.length};
+		bind.cginames = {dir: oracledb.BIND_IN, type: oracledb.STRING, val: cgiKeys};
+		bind.cgivalues = {dir: oracledb.BIND_IN, type: oracledb.STRING, val: Object.values(cgiObj)};
+	}
+
+	// initialize the htp package
+	sql.push('htp.init;');
+
+	// set the HTBUF_LEN
+	sql.push('htp.HTBUF_LEN := :htbuflen;');
+	bind.htbuflen = {dir: oracledb.BIND_IN, type: oracledb.NUMBER, val: HTBUF_LEN};
+
+	// execute the procedure
+	sql.push('BEGIN');
+	sql.push('   ' + para.sql);
+	sql.push('EXCEPTION');
+	sql.push('   WHEN OTHERS THEN');
+	sql.push('      raise_application_error(-20000, \'Error executing ' + para.sql + '\'||CHR(10)||SUBSTR(dbms_utility.format_error_stack()||CHR(10)||dbms_utility.format_error_backtrace(), 1, 2000));');
+	sql.push('END;');
+
+	// retrieve the page
+	sql.push('owa.get_page(thepage=>:lines, irows=>:irows);');
+	bind.lines = {dir: oracledb.BIND_OUT, type: oracledb.STRING, maxSize: 100, maxArraySize: irows};
+	bind.irows = {dir: oracledb.BIND_INOUT, type: oracledb.NUMBER, val: irows};
+
+	// END
+	sql.push('END;');
+
+	// execute procedure and retrieve page
+	let result;
+	try {
+		result = await databaseConnection.execute(sql.join('\n'), Object.assign(bind, para.bind));
+	} catch (e) {
+		const error = `Error when executing procedure\n${sql.join('\n')}\n${e.toString()}`;
+		trace.write(error);
+		throw new ProcedureError(error, cgiObj, para.sql, para.bind);
+	}
+
+	// Make sure that we have retrieved all the rows
+	if (result.outBinds.irows > MAX_IROWS) {
+		const error = `Error when tretrieving rows. irows="${result.outBinds.irows}"`;
+		trace.write(error);
+		throw new ProcedureError(error, cgiObj, para.sql, para.bind);
+	}
+
+	// combine page
+	const page = result.outBinds.lines.join('');
+	trace.write(`PAGE CONTENT:\n-------------\n${page}`);
+
+	trace.write('executeProcedure: ENTER');
+
+	return page;
+
+}
 
 /*
 * Get the sql statement and bindings for the procedure to execute for a variable number of arguments
@@ -132,74 +210,6 @@ async function getFixArgsPara(procedure: string, argObj: Object, databaseConnect
 		sql: sql,
 		bind: bind
 	});
-}
-
-/*
-*	Run the procedure where "procStatement" is the sql statement to execute and "procBindings" are the additional bindings to be added.
-*/
-async function executeProcedure(para: {sql: string, bind: oracledb$bindingType}, cgiObj: Object, options: oracleExpressMiddleware$options, databaseConnection: oracledb$connection): Promise<string> {
-	const HTBUF_LEN = 63;
-	const MAX_IROWS = 100000;
-
-	const irows = MAX_IROWS;
-	const sql = [];
-	const bind = {};
-
-	// BEGIN
-	sql.push('BEGIN');
-
-	// Ensure a stateless environment by resetting package state (dbms_session.reset_package)
-	sql.push('dbms_session.modify_package_state(dbms_session.reinitialize);');
-
-	// initialize the cgi
-	const cgiKeys = Object.keys(cgiObj);
-	if (cgiKeys.length > 0) {
-		sql.push('owa.init_cgi_env(:cgicount, :cginames, :cgivalues);');
-		bind.cgicount = {dir: oracledb.BIND_IN, type: oracledb.NUMBER, val: cgiKeys.length};
-		bind.cginames = {dir: oracledb.BIND_IN, type: oracledb.STRING, val: cgiKeys};
-		bind.cgivalues = {dir: oracledb.BIND_IN, type: oracledb.STRING, val: Object.values(cgiObj)};
-	}
-
-	// initialize the htp package
-	sql.push('htp.init;');
-
-	// set the HTBUF_LEN
-	sql.push('htp.HTBUF_LEN := :htbuflen;');
-	bind.htbuflen = {dir: oracledb.BIND_IN, type: oracledb.NUMBER, val: HTBUF_LEN};
-
-	// execute the procedure
-	sql.push('BEGIN');
-	sql.push('   ' + para.sql);
-	sql.push('EXCEPTION');
-	sql.push('   WHEN OTHERS THEN');
-	sql.push('      raise_application_error(-20000, \'Error executing ' + para.sql + '\'||CHR(10)||SUBSTR(dbms_utility.format_error_stack()||CHR(10)||dbms_utility.format_error_backtrace(), 1, 2000));');
-	sql.push('END;');
-
-	// retrieve the page
-	sql.push('owa.get_page(thepage=>:page, irows=>:irows);');
-	bind.page = {dir: oracledb.BIND_OUT, type: oracledb.STRING, maxSize: 100, maxArraySize: irows};
-	bind.irows = {dir: oracledb.BIND_INOUT, type: oracledb.NUMBER, val: irows};
-
-	// END
-	sql.push('END;');
-
-	// execute procedure and retrieve page
-	let result;
-	try {
-		result = await databaseConnection.execute(sql.join('\n'), Object.assign(bind, para.bind));
-	} catch (e) {
-		const message = `Error when executing procedure\n${sql.join('\n')}\n${e.toString()}`;
-		throw new ProcedureError(message, cgiObj, para.sql, para.bind);
-	}
-
-	// Make sure that we have retrieved all the rows
-	if (result.outBinds.irows > MAX_IROWS) {
-		const message = `Error when tretrieving rows. irows="${result.outBinds.irows}"`;
-		throw new ProcedureError(message, cgiObj, para.sql, para.bind);
-	}
-
-	// combine page
-	return result.outBinds.page.join('');
 }
 
 /*

@@ -33,15 +33,18 @@ module.exports = function errorPage(req: $Request, res: $Response, options: orac
 	try {
 		output = getError(req, error);
 	} catch (e) {
-		getHeader(output, 'TIMESTAMP');
-		getText(output, (new Date()).toUTCString());
+		const header = 'ERROR';
+		const message = `${e.message}\n${e.stack}`;
 
-		getHeader(output, 'ERROR');
-		getText(output, `${e.message}\n${e.stack}`);
+		output.html += getHeaderHtml(header);
+		output.html += getHtml(message);
+
+		output.text += getHeaderHtml(header);
+		output.text += getHtml(message);
 	}
 
 	// trace to file
-	trace.error(output.text);
+	trace.write(output.text);
 
 	// debug
 	debug(output.text);
@@ -80,24 +83,35 @@ function getError(req: $Request, error: Error): outputType {
 	};
 
 	// timestamp
-	getHeader(output, 'TIMESTAMP');
-	getText(output, timestamp.toUTCString());
+	let header = 'TIMESTAMP';
+	output.html += getHeaderHtml(header);
+	output.html += getHtml(timestamp.toUTCString());
 
 	// error
-	getHeader(output, 'ERROR');
-	getText(output, message);
+	header = 'ERROR';
+	output.html += getHeaderHtml(header);
+	output.html += getHtml(message);
+	output.text += getHeaderText(header);
+	output.text += getText(message);
 
 	// request
-	getHeader(output, 'REQUEST');
-	getPre(output, Trace.inspectRequest(req));
+	header = 'REQUEST';
+	output.text += getHeaderText(header);
+	output.text += getText(Trace.inspectRequest(req));
 
 	// parameters
 	if (typeof sql === 'string' && bind) {
+		header = 'PROCEDURE';
+		output.html += getHeaderHtml(header);
+		output.text += getHeaderText(header);
 		getProcedure(output, sql, bind);
 	}
 
 	// environment
 	if (environment) {
+		header = 'ENVIRONMENT';
+		output.html += getHeaderHtml(header);
+		output.text += getHeaderText(header);
 		getEnvironment(output, environment);
 	}
 
@@ -108,8 +122,6 @@ function getError(req: $Request, error: Error): outputType {
 * get procedure
 */
 function getProcedure(output: outputType, sql: string, bind: oracledb$bindingType) {
-	getHeader(output, 'PROCEDURE');
-
 	let html = '<table>';
 	let text = '';
 
@@ -151,8 +163,6 @@ function getProcedure(output: outputType, sql: string, bind: oracledb$bindingTyp
 * get evnironment
 */
 function getEnvironment(output: outputType, environment: environmentType) {
-	getHeader(output, 'ENVIRONMENT');
-
 	let html = '<table>';
 	let text = '';
 
@@ -174,27 +184,31 @@ function getEnvironment(output: outputType, environment: environmentType) {
 }
 
 /*
-*	get header
+*	get text header
 */
-function getHeader(output: outputType, text: string) {
-	output.text += '\n' + text + '\n' + '='.repeat(text.length) + '\n';
-	output.html += `<h1>${text}</h1>`;
+function getHeaderText(text: string): string {
+	return `\n${text}\n${'='.repeat(text.length)}\n`;
+}
+
+/*
+*	get html header
+*/
+function getHeaderHtml(text: string): string {
+	return `<h1>${text}</h1>`;
 }
 
 /*
 *	get text
 */
-function getText(output: outputType, text: string) {
-	output.text += text + '\n';
-	output.html += `<p>${convertToHtml(text)}</p>`;
+function getText(text: string): string {
+	return text + '\n';
 }
 
 /*
-*	get pre
+*	get html
 */
-function getPre(output: outputType, text: string) {
-	output.text += text + '\n';
-	output.html += `<pre>${text}</pre>`;
+function getHtml(text: string): string {
+	return `<p>${convertToHtml(text)}</p>`;
 }
 
 /*
