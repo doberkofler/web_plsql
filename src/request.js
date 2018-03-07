@@ -4,15 +4,15 @@
 *	Process the http request
 */
 
-const debug = require('debug')('web_plsql:request');
 const util = require('util');
-const invoke = require('./procedure');
+const invokeProcedure = require('./procedure');
 const getCGI = require('./cgi');
 const files = require('./files');
 const parseAndSend = require('./page');
 const RequestError = require('./requestError');
 
 import type {oracleExpressMiddleware$options} from './config';
+import type {Trace} from './trace';
 
 /**
 * Process the request
@@ -21,10 +21,11 @@ import type {oracleExpressMiddleware$options} from './config';
 * @param {$Response} res - The res object represents the HTTP response that an Express app sends when it gets an HTTP request.
 * @param {oracleExpressMiddleware$options} options - the options for the middleware.
 * @param {Promise<oracledb$connectionpool>} databasePoolPromise - Promise returning a database pool.
+* @param {Trace} trace - Tracing object.
 * returns {Promise<void>} - Promise that resolves when the request has been fullfilled.
 */
-async function processRequest(req: $Request, res: $Response, options: oracleExpressMiddleware$options, databasePoolPromise: Promise<oracledb$connectionpool>): Promise<void> {
-	debug('processRequest: start');
+async function processRequest(req: $Request, res: $Response, options: oracleExpressMiddleware$options, databasePoolPromise: Promise<oracledb$connectionpool>, trace: Trace): Promise<void> {
+	trace.write('processRequest: ENTER');
 
 	let databasePool;
 	let databaseConnection;
@@ -32,6 +33,7 @@ async function processRequest(req: $Request, res: $Response, options: oracleExpr
 	// wait until the database pool has been allocated
 	try {
 		databasePool = await databasePoolPromise;
+		trace.write('processRequest: Connection pool has been allocated');
 	} catch (e) {
 		throw new RequestError(`Unable to create database pool.\n${e.message}`);
 	}
@@ -39,20 +41,24 @@ async function processRequest(req: $Request, res: $Response, options: oracleExpr
 	// open database connection
 	try {
 		databaseConnection = await databasePool.getConnection();
+		trace.write('processRequest: Connection has been allocated');
 	} catch (e) {
 		throw new RequestError(`Unable to open database connection\n${e.message}`);
 	}
 
 	// execute request
-	await executeRequest(req, res, options, databaseConnection);
+	await executeRequest(req, res, options, databaseConnection, trace);
 
 	// close database connection
 	try {
 		await databaseConnection.release();
+		trace.write('processRequest: Connection has been released');
 	} catch (e) {
 		//throw new RequestError(`Unable to release database connection\n${e.message}`);
 		console.error(`Unable to release database connection\n${e.message}`);
 	}
+
+	trace.write('processRequest: EXIT');
 }
 
 /**
@@ -62,14 +68,14 @@ async function processRequest(req: $Request, res: $Response, options: oracleExpr
 * @param {$Response} res - The res object represents the HTTP response that an Express app sends when it gets an HTTP request.
 * @param {oracleExpressMiddleware$options} options - the options for the middleware.
 * @param {oracledb$connection} databaseConnection - Database connection.
+* @param {Trace} trace - Tracing object.
 * @returns {Promise<void>} - Promise resolving to th page
 */
-async function executeRequest(req: $Request, res: $Response, options: oracleExpressMiddleware$options, databaseConnection: oracledb$connection): Promise<void> {
-	debug('executeRequest: start');
+async function executeRequest(req: $Request, res: $Response, options: oracleExpressMiddleware$options, databaseConnection: oracledb$connection, trace: Trace): Promise<void> {
+	trace.write('executeRequest: ENTER');
 
 	// Get the CGI
 	const cgiObj = getCGI(req, options);
-	debug('executeRequest: cgiObj', cgiObj);
 
 	// Add the query properties
 	const argObj = {};
@@ -77,9 +83,11 @@ async function executeRequest(req: $Request, res: $Response, options: oracleExpr
 
 	// Does the request contain any files
 	const filesToUpload = files.getFiles(req);
-	debug('executeRequest: filesToUpload', filesToUpload);
+	trace.write(`executeRequest: "${filesToUpload.length}" files to upload`);
 	if (filesToUpload.length > 0 && (typeof options.doctable !== 'string' || options.doctable.length === 0)) {
-		throw new RequestError('Unable to upload files if no document table "doctable" has been configured');
+		const error = 'Unable to upload files if no document table "doctable" has been configured';
+		trace.write(error);
+		throw new RequestError(error);
 	}
 
 	// Add the files to the arguments
@@ -92,10 +100,12 @@ async function executeRequest(req: $Request, res: $Response, options: oracleExpr
 	Object.assign(argObj, normalizeBody(req));
 
 	// invoke the Oracle procedure and get the page contenst
-	const pageContent = await invoke(req, res, argObj, cgiObj, filesToUpload, options, databaseConnection);
+	const pageContent = await invokeProcedure(req, res, argObj, cgiObj, filesToUpload, options, databaseConnection, trace);
 
 	// Process the content and send the results to the client
 	parseAndSend(req, res, options, pageContent);
+
+	trace.write('executeRequest: EXIT');
 
 	return Promise.resolve();
 }

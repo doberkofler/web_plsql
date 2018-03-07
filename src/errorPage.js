@@ -8,7 +8,7 @@ const debug = require('debug')('web_plsql:errorPage');
 const util = require('util');
 const ProcedureError = require('./procedureError');
 const RequestError = require('./requestError');
-const trace = require('./trace');
+const {Trace} = require('./trace');
 
 import type {oracleExpressMiddleware$options} from './config';
 import type {environmentType} from './cgi';
@@ -20,9 +20,10 @@ type outputType = {html: string, text: string};
 * @param {$Request} req - The req object represents the HTTP request.
 * @param {$Response} res - The res object represents the HTTP response that an Express app sends when it gets an HTTP request.
 * @param {Object} options - The configuration options.
+* @param {Trace} trace - Tracing object.
 * @param {Error} error - The error.
 */
-module.exports = function errorPage(req: $Request, res: $Response, options: oracleExpressMiddleware$options, error: Error): void {
+module.exports = function errorPage(req: $Request, res: $Response, options: oracleExpressMiddleware$options, trace: Trace, error: Error): void {
 	let output = {
 		html: '',
 		text: ''
@@ -40,7 +41,7 @@ module.exports = function errorPage(req: $Request, res: $Response, options: orac
 	}
 
 	// trace to file
-	trace.trace(output.text);
+	trace.error(output.text);
 
 	// debug
 	debug(output.text);
@@ -88,7 +89,7 @@ function getError(req: $Request, error: Error): outputType {
 
 	// request
 	getHeader(output, 'REQUEST');
-	getPre(output, trace.reqToString(req));
+	getPre(output, Trace.inspectRequest(req));
 
 	// parameters
 	if (typeof sql === 'string' && bind) {

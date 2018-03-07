@@ -4,21 +4,20 @@
 *	Express middleware for Oracle PL/SQL
 */
 
-const debug = require('debug')('web_plsql:index');
 const url = require('url');
 const oracledb = require('oracledb');
 const processRequest = require('./request');
 const validate = require('./config');
 const RequestError = require('./requestError');
 const errorPage = require('./errorPage');
+const {Trace} = require('./trace');
+const exit = require('./exit');
 
 import type {oracleExpressMiddleware$options} from './config';
 type $NextFunction = () => void;
 
 process.on('unhandledRejection', (reason, p) => {
-	console.error('Unhandled promise rejection', reason, p);
-
-	process.exit(1);
+	exit(`Unhandled promise rejection\nreason:${Trace.inspect(reason)}\np:${Trace.inspect(p)}`, 1);
 });
 
 /**
@@ -28,8 +27,6 @@ process.on('unhandledRejection', (reason, p) => {
 * @returns {Function} - The request handler.
 */
 module.exports = function (options: oracleExpressMiddleware$options) {
-	debug('oracleExpressMiddleware: initialized');
-
 	// validate the configuration options
 	validate(options);
 
@@ -47,29 +44,32 @@ module.exports = function (options: oracleExpressMiddleware$options) {
 
 	// if allocating the database pool fails, exit already here
 	databasePool.catch(e => {
-		console.error(`Unable to create database pool.\n${e.message}`);
-		process.exit(1);
+		exit(`Unable to create database pool.\n${e.message}`, 1);
 	});
 
-	// unique request id
-	let uniqueRequestID = 0;
+	// instantiate trace object
+	const trace = new Trace(options.traceDirectory);
 
 	return function (req: $Request, res: $Response, next: $NextFunction) { // eslint-disable-line no-unused-vars
-		// add a unique request id to the request object
-		req.uniqueRequestID = ++uniqueRequestID;
+		// if tracing is enabled, we now allocate a new trace object
+		if (options.trace === true) {
+			trace.start(req);
+		}
 
 		// should we switch to the default page if there is one defined
 		if (typeof req.params.name !== 'string' || req.params.name.length === 0) {
 			if (typeof options.defaultPage === 'string' && options.defaultPage.length > 0) {
-				res.redirect(url.resolve(req.originalUrl + '/' + options.defaultPage, ''));
+				const newUrl = url.resolve(req.originalUrl + '/' + options.defaultPage, '');
+				trace.start(`Redirect to the url "${newUrl}"`);
+				res.redirect(newUrl);
 			} else {
-				errorPage(req, res, options, new RequestError('No procedure name given and no default page has been specified'));
+				errorPage(req, res, options, trace, new RequestError('No procedure name given and no default page has been specified'));
 			}
 		} else {
-			processRequest(req, res, options, databasePool)
+			processRequest(req, res, options, databasePool, trace)
 				//.then(next)
 				.catch(e => {
-					errorPage(req, res, options, e);
+					errorPage(req, res, options, trace, e);
 				});
 		}
 	};

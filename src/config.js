@@ -13,7 +13,9 @@ export type oracleExpressMiddleware$options = {
 	oracleConnection: string,
 	defaultPage?: string,
 	doctable?: string,
-	cgi?: environmentType
+	cgi?: environmentType,
+	trace?: boolean,
+	traceDirectory?: string
 };
 
 /**
@@ -54,6 +56,14 @@ module.exports = function validate(options: oracleExpressMiddleware$options) {
 		}
 	} else {
 		options.cgi = {};
+	}
+
+	if (typeof options.trace !== 'undefined' && typeof options.trace !== 'boolean') {
+		error('The option "trace" must be of type boolean');
+	}
+
+	if (typeof options.traceDirectory !== 'undefined' && typeof options.traceDirectory !== 'string') {
+		error('The option "trace" must be of type string');
 	}
 };
 

@@ -55,7 +55,8 @@
     "debug": "^3.1.0",
     "express": "^4.16.2",
     "http-parser-js": "^0.4.10",
-    "morgan": "^1.9.0"
+    "morgan": "^1.9.0",
+	"rimraf": "^2.6.1"
   },
   "devDependencies": {
     "babel-cli": "^6.24.1",
@@ -67,9 +68,8 @@
     "eslint-plugin-flowtype": "^2.46.1",
     "flow-bin": "^0.66.0",
     "flow-typed": "^2.3.0",
-    "mocha": "^5.0.1",
-    "nodemon": "^1.17.1",
-    "rimraf": "^2.6.1"
+    "mocha": "^5.0.2",
+    "nodemon": "^1.17.1"
   },
   "optionalDependencies": {
     "oracledb": "^2.1.2"

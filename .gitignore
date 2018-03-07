@@ -2,4 +2,3 @@ dist
 flow-typed
 node_modules
 *.log
-package-lock.json
