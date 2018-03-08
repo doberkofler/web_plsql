@@ -4,7 +4,6 @@
 *	Process file uploads
 */
 
-const debug = require('debug')('web_plsql:files');
 const path = require('path');
 const fs = require('fs');
 
@@ -27,8 +26,6 @@ let sequencialID = 0;
 * @returns {Promise<filesUploadType>} - Promise that resolves with an array of files to be uploaded.
 */
 function getFiles(req: $Request): filesUploadType {
-	debug('getFiles: start');
-
 	const files = [];
 
 	// are there any files
@@ -78,8 +75,6 @@ function uploadFiles(files: filesUploadType, docTableName: string, databaseConne
 *	Upload the given file and return a promise.
 */
 function uploadFile(file: fileUploadType, docTableName: string, databaseConnection: oracledb$connection): Promise<void> {
-	debug(`uploadFile: insert "${file.physicalFilename}" into "${docTableName}"`);
-
 	return new Promise((resolve, reject) => {
 		if (typeof docTableName !== 'string' || docTableName.length === 0) {
 			reject(new Error('The option "docTableName" has not been defined or the name is empty'));

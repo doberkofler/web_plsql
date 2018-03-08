@@ -4,74 +4,15 @@
 *	Page the raw page content and return the content to the client
 */
 
-import type {oracleExpressMiddleware$options} from './config';
 import type {Trace} from './trace';
 
 /**
-*	Parse the text returned by Oracle and send it back to the client
-*
-* @param {$Request} req - The req object represents the HTTP request.
-* @param {$Response} res - The res object represents the HTTP response that an Express app sends when it gets an HTTP request.
-* @param {oracleExpressMiddleware$options} options - the options for the middleware.
-* @param {Object} cgiObj - The cgi of the procedure to invoke.
-* @param {string} text - The text returned from the PL/SQL procedure.
-* @param {Trace} trace - Tracing object.
-*/
-module.exports = function parseAndSend(req: $Request, res: $Response, options: oracleExpressMiddleware$options, cgiObj: Object, text: string, trace: Trace): void {
-	trace.write('parseAndSend: ENTER');
-
-	// parse the content
-	const message = parse(text);
-
-	// add "Server" header
-	message.head.server = cgiObj.SERVER_SOFTWARE;
-
-	// Send the "cookies"
-	message.head.cookies.forEach(cookie => {
-		const name = cookie.name;
-		const value = cookie.value;
-
-		delete cookie.name;
-		delete cookie.value;
-
-		res.cookie(name, value, cookie);
-		trace.append(`parseAndSend: res.cookie("${name}", "${value}")\n`);
-	});
-
-	// Is the a "redirectLocation" header
-	if (typeof message.head.redirectLocation === 'string' && message.head.redirectLocation.length > 0) {
-		res.redirect(302, message.head.redirectLocation);
-		trace.append(`parseAndSend: res.redirect(302, "${message.head.redirectLocation}")\n`);
-		return;
-	}
-
-	// Is the a "contentType" header
-	if (typeof message.head.contentType === 'string' && message.head.contentType.length > 0) {
-		res.set('Content-Type', message.head.contentType);
-		trace.append(`parseAndSend: res.set("Content-Type", "${message.head.contentType}")\n`);
-	}
-
-	// Iterate over the headers object
-	for (const key in message.head.otherHeaders) {
-		if (key !== 'X-ORACLE-IGNORE') {
-			res.set(key, message.head.otherHeaders[key]);
-			trace.append(`parseAndSend: res.set("${key}", "${message.head.otherHeaders[key]}")\n`);
-		}
-	}
-
-	// Process the body
-	if (typeof message.body === 'string' && message.body.length > 0) {
-		res.send(message.body);
-		trace.append(`parseAndSend: res.send\n${'-'.repeat(30)}${message.body}\n${'-'.repeat(30)}\n`);
-	}
-
-	trace.write('parseAndSend: EXIT');
-};
-
-/*
 *	Parse the header and split it up into the individual components
+*
+* @param {string} text - The text returned from the PL/SQL procedure.
+* @returns {Object} - The parsed page.
 */
-function parse(text: string) {
+function parse(text: string): {body: string, head: Object, file: Object} {
 	const page = {
 		body: '',
 		head: {
@@ -83,6 +24,11 @@ function parse(text: string) {
 			statusDescription: '',
 			redirectLocation: '',
 			otherHeaders: {}
+		},
+		file: {
+			fileType: null,
+			fileSize: null,
+			fileBlob: null
 		}
 	};
 
@@ -142,6 +88,70 @@ function parse(text: string) {
 	});
 
 	return page;
+}
+
+/**
+*	Send "default" response to the browser
+*
+* @param {$Request} req - The req object represents the HTTP request.
+* @param {$Response} res - The res object represents the HTTP response that an Express app sends when it gets an HTTP request.
+* @param {Object} page - The page to render.
+* @param {Trace} trace - Tracing object.
+*/
+function send(req: $Request, res: $Response, page: {body: string, head: Object, file: Object}, trace: Trace): void {
+	trace.write('send: ENTER');
+
+	// Send the "cookies"
+	page.head.cookies.forEach(cookie => {
+		const name = cookie.name;
+		const value = cookie.value;
+
+		delete cookie.name;
+		delete cookie.value;
+
+		res.cookie(name, value, cookie);
+		trace.append(`send: res.cookie("${name}", "${value}")\n`);
+	});
+
+	// Is the a "redirectLocation" header
+	if (typeof page.head.redirectLocation === 'string' && page.head.redirectLocation.length > 0) {
+		res.redirect(302, page.head.redirectLocation);
+		trace.append(`send: res.redirect(302, "${page.head.redirectLocation}")\n`);
+		return;
+	}
+
+	// Is this a file download
+	if (page.file.fileType === 'B' || page.file.fileType === 'F') {
+		if (typeof page.head.contentType === 'string' && page.head.contentType.length > 0) {
+			res.writeHead(200, {'Content-Type': page.head.contentType});
+			trace.append(`sendFile: res.writeHead("Content-Type", "${page.head.contentType}")\n`);
+		}
+		res.end(page.file.fileBlob, 'binary');
+		trace.append('send: res.end()\n');
+		return;
+	}
+
+	// Is the a "contentType" header
+	if (typeof page.head.contentType === 'string' && page.head.contentType.length > 0) {
+		res.set('Content-Type', page.head.contentType);
+		trace.append(`send: res.set("Content-Type", "${page.head.contentType}")\n`);
+	}
+
+	// Iterate over the headers object
+	for (const key in page.head.otherHeaders) {
+		if (key !== 'X-ORACLE-IGNORE') {
+			res.set(key, page.head.otherHeaders[key]);
+			trace.append(`send: res.set("${key}", "${page.head.otherHeaders[key]}")\n`);
+		}
+	}
+
+	// Process the body
+	if (typeof page.body === 'string' && page.body.length > 0) {
+		res.send(page.body);
+		trace.append(`send: res.send\n${'-'.repeat(30)}${page.body}\n${'-'.repeat(30)}\n`);
+	}
+
+	trace.write('send: EXIT');
 }
 
 /*
@@ -214,3 +224,8 @@ function tryDecodeDate(value: string): Date | null {
 		return null;
 	}
 }
+
+module.exports = {
+	parse: parse,
+	send: send
+};

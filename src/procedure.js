@@ -5,14 +5,15 @@
 */
 
 const oracledb = require('oracledb');
-const files = require('./files');
-const parseAndSend = require('./page');
+const {streamToBuffer} = require('./stream');
+const fileUpload = require('./fileUpload');
+const page = require('./page');
 const RequestError = require('./requestError');
 const ProcedureError = require('./procedureError');
+const {Trace} = require('./trace');
 
 import type {oracleExpressMiddleware$options} from './config';
-import type {filesUploadType} from './files';
-import type {Trace} from './trace';
+import type {filesUploadType} from './fileUpload';
 
 /**
 * Invoke the Oracle procedure and return the page content
@@ -32,13 +33,19 @@ module.exports = async function invokeProcedure(req: $Request, res: $Response, a
 
 	const procedure = req.params.name;
 
-	// Upload all files
+	//
+	// 1) UPLOAD FILES
+	//
+
 	trace.write(`invokeProcedure: upload "${filesToUpload.length}" files`);
 	if (typeof options.doctable === 'string' && options.doctable.length > 0) {
-		files.uploadFiles(filesToUpload, options.doctable, databaseConnection);
+		fileUpload.uploadFiles(filesToUpload, options.doctable, databaseConnection);
 	}
 
-	// Get the code to execute depending on a fixed or variable number of arguments
+	//
+	// 2) GET SQL STATEMENT AND ARGUMENTS
+	//
+
 	let para;
 	if (procedure.substring(0, 1) === '!') {
 		trace.write('invokeProcedure: get variable arguments');
@@ -48,78 +55,47 @@ module.exports = async function invokeProcedure(req: $Request, res: $Response, a
 		para = await getFixArgsPara(procedure, argObj, databaseConnection);
 	}
 
-	// Invoke the procedure and return the page contents
-	trace.write('invokeProcedure: executeProcedure');
-	const pageContent = await executeProcedure(para, cgiObj, options, databaseConnection, trace);
-
-	// Process the content and send the results to the client
-	parseAndSend(req, res, options, cgiObj, pageContent, trace);
-
-	trace.write('invokeProcedure: EXIT');
-
-	return Promise.resolve();
-};
-
-/*
-*	Run the procedure where "procStatement" is the sql statement to execute and "procBindings" are the additional bindings to be added.
-*/
-async function executeProcedure(para: {sql: string, bind: oracledb$bindingType}, cgiObj: Object, options: oracleExpressMiddleware$options, databaseConnection: oracledb$connection, trace: Trace): Promise<string> {
-	trace.write('executeProcedure: ENTER');
+	//
+	//	3) EXECUTE PROCEDURE
+	//
 
 	const HTBUF_LEN = 63;
 	const MAX_IROWS = 100000;
 
-	const irows = MAX_IROWS;
-	const sql = [];
-	const bind = {};
+	const cgi = {
+		keys: Object.keys(cgiObj),
+		values: Object.values(cgiObj)
+	};
 
-	// BEGIN
-	sql.push('BEGIN');
+	const fileBlob = await databaseConnection.createLob(oracledb.BLOB);
 
-	// Ensure a stateless environment by resetting package state (dbms_session.reset_package)
-	sql.push('dbms_session.modify_package_state(dbms_session.reinitialize);');
-
-	// initialize the cgi
-	const cgiKeys = Object.keys(cgiObj);
-	if (cgiKeys.length > 0) {
-		sql.push('owa.init_cgi_env(:cgicount, :cginames, :cgivalues);');
-		bind.cgicount = {dir: oracledb.BIND_IN, type: oracledb.NUMBER, val: cgiKeys.length};
-		bind.cginames = {dir: oracledb.BIND_IN, type: oracledb.STRING, val: cgiKeys};
-		bind.cgivalues = {dir: oracledb.BIND_IN, type: oracledb.STRING, val: Object.values(cgiObj)};
-	}
-
-	// initialize the htp package
-	sql.push('htp.init;');
-
-	// set the HTBUF_LEN
-	sql.push('htp.HTBUF_LEN := :htbuflen;');
-	bind.htbuflen = {dir: oracledb.BIND_IN, type: oracledb.NUMBER, val: HTBUF_LEN};
-
-	// execute the procedure
-	sql.push('BEGIN');
-	sql.push('   ' + para.sql);
-	sql.push('EXCEPTION');
-	sql.push('   WHEN OTHERS THEN');
-	sql.push('      raise_application_error(-20000, \'Error executing ' + para.sql + '\'||CHR(10)||SUBSTR(dbms_utility.format_error_stack()||CHR(10)||dbms_utility.format_error_backtrace(), 1, 2000));');
-	sql.push('END;');
-
-	// retrieve the page
-	sql.push('owa.get_page(thepage=>:lines, irows=>:irows);');
-	bind.lines = {dir: oracledb.BIND_OUT, type: oracledb.STRING, maxSize: 100, maxArraySize: irows};
-	bind.irows = {dir: oracledb.BIND_INOUT, type: oracledb.NUMBER, val: irows};
-
-	// END
-	sql.push('END;');
+	const bind = {
+		cgicount: {dir: oracledb.BIND_IN, type: oracledb.NUMBER, val: cgi.keys.length},
+		cginames: {dir: oracledb.BIND_IN, type: oracledb.STRING, val: cgi.keys},
+		cgivalues: {dir: oracledb.BIND_IN, type: oracledb.STRING, val: cgi.values},
+		htbuflen: {dir: oracledb.BIND_IN, type: oracledb.NUMBER, val: HTBUF_LEN},
+		fileType: {dir: oracledb.BIND_OUT, type: oracledb.STRING},
+		fileSize: {dir: oracledb.BIND_OUT, type: oracledb.NUMBER},
+		fileBlob: {dir: oracledb.BIND_INOUT, type: oracledb.BLOB, val: fileBlob},
+		lines: {dir: oracledb.BIND_OUT, type: oracledb.STRING, maxSize: HTBUF_LEN * 2, maxArraySize: MAX_IROWS},
+		irows: {dir: oracledb.BIND_INOUT, type: oracledb.NUMBER, val: MAX_IROWS}
+	};
 
 	// execute procedure and retrieve page
+	const sqlStatement = getProcedureSQL(para.sql);
 	let result;
 	try {
-		result = await databaseConnection.execute(sql.join('\n'), Object.assign(bind, para.bind));
+		result = await databaseConnection.execute(sqlStatement, Object.assign(bind, para.bind));
 	} catch (e) {
-		const error = `Error when executing procedure\n${sql.join('\n')}\n${e.toString()}`;
+		const error = `Error when executing procedure\n${sqlStatement}\n${e.toString()}`;
 		trace.write(error);
 		throw new ProcedureError(error, cgiObj, para.sql, para.bind);
 	}
+	trace.write(`result:\n${Trace.inspect(result)}`);
+
+	//
+	//	4) PROCESS RESULTS
+	//
 
 	// Make sure that we have retrieved all the rows
 	if (result.outBinds.irows > MAX_IROWS) {
@@ -129,13 +105,88 @@ async function executeProcedure(para: {sql: string, bind: oracledb$bindingType},
 	}
 
 	// combine page
-	const page = result.outBinds.lines.join('');
-	trace.write(`PAGE CONTENT:\n-------------\n${page}`);
+	const pageContent = result.outBinds.lines.join('');
+	trace.write(`PLAIN CONTENT:\n${'-'.repeat(30)}\n${pageContent}\n${'-'.repeat(30)}`);
 
-	trace.write('executeProcedure: ENTER');
+	//
+	//	6) PARSE PAGE
+	//
 
-	return page;
+	// parse what we received from PL/SQL
+	const pageComponents = page.parse(pageContent);
 
+	// add "Server" header
+	pageComponents.head.server = cgiObj.SERVER_SOFTWARE;
+
+	// add file download information
+	pageComponents.file.fileType = result.outBinds.fileType;
+	pageComponents.file.fileSize = result.outBinds.fileSize;
+	pageComponents.file.fileBlob = await streamToBuffer(result.outBinds.fileBlob);
+
+	trace.write(`PARSED CONTENT:\n${'-'.repeat(30)}\n${Trace.inspect(pageComponents)}\n${'-'.repeat(30)}`);
+
+	//
+	//	5) SEND THE RESPONSE
+	//
+
+	page.send(req, res, pageComponents, trace);
+
+	//
+	//	6) CLEANUP
+	//
+
+	await fileBlob.close();
+
+	trace.write('invokeProcedure: EXIT');
+
+	return Promise.resolve();
+};
+
+/*
+* Get the SQL statement to execute when a new procedure is invoked
+*/
+function getProcedureSQL(procedure: string): string {
+	return `
+DECLARE
+	fileType VARCHAR2(32767);
+	fileSize INTEGER;
+	fileBlob BLOB;
+BEGIN
+	-- Ensure a stateless environment by resetting package state (dbms_session.reset_package)
+	dbms_session.modify_package_state(dbms_session.reinitialize);
+
+	-- initialize the cgi
+	owa.init_cgi_env(:cgicount, :cginames, :cgivalues);
+
+	-- initialize the htp package
+	htp.init;
+
+	-- set the HTBUF_LEN
+	htp.HTBUF_LEN := :htbuflen;
+
+	-- execute the procedure
+	BEGIN
+		${procedure}
+	EXCEPTION WHEN OTHERS THEN
+		raise_application_error(-20000, 'Error executing ${procedure}'||CHR(10)||SUBSTR(dbms_utility.format_error_stack()||CHR(10)||dbms_utility.format_error_backtrace(), 1, 2000));
+	END;
+
+	-- Check for file download
+	IF (wpg_docload.is_file_download()) THEN
+		wpg_docload.get_download_file(fileType);
+		IF (filetype = 'B') THEN
+			wpg_docload.get_download_blob(:fileBlob);
+			fileSize := dbms_lob.getlength(:fileBlob);
+			--dbms_lob.copy(dest_lob=>:fileBlob, src_lob=>fileBlob, amount=>fileSize);
+		END IF;
+	END IF;
+	:fileType := fileType;
+	:fileSize := fileSize;
+
+	-- retrieve the page
+	owa.get_page(thepage=>:lines, irows=>:irows);
+END;
+`;
 }
 
 /*
