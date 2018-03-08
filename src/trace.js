@@ -12,20 +12,26 @@ const rimraf = require('rimraf');
 const SEPARATOR_LINE = '*'.repeat(132);
 
 class Trace {
+	_enabled: boolean;
 	_directory: string;
 	_filename: string;
 	_id: number;
-	_req: $Request;
 
 	/**
 	* Instantiate a new trace object.
 	*
+	* @param {boolean} enabled - Is tracing enabled.
 	* @param {string} [directory] - The optional static trace directory.
 	*/
-	constructor(directory: ?string) {
+	constructor(enabled: boolean, directory: ?string) {
+		this._enabled = enabled === true;
 		this._directory = typeof directory === 'string' && directory.length > 0 ? directory : getTimestampDirectory();
 		this._filename = '';
 		this._id = 0;
+
+		if (!this._enabled) {
+			return;
+		}
 
 		// create the trace directory
 		try {
@@ -41,13 +47,24 @@ class Trace {
 	}
 
 	/**
-	* Enter the request processing and start a new trace session for a new request.
+	* Return if tracing is enabled or not.
+	*
+	* @returns {boolean} - Is tracing enabled.
+	*/
+	enabled(): boolean {
+		return this._enabled === true;
+	}
+
+	/**
+	* Start a new trace session for a new request.
 	* This adds a trace line to the trace.log file and creating a new request trace file.
 	*
 	* @param {$Request} req - The req object represents the HTTP request.
 	*/
-	requestEnter(req: $Request) {
-		this._req = req;
+	start(req: $Request) {
+		if (!this._enabled) {
+			return;
+		}
 
 		// Create the next unique request id
 		req.uniqueRequestID = ++this._id;
@@ -68,19 +85,12 @@ class Trace {
 	}
 
 	/**
-	* Exit the request processing.
-	*/
-	requestExit() {
-		this.write(`Request ID ${this._req.uniqueRequestID} has been processed.`);
-	}
-
-	/**
 	* Write new message to the trace file.
 	*
 	* @param {string} text - Text to append.
 	*/
 	write(text: string): void {
-		if (this._filename.length > 0) {
+		if (this._enabled) {
 			this.append(`${getTimestamp()}:\n${trimRight(text)}\n${SEPARATOR_LINE}\n`);
 		}
 	}
@@ -91,7 +101,9 @@ class Trace {
 	* @param {string} text - Text to append.
 	*/
 	append(text: string): void {
-		appendSync(this._filename, text);
+		if (this._enabled) {
+			appendSync(this._filename, text);
+		}
 	}
 
 	/**

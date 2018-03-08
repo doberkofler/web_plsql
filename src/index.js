@@ -48,13 +48,10 @@ module.exports = function (options: oracleExpressMiddleware$options) {
 	});
 
 	// instantiate trace object
-	const trace = new Trace(options.traceDirectory);
+	const trace = new Trace(options.trace, options.traceDirectory);
 
 	return function (req: $Request, res: $Response, next: $NextFunction) { // eslint-disable-line no-unused-vars
-		// if tracing is enabled, we now allocate a new trace object
-		if (options.trace === true) {
-			trace.requestEnter(req);
-		}
+		trace.start(req);
 
 		// should we switch to the default page if there is one defined
 		if (typeof req.params.name !== 'string' || req.params.name.length === 0) {
@@ -72,7 +69,5 @@ module.exports = function (options: oracleExpressMiddleware$options) {
 					errorPage(req, res, options, trace, e);
 				});
 		}
-
-		trace.requestExit();
 	};
 };
