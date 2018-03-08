@@ -53,14 +53,14 @@ module.exports = function (options: oracleExpressMiddleware$options) {
 	return function (req: $Request, res: $Response, next: $NextFunction) { // eslint-disable-line no-unused-vars
 		// if tracing is enabled, we now allocate a new trace object
 		if (options.trace === true) {
-			trace.start(req);
+			trace.requestEnter(req);
 		}
 
 		// should we switch to the default page if there is one defined
 		if (typeof req.params.name !== 'string' || req.params.name.length === 0) {
 			if (typeof options.defaultPage === 'string' && options.defaultPage.length > 0) {
 				const newUrl = url.resolve(req.originalUrl + '/' + options.defaultPage, '');
-				trace.start(`Redirect to the url "${newUrl}"`);
+				trace.write(`Redirect to the url "${newUrl}"`);
 				res.redirect(newUrl);
 			} else {
 				errorPage(req, res, options, trace, new RequestError('No procedure name given and no default page has been specified'));
@@ -72,5 +72,7 @@ module.exports = function (options: oracleExpressMiddleware$options) {
 					errorPage(req, res, options, trace, e);
 				});
 		}
+
+		trace.requestExit();
 	};
 };

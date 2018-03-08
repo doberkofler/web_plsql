@@ -15,6 +15,7 @@ class Trace {
 	_directory: string;
 	_filename: string;
 	_id: number;
+	_req: $Request;
 
 	/**
 	* Instantiate a new trace object.
@@ -40,11 +41,14 @@ class Trace {
 	}
 
 	/**
-	* Start a new trace session by adding a trace line to the trace.log file and creating a new request trace file.
+	* Enter the request processing and start a new trace session for a new request.
+	* This adds a trace line to the trace.log file and creating a new request trace file.
 	*
 	* @param {$Request} req - The req object represents the HTTP request.
 	*/
-	start(req: $Request) {
+	requestEnter(req: $Request) {
+		this._req = req;
+
 		// Create the next unique request id
 		req.uniqueRequestID = ++this._id;
 
@@ -61,6 +65,13 @@ class Trace {
 			getSection('REQUEST', Trace.inspectRequest(req)) +
 			SEPARATOR_LINE +
 			'\n');
+	}
+
+	/**
+	* Exit the request processing.
+	*/
+	requestExit() {
+		this.write(`Request ID ${this._req.uniqueRequestID} has been processed.`);
 	}
 
 	/**
