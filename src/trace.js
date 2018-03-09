@@ -45,7 +45,6 @@ class Trace {
 			console.error(`Unable to create new trace directory "${this._directory}"`, e);
 		}
 	}
-	
 
 	/**
 	* Return if tracing is enabled or not.

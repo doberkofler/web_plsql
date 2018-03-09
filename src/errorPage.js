@@ -46,7 +46,7 @@ module.exports = function errorPage(req: $Request, res: $Response, options: orac
 	trace.write(output.text);
 
 	// console
-	console(output.text);
+	console.error(output.text);
 
 	// show page
 	res.status(404).send(getHtmlPage(output.html));

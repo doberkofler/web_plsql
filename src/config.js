@@ -6,13 +6,10 @@
 
 import type {environmentType} from './cgi';
 export type oracleExpressMiddleware$options = {
-	oracleUser: string,
-	oraclePassword: string,
-	oracleConnection: string,
 	defaultPage?: string,
 	doctable?: string,
 	cgi?: environmentType,
-	trace?: boolean,
+	trace: boolean,
 	traceDirectory?: string
 };
 
@@ -20,50 +17,56 @@ export type oracleExpressMiddleware$options = {
 * Validation the configuration options.
 *
 * @param {Object} options - The configuration options.
+* @returns {oracleExpressMiddleware$options} - The validated configuration options.
 */
-module.exports = function validate(options: oracleExpressMiddleware$options) {
+module.exports = function validate(options: any): oracleExpressMiddleware$options {
+	const validOptions: oracleExpressMiddleware$options = {
+		trace: false
+	};
+
 	if (typeof options !== 'object') {
-		error('No configuration object was given');
+		throw new TypeError('No configuration object was given');
 	}
 
-	if (options.oracleUser && typeof options.oracleUser !== 'string') {
-		error('The option "oracleUser" must be of type string');
-	}
-
-	if (options.oraclePassword && typeof options.oraclePassword !== 'string') {
-		error('The option "oraclePassword" must be of type string');
-	}
-
-	if (options.oracleConnection && typeof options.oracleConnection !== 'string') {
-		error('The option "oracleConnection" must be of type string');
-	}
-
-	if (typeof options.defaultPage !== 'undefined' && (typeof options.defaultPage !== 'string' || options.defaultPage.length === 0)) {
-		error('The option "defaultPage" must be of type string and cannot be empty');
-	}
-
-	if (typeof options.doctable !== 'undefined' && (typeof options.doctable !== 'string' || options.doctable.length === 0)) {
-		error('The option "doctable" must be of type string and cannot be empty');
-	}
-
-	if (typeof options.cgi === 'object') {
-		if (!Object.keys(options.cgi).every(key => typeof key === 'string') || !Object.values(options.cgi).every(value => typeof value === 'string')) {
-			error('The option "cgi" must be an object where all keys and values are of type string');
+	if (typeof options.defaultPage !== 'undefined') {
+		if (typeof options.defaultPage === 'string' || options.defaultPage.length > 0) {
+			validOptions.defaultPage = options.defaultPage;
+		} else {
+			throw new TypeError('The option "defaultPage" must be of type string and cannot be empty');
 		}
-	} else {
-		options.cgi = {};
 	}
 
-	if (typeof options.trace !== 'undefined' && typeof options.trace !== 'boolean') {
-		error('The option "trace" must be of type boolean');
+	if (typeof options.doctable !== 'undefined') {
+		if (typeof options.doctable === 'string' || options.doctable.length > 0) {
+			validOptions.doctable = options.doctable;
+		} else {
+			throw new TypeError('The option "doctable" must be of type string and cannot be empty');
+		}
 	}
 
-	if (typeof options.traceDirectory !== 'undefined' && typeof options.traceDirectory !== 'string') {
-		error('The option "trace" must be of type string');
+	if (typeof options.cgi !== 'undefined') {
+		if (typeof options.cgi === 'object' && Object.keys(options.cgi).every(key => typeof key === 'string') && Object.values(options.cgi).every(value => typeof value === 'string')) {
+			validOptions.cgi = Object.assign({}, options.cgi);
+		} else {
+			throw new TypeError('The option "cgi" must be an object where all keys and values are of type string');
+		}
 	}
+
+	if (typeof options.trace !== 'undefined') {
+		if (typeof options.trace === 'boolean') {
+			validOptions.trace = options.trace;
+		} else {
+			throw new TypeError('The option "trace" must be of type boolean');
+		}
+	}
+
+	if (typeof options.traceDirectory !== 'undefined') {
+		if (typeof options.traceDirectory === 'string' && options.traceDirectory.length > 0) {
+			validOptions.traceDirectory = options.traceDirectory;
+		} else {
+			throw new TypeError('The option "traceDirectory" must be of type string and cannot be empty');
+		}
+	}
+
+	return validOptions;
 };
-
-function error(err: string): void {
-	console.error('web_plsql middleware usage error: ' + err);
-	process.exit(1);
-}

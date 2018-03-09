@@ -11,12 +11,21 @@ const oracledb = require('oracledb');
 const webplsql = require('../dist');
 
 /*
+*	The 'unhandledRejection' event is emitted whenever a Promise is rejected and no error handler is attached to the promise within a turn of the event loop.
+*/
+process.on('unhandledRejection', (reason, p) => {
+	console.error('Unhandled promise rejection', reason, p);
+	process.exit(1);
+});
+
+/*
 *	Allocate the Oracle database pool
 */
 
+const PASSWORD = process.env.LJ_UNITTEST_PASSWORD || '';
 const databasePool = oracledb.createPool({
-	user: 'sample',							// The database user name.
-	password: 'sample',						// The password of the database user.
+	user: 'LJ_UNITTEST',					// The database user name.
+	password: PASSWORD,						// The password of the database user.
 	connectString: 'localhost:1521/TEST',	// The Oracle database instance to connect to. The string can be an Easy Connect string, or a Net Service Name from a tnsnames.ora file, or the name of a local Oracle database instance.
 	poolMin: 10,							// The minimum number of connections a connection pool maintains, even when there is no activity to the target database.
 	poolMax: 1000,							// The maximum number of connections to which a connection pool can grow.
@@ -35,13 +44,17 @@ databasePool.catch(e => {
 */
 
 const PORT = 8000;
-const PATH = '/base';
+const ROOT = '/lj';
+const STATIC_ROOT = '/q/p/lj/';
+const STATIC_PATH = process.env.PERISCOPE_DEPLOY_DIR || '';
 const OPTIONS = {
-	defaultPage: 'sample.pageIndex',
-	doctable: 'docTable',
+	defaultPage: 'LAS_DLG_Startup.GO',
+	doctable: 'ljp_documents',
 	cgi: {
-		'DAD_NAME': PATH
-	}
+		'DAD_NAME': 'lj'
+	},
+	trace: false,
+	traceDirectory: 'trace'
 };
 
 // create express app
@@ -56,11 +69,12 @@ app.use(compression());
 app.use(morgan('combined', {stream: fs.createWriteStream(path.join(process.cwd(), 'access.log'), {flags: 'a'})}));
 
 // add the oracle pl/sql express middleware
-app.use(PATH + '/:name?', webplsql(databasePool, OPTIONS));
+app.use(ROOT + '/:name?', webplsql(databasePool, OPTIONS));
 
 // serving static files
-app.use('/static', express.static(path.join(process.cwd(), 'examples/static')));
+console.log(`Serving static files on http://localhost:${PORT}${STATIC_ROOT} from ${STATIC_PATH}`);
+app.use(STATIC_ROOT, express.static(STATIC_PATH));
 
 // listen on port
-console.log(`Waiting on http://localhost:${PORT}${PATH}`);
+console.log(`Listening on http://localhost:${PORT}${ROOT}`);
 app.listen(PORT);

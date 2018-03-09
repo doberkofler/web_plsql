@@ -41,7 +41,6 @@
     "lint": "eslint --report-unused-disable-directives ./src ./examples && flow check --show-all-errors",
     "test": "npm run clean && npm run build && mocha",
     "watch-run": "nodemon --watch ./dist ./dist/sample.js",
-    "watch-run-lj": "nodemon --watch ./dist ./dist/lj.js",
     "watch-build": "babel --source-maps --watch --out-dir=./dist ./src ./examples"
   },
   "dependencies": {
