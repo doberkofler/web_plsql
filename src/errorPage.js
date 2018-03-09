@@ -4,7 +4,6 @@
 *	Error handling
 */
 
-const debug = require('debug')('web_plsql:errorPage');
 const util = require('util');
 const ProcedureError = require('./procedureError');
 const RequestError = require('./requestError');
@@ -46,8 +45,8 @@ module.exports = function errorPage(req: $Request, res: $Response, options: orac
 	// trace to file
 	trace.write(output.text);
 
-	// debug
-	debug(output.text);
+	// console
+	console(output.text);
 
 	// show page
 	res.status(404).send(getHtmlPage(output.html));

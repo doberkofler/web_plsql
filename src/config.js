@@ -4,8 +4,6 @@
 *	Configuration
 */
 
-const debug = require('debug')('web_plsql:config');
-
 import type {environmentType} from './cgi';
 export type oracleExpressMiddleware$options = {
 	oracleUser: string,
@@ -24,8 +22,6 @@ export type oracleExpressMiddleware$options = {
 * @param {Object} options - The configuration options.
 */
 module.exports = function validate(options: oracleExpressMiddleware$options) {
-	debug('validate', options);
-
 	if (typeof options !== 'object') {
 		error('No configuration object was given');
 	}

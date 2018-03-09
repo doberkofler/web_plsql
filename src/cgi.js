@@ -4,7 +4,6 @@
 *	Prepare the CGI information
 */
 
-const debug = require('debug')('web_plsql:cgi');
 const os = require('os');
 
 export type environmentType = {[string]: string};
@@ -18,8 +17,6 @@ import type {oracleExpressMiddleware$options} from './config';
 * @returns {string} CGI object
 */
 module.exports = function getCGI(req: $Request, options: oracleExpressMiddleware$options): environmentType {
-	debug('getCGI: start');
-
 	const PROTOCOL = req.protocol ? req.protocol.toUpperCase() : '';
 	const CHARSET = 'UTF8';
 	const IANA_CHARSET = 'UTF-8';
