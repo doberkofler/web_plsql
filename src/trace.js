@@ -175,7 +175,7 @@ function getTimestamp(): string {
 *	get a new directory name based on the current timestamp
 */
 function getTimestampDirectory(): string {
-	return 'trace--' + getTimestamp().replace(/(-|:)/g, '');
+	return path.join('trace', getTimestamp().replace(/(-|:)/g, ''));
 }
 
 /*
