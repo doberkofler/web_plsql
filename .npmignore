@@ -1,2 +1,8 @@
-src/
-flow-typed/
+/flow-typed/
+/interfaces/
+/lib/
+/temp/
+/trace/
+examples/LJ_UNITTEST.js
+*.log
+*.tgz

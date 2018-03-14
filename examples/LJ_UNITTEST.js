@@ -8,7 +8,7 @@ const compression = require('compression');
 const morgan = require('morgan');
 
 const oracledb = require('oracledb');
-const webplsql = require('../dist');
+const webplsql = require('../lib');
 
 /*
 *	The 'unhandledRejection' event is emitted whenever a Promise is rejected and no error handler is attached to the promise within a turn of the event loop.
@@ -53,8 +53,8 @@ const OPTIONS = {
 	cgi: {
 		'DAD_NAME': 'lj'
 	},
-	trace: false,
-	traceDirectory: 'trace'
+	trace: true/*,
+	traceDirectory: 'trace'*/
 };
 
 // create express app

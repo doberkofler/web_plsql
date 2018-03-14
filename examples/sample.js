@@ -8,7 +8,7 @@ const compression = require('compression');
 const morgan = require('morgan');
 
 const oracledb = require('oracledb');
-const webplsql = require('../dist');
+const webplsql = require('../lib');
 
 /*
 *	Allocate the Oracle database pool

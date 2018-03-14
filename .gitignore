@@ -1,4 +1,6 @@
-dist
-flow-typed
-node_modules
+/lib/
+/node_modules/
+/flow-typed/
+/trace/
 *.log
+*.tgz
