@@ -43,18 +43,14 @@ databasePool.catch(e => {
 *	Start the server
 */
 
-const PORT = 8000;
-const ROOT = '/lj';
-const STATIC_ROOT = '/q/p/lj/';
+const PORT = 8888;
+const ROOT = '/lj_unittest';
+const STATIC_ROOT = '/q/p/lj_unittest/';
 const STATIC_PATH = process.env.PERISCOPE_DEPLOY_DIR || '';
 const OPTIONS = {
 	defaultPage: 'LAS_DLG_Startup.GO',
 	doctable: 'ljp_documents',
-	cgi: {
-		'DAD_NAME': 'lj'
-	},
-	trace: true/*,
-	traceDirectory: 'trace'*/
+	trace: true
 };
 
 // create express app

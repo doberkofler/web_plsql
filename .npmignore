@@ -1,8 +1,5 @@
-/flow-typed/
-/interfaces/
 /lib/
 /temp/
-/test/
 /trace/
 examples/LJ_UNITTEST.js
 *.log

@@ -25,25 +25,36 @@ module.exports = function (databasePoolPromise: Promise<oracledb$connectionpool>
 	const validOptions = validate(options);
 
 	// instantiate trace object
-	const trace = new Trace(validOptions.trace, validOptions.traceDirectory);
+	const trace = new Trace(validOptions.trace);
 
-	return function (req: $Request, res: $Response/*, next: () => void*/) {
+	return function handler(req: $Request, res: $Response/*, next: () => void*/) {
+		requestHandler(req, res, databasePoolPromise, validOptions, trace);
+	};
+};
+
+/*
+* Request handler
+*/
+function requestHandler(req: $Request, res: $Response, databasePoolPromise: Promise<oracledb$connectionpool>, options: oracleExpressMiddleware$options, trace: Trace) {
+	try {
 		trace.start(req);
 
 		// should we switch to the default page if there is one defined
 		if (typeof req.params.name !== 'string' || req.params.name.length === 0) {
-			if (typeof validOptions.defaultPage === 'string' && validOptions.defaultPage.length > 0) {
-				const newUrl = url.resolve(req.originalUrl + '/' + validOptions.defaultPage, '');
+			if (typeof options.defaultPage === 'string' && options.defaultPage.length > 0) {
+				const newUrl = url.resolve(req.originalUrl + '/' + options.defaultPage, '');
 				trace.write(`Redirect to the url "${newUrl}"`);
 				res.redirect(newUrl);
 			} else {
-				errorPage(req, res, validOptions, trace, new RequestError('No procedure name given and no default page has been specified'));
+				errorPage(req, res, options, trace, new RequestError('No procedure name given and no default page has been specified'));
 			}
 		} else {
-			processRequest(req, res, validOptions, databasePoolPromise, trace)
+			processRequest(req, res, options, databasePoolPromise, trace)
 				.catch(e => {
-					errorPage(req, res, validOptions, trace, e);
+					errorPage(req, res, options, trace, e);
 				});
 		}
-	};
-};
+	} catch (e) {
+		errorPage(req, res, options, trace, e);
+	}
+}

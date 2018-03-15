@@ -41,6 +41,7 @@
     "flow-typed": "flow-typed install",
     "lint": "eslint --report-unused-disable-directives src examples && flow check --show-all-errors",
     "test": "npm run build && mocha --check-leaks --full-trace test",
+    "sample": "node examples/sample.js",
     "watch-run": "nodemon --watch ./lib --watch examples examples/sample.js",
     "watch-build": "babel --source-maps --watch --out-dir=lib src",
     "rebuild": "npm run build && npm run lint && npm run test",
@@ -56,8 +57,10 @@
     "compression": "^1.7.2",
     "connect-multiparty": "^2.1.0",
     "cookie-parser": "^1.4.1",
+    "escape-html": "^1.0.3",
     "express": "^4.16.3",
     "http-parser-js": "^0.4.11",
+    "mkdirp": "^0.5.1",
     "morgan": "^1.9.0",
     "rimraf": "^2.6.1"
   },

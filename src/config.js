@@ -9,8 +9,7 @@ export type oracleExpressMiddleware$options = {
 	defaultPage?: string,
 	doctable?: string,
 	cgi?: environmentType,
-	trace: boolean,
-	traceDirectory?: string
+	trace: boolean
 };
 
 /**
@@ -57,14 +56,6 @@ module.exports = function validate(options: any): oracleExpressMiddleware$option
 			validOptions.trace = options.trace;
 		} else {
 			throw new TypeError('The option "trace" must be of type boolean');
-		}
-	}
-
-	if (typeof options.traceDirectory !== 'undefined') {
-		if (typeof options.traceDirectory === 'string' && options.traceDirectory.length > 0) {
-			validOptions.traceDirectory = options.traceDirectory;
-		} else {
-			throw new TypeError('The option "traceDirectory" must be of type string and cannot be empty');
 		}
 	}
 

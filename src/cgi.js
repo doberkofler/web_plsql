@@ -5,6 +5,7 @@
 */
 
 const os = require('os');
+const {URL} = require('url');
 
 export type environmentType = {[string]: string};
 import type {oracleExpressMiddleware$options} from './config';
@@ -20,17 +21,18 @@ module.exports = function getCGI(req: $Request, options: oracleExpressMiddleware
 	const PROTOCOL = req.protocol ? req.protocol.toUpperCase() : '';
 	const CHARSET = 'UTF8';
 	const IANA_CHARSET = 'UTF-8';
+	const PATH = getPath(req);
 
 	const DEFAULT_CGI: environmentType = {
 		'PLSQL_GATEWAY': 'WebDb',
 		'GATEWAY_IVERSION': '2',
 		'SERVER_SOFTWARE': 'web_plsql',
 		'GATEWAY_INTERFACE': 'CGI/1.1',
-		'SERVER_PORT': req.get('port').toString(),
+		'SERVER_PORT': req.socket.localPort.toString(),
 		'SERVER_NAME': os.hostname(),
 		'REQUEST_METHOD': req.method,
 		'PATH_INFO': req.params.name,
-		'SCRIPT_NAME': '', // TODO: this should be filled automagically
+		'SCRIPT_NAME': PATH.script,
 		'REMOTE_ADDR': (req.ip || '').replace('::ffff:', ''),
 		'SERVER_PROTOCOL': PROTOCOL + '/' + req.httpVersion,
 		'REQUEST_PROTOCOL': PROTOCOL,
@@ -44,13 +46,13 @@ module.exports = function getCGI(req: $Request, options: oracleExpressMiddleware
 		'HTTP_REFERER': req.get('referer') || '',
 		'HTTP_X_FORWARDED_FOR': req.get('x-forwarded-for') || '',
 		'WEB_AUTHENT_PREFIX': '',
-		'DAD_NAME': '', // TODO: this should be filled automagically
+		'DAD_NAME': PATH.dad,
 		'DOC_ACCESS_PATH': 'doc',
 		'DOCUMENT_TABLE': options.doctable || '',
 		'PATH_ALIAS': '',
 		'REQUEST_CHARSET': CHARSET,
 		'REQUEST_IANA_CHARSET': IANA_CHARSET,
-		'SCRIPT_PREFIX': '/'
+		'SCRIPT_PREFIX': PATH.prefix
 	};
 
 	return Object.assign(DEFAULT_CGI, options.cgi);
@@ -58,9 +60,6 @@ module.exports = function getCGI(req: $Request, options: oracleExpressMiddleware
 
 /*
 * Create the HTTP_COOKIE string
-*
-* @param {$Request} req - The req object represents the HTTP request.
-* @return {string} Cookie string
 */
 function getCookieString(req: $Request): string {
 	let cookieString = '';
@@ -70,4 +69,29 @@ function getCookieString(req: $Request): string {
 	}
 
 	return cookieString;
+}
+
+/*
+* Get the script name and DAD name from a URL
+*/
+function getPath(req: $Request): {script: string, prefix: string, dad: string} {
+	// create a valid url
+	const validUrl = req.protocol + '://' + os.hostname() + req.originalUrl;
+
+	// get the pathname from the url (new URL('https://example.org/abc/xyz?123').pathname => /abc/xyz)
+	const pathname = new URL(validUrl).pathname;
+
+	const tmp = trimPath(pathname.substr(0, pathname.lastIndexOf('/') + 1));
+	const script = '/' + tmp;
+	const prefix = '/' + tmp.substr(0, tmp.lastIndexOf('/'));
+	const dad = tmp.substr(tmp.indexOf('/') + 1);
+
+	return {script,	prefix, dad};
+}
+
+/*
+* Get a path that is not enclodes in slashes
+*/
+function trimPath(value: string): string {
+	return value.replace(/^\/+|\/+$/g, '');
 }

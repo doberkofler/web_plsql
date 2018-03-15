@@ -6,6 +6,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const mkdirp = require('mkdirp');
 const util = require('util');
 const rimraf = require('rimraf');
 
@@ -21,11 +22,10 @@ class Trace {
 	* Instantiate a new trace object.
 	*
 	* @param {boolean} enabled - Is tracing enabled.
-	* @param {string} [directory] - The optional static trace directory.
 	*/
-	constructor(enabled: boolean, directory: ?string) {
+	constructor(enabled: boolean) {
 		this._enabled = enabled === true;
-		this._directory = typeof directory === 'string' && directory.length > 0 ? directory : getTimestampDirectory();
+		this._directory = getTimestampDirectory();
 		this._filename = '';
 		this._id = 0;
 
@@ -38,7 +38,7 @@ class Trace {
 			if (fs.existsSync(this._directory)) {
 				rimraf.sync(path.join(this._directory, '*.log'));
 			} else {
-				fs.mkdirSync(this._directory);
+				mkdirp.sync(this._directory);
 			}
 			console.log(`Tracing to the directory "${this._directory}" is enabled.`);
 		} catch (e) {

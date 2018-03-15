@@ -37,11 +37,9 @@ databasePool.catch(e => {
 const PORT = 8000;
 const PATH = '/base';
 const OPTIONS = {
+	trace: true,
 	defaultPage: 'sample.pageIndex',
-	doctable: 'docTable',
-	cgi: {
-		'DAD_NAME': PATH
-	}
+	doctable: 'docTable'
 };
 
 // create express app
@@ -62,5 +60,5 @@ app.use(PATH + '/:name?', webplsql(databasePool, OPTIONS));
 app.use('/static', express.static(path.join(process.cwd(), 'examples/static')));
 
 // listen on port
-console.log(`Waiting on http://localhost:${PORT}${PATH}`);
+console.log(`Listening on http://localhost:${PORT}${PATH}`);
 app.listen(PORT);

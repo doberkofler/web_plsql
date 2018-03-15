@@ -22,7 +22,7 @@ Please visit the [node-oracledb INSTALL.md](https://github.com/oracle/node-oracl
 
 # Configuration
 
-## How does a mod_plsql DAD configuration compare to the web_plsql configuration file
+## How does a mod_plsql DAD configuration compare to the web_plsql app
 
 ```
 <Location /pls/sample>
@@ -81,10 +81,7 @@ const PORT = 8000;
 const PATH = '/pls/sample';
 const OPTIONS = {
 	defaultPage: 'sample.pageIndex',
-	doctable: 'docTable',
-	cgi: {
-		'DAD_NAME': PATH
-	}
+	doctable: 'docTable'
 };
 
 // create express app

@@ -5,6 +5,7 @@
 */
 
 const util = require('util');
+const escape = require('escape-html');
 const ProcedureError = require('./procedureError');
 const RequestError = require('./requestError');
 const {Trace} = require('./trace');
@@ -65,15 +66,21 @@ function getError(req: $Request, error: Error): outputType {
 	// what type of Error did we receive
 	if (error instanceof ProcedureError) {
 		timestamp = error.timestamp;
-		message = error.message;
+		message = error.stack;
 		environment = error.environment;
 		sql = error.sql;
 		bind = error.bind;
 	} else if (error instanceof RequestError) {
 		timestamp = error.timestamp;
-		message = error.message;
+		message = error.stack;
 	} else if (error instanceof Error) {
-		message = error.message;
+		message = error.stack;
+	} else {
+		try {
+			new Error(); // eslint-disable-line no-new
+		} catch (e) {
+			message = e.stack;
+		}
 	}
 
 	const output: outputType = {
@@ -221,7 +228,7 @@ function inspect(value: any): string {
 *	convert LF and/or CR to <br>
 */
 function convertToHtml(text: string): string {
-	let html = text;
+	let html = escape(text);
 
 	html = html.replace(/(?:\r\n|\r|\n)/g, '<br />');
 	html = html.replace(/\t/g, '&nbsp;&nbsp;&nbsp;');

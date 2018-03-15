@@ -5,12 +5,13 @@ const os = require('os');
 describe('cgi', () => {
 	it('with a proper configuration object and request', () => {
 		const PORT = 4711;
-		const ROUTE = 'route';
+		const ORIGINAL_URL = '/pls/base/package.procedure?p=1#1';
 		const DOCUMENT_TABLE_NAME = 'doc-table';
 		const REMOTE_ADDRESS = '127.0.0.1';
 
 		const req = {
 			protocol: 'http',
+			originalUrl: ORIGINAL_URL,
 			method: 'GET',
 			params: {
 				name: 'index.html'
@@ -44,14 +45,14 @@ describe('cgi', () => {
 			},
 			connection: {
 				remoteAddress: REMOTE_ADDRESS
+			},
+			socket: {
+				localPort: PORT
 			}
 		};
 
 		const options = {
-			doctable: DOCUMENT_TABLE_NAME,
-			cgi: {
-				'DAD_NAME': ROUTE
-			}
+			doctable: DOCUMENT_TABLE_NAME
 		};
 
 		const cgi = getCGI(req, options);
@@ -67,7 +68,7 @@ describe('cgi', () => {
 			'SERVER_NAME': os.hostname(),
 			'REQUEST_METHOD': 'GET',
 			'PATH_INFO': 'index.html',
-			'SCRIPT_NAME': '',
+			'SCRIPT_NAME': '/pls/base',
 			'REMOTE_ADDR': REMOTE_ADDRESS,
 			'SERVER_PROTOCOL': 'HTTP/1.1',
 			'REQUEST_PROTOCOL': 'HTTP',
@@ -80,13 +81,13 @@ describe('cgi', () => {
 			'HTTP_ACCEPT_LANGUAGE': 'ACCEPT-LANGUAGE',
 			'HTTP_REFERER': 'HTTP-REFERER',
 			'WEB_AUTHENT_PREFIX': '',
-			'DAD_NAME': ROUTE,
+			'DAD_NAME': 'base',
 			'DOC_ACCESS_PATH': 'doc',
 			'DOCUMENT_TABLE': DOCUMENT_TABLE_NAME,
 			'PATH_ALIAS': '',
 			'REQUEST_CHARSET': 'UTF8',
 			'REQUEST_IANA_CHARSET': 'UTF-8',
-			'SCRIPT_PREFIX': '/',
+			'SCRIPT_PREFIX': '/pls',
 			'HTTP_COOKIE': 'cookie1=value1;cookie2=value2;'
 		});
 	});
