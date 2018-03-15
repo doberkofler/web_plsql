@@ -40,9 +40,10 @@
     "build": "npm run clean && babel --out-dir=lib src",
     "flow-typed": "flow-typed install",
     "lint": "eslint --report-unused-disable-directives src examples && flow check --show-all-errors",
-    "test": "npm run clean && npm run build && mocha",
+    "test": "npm run build && mocha --check-leaks --full-trace test",
     "watch-run": "nodemon --watch ./lib --watch examples examples/sample.js",
     "watch-build": "babel --source-maps --watch --out-dir=lib src",
+    "rebuild": "npm run build && npm run lint && npm run test",
     "create-package": "shx rm -f *.tgz && npm pack",
     "install": "npm run build"
   },
@@ -62,6 +63,7 @@
   },
   "devDependencies": {
     "babel-eslint": "^8.2.2",
+    "chai": "^4.1.2",
     "eslint": "^4.18.2",
     "eslint-plugin-flowtype": "^2.46.1",
     "flow-bin": "^0.67.1",

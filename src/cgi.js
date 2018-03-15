@@ -26,11 +26,11 @@ module.exports = function getCGI(req: $Request, options: oracleExpressMiddleware
 		'GATEWAY_IVERSION': '2',
 		'SERVER_SOFTWARE': 'web_plsql',
 		'GATEWAY_INTERFACE': 'CGI/1.1',
-		//	TODO	'SERVER_PORT': req.get('port').toString(),
+		'SERVER_PORT': req.get('port').toString(),
 		'SERVER_NAME': os.hostname(),
 		'REQUEST_METHOD': req.method,
 		'PATH_INFO': req.params.name,
-		//	TODO	'SCRIPT_NAME': service.route,
+		'SCRIPT_NAME': '', // TODO: this should be filled automagically
 		'REMOTE_ADDR': (req.ip || '').replace('::ffff:', ''),
 		'SERVER_PROTOCOL': PROTOCOL + '/' + req.httpVersion,
 		'REQUEST_PROTOCOL': PROTOCOL,
