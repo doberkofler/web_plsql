@@ -14,7 +14,7 @@ const webplsql = require('../lib');
 *	Allocate the Oracle database pool
 */
 
-const databasePool = oracledb.createPool({
+const connectionPool = oracledb.createPool({
 	user: 'sample',							// The database user name.
 	password: 'sample',						// The password of the database user.
 	connectString: 'localhost:1521/TEST',	// The Oracle database instance to connect to. The string can be an Easy Connect string, or a Net Service Name from a tnsnames.ora file, or the name of a local Oracle database instance.
@@ -25,7 +25,7 @@ const databasePool = oracledb.createPool({
 	queueTimeout: 1000						// The number of milliseconds after which connection requests waiting in the connection request queue are terminated. If queueTimeout is 0, then queued connection requests are never terminated.
 });
 
-databasePool.catch(e => {
+connectionPool.catch(e => {
 	console.error(`Unable to create database pool.\n${e.message}`);
 	process.exit(1);
 });
@@ -37,7 +37,7 @@ databasePool.catch(e => {
 const PORT = 8000;
 const PATH = '/base';
 const OPTIONS = {
-	trace: true,
+	trace: 'on',
 	defaultPage: 'sample.pageIndex',
 	doctable: 'docTable'
 };
@@ -54,7 +54,7 @@ app.use(compression());
 app.use(morgan('combined', {stream: fs.createWriteStream(path.join(process.cwd(), 'access.log'), {flags: 'a'})}));
 
 // add the oracle pl/sql express middleware
-app.use(PATH + '/:name?', webplsql(databasePool, OPTIONS));
+app.use(PATH + '/:name?', webplsql(connectionPool, OPTIONS));
 
 // serving static files
 app.use('/static', express.static(path.join(process.cwd(), 'examples/static')));

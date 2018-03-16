@@ -10,6 +10,8 @@ const mkdirp = require('mkdirp');
 const util = require('util');
 const rimraf = require('rimraf');
 
+const TRACE_ROOT_DIRECTORY = 'trace';
+
 const SEPARATOR_LINE = '*'.repeat(132);
 
 class Trace {
@@ -21,10 +23,10 @@ class Trace {
 	/**
 	* Instantiate a new trace object.
 	*
-	* @param {boolean} enabled - Is tracing enabled.
+	* @param {'on' | 'off' | 'test'} trace - Tracing.
 	*/
-	constructor(enabled: boolean) {
-		this._enabled = enabled === true;
+	constructor(trace: 'on' | 'off' | 'test') {
+		this._enabled = trace !== 'off';
 		this._directory = getTimestampDirectory();
 		this._filename = '';
 		this._id = 0;
@@ -35,12 +37,10 @@ class Trace {
 
 		// create the trace directory
 		try {
-			if (fs.existsSync(this._directory)) {
-				rimraf.sync(path.join(this._directory, '*.log'));
-			} else {
-				mkdirp.sync(this._directory);
+			mkdirp.sync(this._directory);
+			if (trace === 'on') {
+				console.log(`Tracing to the directory "${this._directory}" is enabled.`);
 			}
-			console.log(`Tracing to the directory "${this._directory}" is enabled.`);
 		} catch (e) {
 			console.error(`Unable to create new trace directory "${this._directory}"`, e);
 		}
@@ -175,7 +175,7 @@ function getTimestamp(): string {
 *	get a new directory name based on the current timestamp
 */
 function getTimestampDirectory(): string {
-	return path.join('trace', getTimestamp().replace(/(-|:)/g, ''));
+	return path.join(TRACE_ROOT_DIRECTORY, getTimestamp().replace(/(-|:)/g, ''));
 }
 
 /*

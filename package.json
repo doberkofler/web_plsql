@@ -40,7 +40,7 @@
     "build": "npm run clean && babel --out-dir=lib src",
     "flow-typed": "flow-typed install",
     "lint": "eslint --report-unused-disable-directives src examples && flow check --show-all-errors",
-    "test": "npm run build && mocha --check-leaks --full-trace test",
+    "test": "mocha --check-leaks --full-trace --require babel-core/register test",
     "sample": "node examples/sample.js",
     "watch-run": "nodemon --watch ./lib --watch examples examples/sample.js",
     "watch-build": "babel --source-maps --watch --out-dir=lib src",
@@ -70,10 +70,11 @@
     "eslint": "^4.18.2",
     "eslint-plugin-flowtype": "^2.46.1",
     "flow-bin": "^0.68.0",
-    "flow-typed": "^2.3.0",
+    "flow-typed": "^2.4.0",
     "mocha": "^5.0.4",
     "nodemon": "^1.17.2",
-    "shx": "^0.2.2"
+    "shx": "^0.2.2",
+    "supertest": "^3.0.0"
   },
   "optionalDependencies": {
     "oracledb": "^2.1.2"

@@ -23,7 +23,7 @@ process.on('unhandledRejection', (reason, p) => {
 */
 
 const PASSWORD = process.env.LJ_UNITTEST_PASSWORD || '';
-const databasePool = oracledb.createPool({
+const connectionPool = oracledb.createPool({
 	user: 'LJ_UNITTEST',					// The database user name.
 	password: PASSWORD,						// The password of the database user.
 	connectString: 'localhost:1521/TEST',	// The Oracle database instance to connect to. The string can be an Easy Connect string, or a Net Service Name from a tnsnames.ora file, or the name of a local Oracle database instance.
@@ -34,7 +34,7 @@ const databasePool = oracledb.createPool({
 	queueTimeout: 1000						// The number of milliseconds after which connection requests waiting in the connection request queue are terminated. If queueTimeout is 0, then queued connection requests are never terminated.
 });
 
-databasePool.catch(e => {
+connectionPool.catch(e => {
 	console.error(`Unable to create database pool.\n${e.message}`);
 	process.exit(1);
 });
@@ -48,9 +48,9 @@ const ROOT = '/lj_unittest';
 const STATIC_ROOT = '/q/p/lj_unittest/';
 const STATIC_PATH = process.env.PERISCOPE_DEPLOY_DIR || '';
 const OPTIONS = {
+	trace: 'on',
 	defaultPage: 'LAS_DLG_Startup.GO',
-	doctable: 'ljp_documents',
-	trace: true
+	doctable: 'ljp_documents'
 };
 
 // create express app
@@ -65,7 +65,7 @@ app.use(compression());
 app.use(morgan('combined', {stream: fs.createWriteStream(path.join(process.cwd(), 'access.log'), {flags: 'a'})}));
 
 // add the oracle pl/sql express middleware
-app.use(ROOT + '/:name?', webplsql(databasePool, OPTIONS));
+app.use(ROOT + '/:name?', webplsql(connectionPool, OPTIONS));
 
 // serving static files
 console.log(`Serving static files on http://localhost:${PORT}${STATIC_ROOT} from ${STATIC_PATH}`);

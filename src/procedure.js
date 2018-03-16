@@ -4,7 +4,7 @@
 *	Invoke the Oracle procedure and return the raw content of the page
 */
 
-const oracledb = require('oracledb');
+const oracledb = require('./oracle');
 const {streamToBuffer} = require('./stream');
 const fileUpload = require('./fileUpload');
 const page = require('./page');
@@ -121,7 +121,7 @@ module.exports = async function invokeProcedure(req: $Request, res: $Response, a
 	// add file download information
 	pageComponents.file.fileType = result.outBinds.fileType;
 	pageComponents.file.fileSize = result.outBinds.fileSize;
-	pageComponents.file.fileBlob = await streamToBuffer(result.outBinds.fileBlob);
+	pageComponents.file.fileBlob = result.outBinds.fileBlob !== null ? await streamToBuffer(result.outBinds.fileBlob) : null;
 
 	trace.write(`PARSED CONTENT:\n${'-'.repeat(30)}\n${Trace.inspect(pageComponents)}\n${'-'.repeat(30)}`);
 

@@ -9,7 +9,7 @@ export type oracleExpressMiddleware$options = {
 	defaultPage?: string,
 	doctable?: string,
 	cgi?: environmentType,
-	trace: boolean
+	trace: 'on' | 'off' | 'test'
 };
 
 /**
@@ -20,7 +20,7 @@ export type oracleExpressMiddleware$options = {
 */
 module.exports = function validate(options: any): oracleExpressMiddleware$options {
 	const validOptions: oracleExpressMiddleware$options = {
-		trace: false
+		trace: 'off'
 	};
 
 	if (typeof options !== 'object') {
@@ -52,10 +52,10 @@ module.exports = function validate(options: any): oracleExpressMiddleware$option
 	}
 
 	if (typeof options.trace !== 'undefined') {
-		if (typeof options.trace === 'boolean') {
-			validOptions.trace = options.trace;
+		if (typeof options.trace !== 'string' || ['on', 'off', 'test'].indexOf(options.trace.toLowerCase()) === -1) {
+			throw new TypeError('The optional option "trace" must be "on" or "off"');
 		} else {
-			throw new TypeError('The option "trace" must be of type boolean');
+			validOptions.trace = options.trace.toLowerCase();
 		}
 	}
 

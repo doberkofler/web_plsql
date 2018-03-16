@@ -1,4 +1,7 @@
+// @flow
+
 const assert = require('chai').assert;
+// $FlowFixMe
 const getCGI = require('../lib/cgi');
 const os = require('os');
 
