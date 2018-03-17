@@ -1,8 +1,6 @@
 // @flow
 
-const os = require('os');
 const path = require('path');
-const util = require('util');
 const express = require('express');
 const bodyParser = require('body-parser');
 const multipart = require('connect-multiparty');
@@ -48,6 +46,10 @@ describe('server static', () => {
 		serverConfig = await serverStart();
 	});
 
+	beforeEach('Reset the execute callback', () => {
+		oracledb.setExecuteCallback();
+	});
+
 	after('Stop the server', async () => {
 		await serverStop(serverConfig);
 	});
@@ -65,18 +67,41 @@ describe('server static', () => {
 	});
 
 	it(`"GET ${PATH}/${DEFAULT_PAGE} should return the main page`, () => {
-		// register an execute callback
-		oracledb.setExecuteCallback(sql => {
-			if (/.*dbms_utility\.name_resolve.*/.test(sql)) {
-				// "procedure.getFixArgsPara"
+		const executeOutBinds = {
+			fileType: null,
+			fileSize: null,
+			fileBlob: null,
+			lines: [
+				'Content-type: text/html; charset=UTF-8\n',
+				'\n',
+				'<html><body><p>static</p></body></html>\n',
+			],
+			irows: 3
+		};
+
+		const test = executeRequest(serverConfig.app, `${PATH}/${DEFAULT_PAGE}`, executeOutBinds);
+
+		return test.expect(200, new RegExp('.*<html><body><p>static</p></body></html>.*'));
+	});
+
+	it(`"GET ${PATH} should return the default page`, () => {
+		const test = request(serverConfig.app).get(PATH);
+
+		return test.expect(302, `Found. Redirecting to ${PATH}/${DEFAULT_PAGE}`);
+	});
+
+	it(`"GET ${PATH}/${DEFAULT_PAGE}?p1=1&p2=2 should return the default page with the arguments a=1 and b=2`, () => {
+		oracledb.setExecuteCallback((sql, bindParams) => {
+			if (sql.indexOf('dbms_utility.name_resolve') !== -1) {
 				return {
 					outBinds: {
-						names: [],
-						types: []
+						names: ['a', 'b'],
+						types: ['1', '2']
 					}
 				};
-			} else if (/.*-- execute the procedure.*/.test(sql)) {
-				// "execute the procedure"
+			}
+
+			if (sql.indexOf('sample.pageIndex(a=>:p1,b=>:p2);') !== -1 && bindParams.p1.val === '1' && bindParams.p2.val === '2') {
 				return {
 					outBinds: {
 						fileType: null,
@@ -95,49 +120,15 @@ describe('server static', () => {
 			return {};
 		});
 
-		const test = request(serverConfig.app).get(`${PATH}/${DEFAULT_PAGE}`);
+		const test = request(serverConfig.app).get(`${PATH}/${DEFAULT_PAGE}?a=1&b=2`);
 
 		return test.expect(200, new RegExp('.*<html><body><p>static</p></body></html>.*'));
 	});
 
-	it(`"GET ${PATH} should return the default page`, () => {
-		const test = request(serverConfig.app).get(PATH);
 
-		return test.expect(302, `Found. Redirecting to ${PATH}/${DEFAULT_PAGE}`);
-	});
+	/*
 
-/*
-	describe('routes', function () {
-		describe('default page (GET /sampleRoute)', function () {
-			it('should return the default page', function (done) {
-				let test = request(application.expressApplication).get('/sampleRoute');
-
-				test.expect(302, 'Found. Redirecting to /sampleRoute/samplePage', done);
-			});
-		});
-
-		describe('GET /sampleRoute/emptyPage', function () {
-			it('GET /sampleRoute/emptyPage should return an empty page', function (done) {
-				request(application.expressApplication).get('/sampleRoute/emptyPage')
-					.expect(200, '', done);
-			});
-		});
-
-		describe('GET /sampleRoute/samplePage', function () {
-			it('GET /sampleRoute/samplePage should return the sample page', function (done) {
-				request(application.expressApplication).get('/sampleRoute/samplePage')
-					.expect(200, 'sample page', done);
-			});
-		});
-
-		describe('GET /sampleRoute/completePage', function () {
-			it('should return the complete page', function (done) {
-				request(application.expressApplication).get('/sampleRoute/completePage?para=value')
-					.expect(200, 'complete page', done);
-			});
-		});
-
-		describe('GET /sampleRoute/arrayPage', function () {
+		describe('GET /sampleRoute/arrayPage', () => {
 			let args = {para: ['value1', 'value2']};
 
 			it('should return the array page', function (done) {
@@ -146,21 +137,21 @@ describe('server static', () => {
 			});
 		});
 
-		describe('GET /sampleRoute/redirect', function () {
+		describe('GET /sampleRoute/redirect', () => {
 			it('should redirect to another page', function (done) {
 				request(application.expressApplication).get('/sampleRoute/redirect')
 					.expect(302, done);
 			});
 		});
 
-		describe('GET /sampleRoute/json', function () {
+		describe('GET /sampleRoute/json', () => {
 			it('should parse JSON', function (done) {
 				request(application.expressApplication).get('/sampleRoute/json')
 					.expect(200, '{"name":"johndoe"}', done);
 			});
 		});
 
-		describe('POST /sampleRoute/form_urlencoded', function () {
+		describe('POST /sampleRoute/form_urlencoded', () => {
 			it('should return a form with fields', function (done) {
 				let test = request(application.expressApplication).post('/sampleRoute/form_urlencoded');
 
@@ -171,7 +162,7 @@ describe('server static', () => {
 			});
 		});
 
-		describe('POST /sampleRoute/multipart_form_data', function () {
+		describe('POST /sampleRoute/multipart_form_data', () => {
 			it('should return a multipart form with files', function (done) {
 				let test = request(application.expressApplication).post('/sampleRoute/multipart_form_data');
 
@@ -190,7 +181,7 @@ describe('server static', () => {
 			});
 		});
 
-		describe('GET /sampleRoute/cgi', function () {
+		describe('GET /sampleRoute/cgi', () => {
 			it('GET /sampleRoute/cgi should validate the cgi', function (done) {
 				request(application.expressApplication).get('/sampleRoute/cgi')
 					.expect(200, 'cgi', done);
@@ -199,8 +190,8 @@ describe('server static', () => {
 
 	});
 
-	describe('basic authorization', function () {
-		describe('GET /basicRoute/basicPage unauthorized', function () {
+	describe('basic authorization', () => {
+		describe('GET /basicRoute/basicPage unauthorized', () => {
 			it('GET /basicRoute/basicPage should generate a 401 error', function (done) {
 				request(application.expressApplication)
 					.get('/basicRoute/basicPage')
@@ -208,7 +199,7 @@ describe('server static', () => {
 			});
 		});
 
-		describe('GET /basicRoute/basicPage authorize', function () {
+		describe('GET /basicRoute/basicPage authorize', () => {
 			it('GET /basicRoute/basicPage should authorize', function (done) {
 				request(application.expressApplication)
 					.get('/basicRoute/basicPage')
@@ -219,8 +210,8 @@ describe('server static', () => {
 
 	});
 
-	describe('file upload', function () {
-		describe('Upload files (POST /sampleRoute/fileUpload)', function () {
+	describe('file upload', () => {
+		describe('Upload files (POST /sampleRoute/fileUpload)', () => {
 			it('should upload files', function (done) {
 				const FILENAME = 'temp/index.html';
 				const CONTENT = 'content of index.html';
@@ -239,42 +230,8 @@ describe('server static', () => {
 
 	});
 
-	describe('status page', function () {
-		describe('GET /status', function () {
-			it('should show the status page', function (done) {
-				request(application.expressApplication)
-					.get('/status')
-					.expect(200)
-					.end(function (err) {
-						if (err) {
-							return done(err);
-						}
-						return done();
-					});
-			});
-		});
-
-	});
-
-	describe('shutdown from status page', function () {
-		describe('GET /shutdown', function () {
-			it('should show the shutdown page', function (done) {
-				request(application.expressApplication)
-					.get('/shutdown')
-					.expect(200)
-					.end(function (err) {
-						if (err) {
-							return done(err);
-						}
-						return done();
-					});
-			});
-		});
-
-	});
-
-	describe('errors', function () {
-		describe('GET /invalidRoute', function () {
+	describe('errors', () => {
+		describe('GET /invalidRoute', () => {
 			it('should respond with 404', function (done) {
 				let test = request(application.expressApplication).get('/invalidRoute');
 
@@ -282,7 +239,7 @@ describe('server static', () => {
 			});
 		});
 
-		describe('GET /sampleRoute/errorInPLSQL', function () {
+		describe('GET /sampleRoute/errorInPLSQL', () => {
 			it('should respond with 404', function (done) {
 				let test = request(application.expressApplication).get('/sampleRoute/errorInPLSQL');
 
@@ -290,7 +247,7 @@ describe('server static', () => {
 			});
 		});
 
-		describe('GET /sampleRoute/internalError', function () {
+		describe('GET /sampleRoute/internalError', () => {
 			it('should respond with 500', function (done) {
 				let test = request(application.expressApplication).get('/sampleRoute/internalError');
 
@@ -300,9 +257,9 @@ describe('server static', () => {
 
 	});
 
-	describe('start server with no routes', function () {
+	describe('start server with no routes', () => {
 		it('does stop', function (done) {
-			server.stop(application, function () {
+			server.stop(application, () => {
 				application = null;
 				assert.ok(true);
 				done();
@@ -310,9 +267,9 @@ describe('server static', () => {
 		});
 	});
 
-	describe('start server with invalid options', function () {
+	describe('start server with invalid options', () => {
 		it('does not start', function (done) {
-			server.start().then(function () {
+			server.start().then(() => {
 			}, function (err) {
 				assert.strictEqual(err, 'Configuration object must be an object');
 				done();
@@ -375,112 +332,30 @@ async function serverStop(config: serverConfigType) {
 }
 
 /*
-*	Database callback when invoking a page
+*	Execute a request
 */
-function invokeCallback(database, procedure, args, cgi, files, doctablename, callback) {
-	//console.log('invokeCallback: START\n' + util.inspect(arguments, {showHidden: false, depth: null, colors: true}) + '\"');
-
-	switch (procedure.toLowerCase()) {
-		case 'emptypage':
-			callback(null, getPage(''));
-			break;
-		case 'samplepage':
-			callback(null, getPage('sample page'));
-			break;
-		case 'basicpage':
-			callback(null, getPage('basic page'));
-			break;
-		case 'completepage':
-			callback(null, getPage('complete page', {'Content-Type': 'text/html', 'Set-Cookie': 'C1=V1'}));
-			break;
-		case 'arraypage':
-			callback(null, getPage('array page\n' + util.inspect(args), {'Content-Type': 'text/html'}));
-			break;
-		case 'redirect':
-			callback(null, getPage('', {'Location': 'www.google.com'}));
-			break;
-		case 'json':
-			callback(null, getPage('{"name":"johndoe"}', {'Content-Type': 'application/json'}));
-			break;
-		case 'form_urlencoded':
-			callback(null, getPage('{"name":"johndoe"}', {'Content-Type': 'text/html'}));
-			break;
-		case 'multipart_form_data':
-			callback(null, getPage('server.js', {'Content-Type': 'text/html'}));
-			break;
-		case 'cgi':
-			validateCGI(cgi);
-			callback(null, getPage('cgi'), {'Content-Type': 'text/html'});
-			break;
-		case 'fileupload':
-			callback(null, getPage('File "server.js" has been uploaded', {'Content-Type': 'text/html'}));
-			break;
-		case 'errorinplsql':
-			callback(new Error('procedure not found'));
-			break;
-		case 'internalerror':
-			throw new Error('internal error');
-		default:
-			console.log('==========> FATAL ERROR IN server.js: _invokeCallback received an invalid procedure=' + procedure);
-			break;
+function executeRequest(app: express$Application, url: string, executeOutBinds: ?Object, getArgumentsOutBinds: ?Object) {
+	if (executeOutBinds) {
+		executeOutBinds = {outBinds: executeOutBinds};
+	} else {
+		executeOutBinds = {};
 	}
 
-	//console.log('invokeCallback: END');
-}
+	if (getArgumentsOutBinds) {
+		getArgumentsOutBinds = {outBinds: getArgumentsOutBinds};
+	} else {
+		getArgumentsOutBinds = {outBinds: {names: [], types: []}};
+	}
 
-/*
-*	Get database page
-*/
-function getPage(body, header) {
-	let text = '',
-		name;
-
-	if (header) {
-		for (name in header) {
-			if (header.hasOwnProperty(name)) {
-				text += name + ': ' + header[name] + '\n';
-			}
+	oracledb.setExecuteCallback(sql => {
+		if (/.*dbms_utility\.name_resolve.*/.test(sql)) {
+			return getArgumentsOutBinds;
+		} else if (/.*-- execute the procedure.*/.test(sql)) {
+			return executeOutBinds;
 		}
-	}
 
-	text += 'Content-type: text/html; charset=UTF-8\nX-DB-Content-length: ' + body.length + '\n\n' + body;
+		return {};
+	});
 
-	return text;
-}
-
-/*
-*	Validate the CGI
-*/
-function validateCGI(cgi) {
-	const SERVER_PORT = '8999',
-		ROUTE = 'sampleRoute';
-
-	assert.strictEqual(cgi.PLSQL_GATEWAY, 'WebDb');
-	assert.strictEqual(cgi.GATEWAY_IVERSION, '2');
-	assert.strictEqual(cgi.SERVER_SOFTWARE, 'NodeJS-PL/SQL-Gateway');
-	assert.strictEqual(cgi.GATEWAY_INTERFACE, 'CGI/1.1');
-	assert.strictEqual(cgi.SERVER_PORT, SERVER_PORT);
-	assert.strictEqual(cgi.SERVER_NAME, os.hostname());
-	assert.strictEqual(cgi.REQUEST_METHOD, 'GET');
-	assert.strictEqual(cgi.PATH_INFO, 'cgi');
-	assert.strictEqual(cgi.SCRIPT_NAME, ROUTE);
-	//	assert.strictEqual(cgi.REMOTE_ADDR, REMOTE_ADDRESS);
-	assert.strictEqual(cgi.SERVER_PROTOCOL, 'HTTP/1.1');
-	assert.strictEqual(cgi.REQUEST_PROTOCOL, 'HTTP');
-	//	assert.strictEqual(cgi.REMOTE_USER, '');
-	//	assert.strictEqual(cgi.HTTP_USER_AGENT, 'USER-AGENT');
-	//	assert.strictEqual(cgi.HTTP_HOST, 'HOST');
-	//	assert.strictEqual(cgi.HTTP_ACCEPT, 'ACCEPT');
-	//	assert.strictEqual(cgi.HTTP_ACCEPT_ENCODING, 'ACCEPT-ENCODING');
-	//	assert.strictEqual(cgi.HTTP_ACCEPT_LANGUAGE, 'ACCEPT-LANGUAGE');
-	//	assert.strictEqual(cgi.HTTP_REFERER, '');
-	assert.strictEqual(cgi.WEB_AUTHENT_PREFIX, '');
-	assert.strictEqual(cgi.DAD_NAME, ROUTE);
-	assert.strictEqual(cgi.DOC_ACCESS_PATH, 'doc');
-	assert.strictEqual(cgi.DOCUMENT_TABLE, 'sampleDoctable');
-	assert.strictEqual(cgi.PATH_ALIAS, '');
-	assert.strictEqual(cgi.REQUEST_CHARSET, 'UTF8');
-	assert.strictEqual(cgi.REQUEST_IANA_CHARSET, 'UTF-8');
-	assert.strictEqual(cgi.SCRIPT_PREFIX, '/');
-	assert.isUndefined(cgi.HTTP_COOKIE);
+	return request(app).get(url);
 }

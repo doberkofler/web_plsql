@@ -85,13 +85,14 @@ module.exports = async function invokeProcedure(req: $Request, res: $Response, a
 	const sqlStatement = getProcedureSQL(para.sql);
 	let result;
 	try {
+		trace.write(`execute:\n${'-'.repeat(30)}\n${sqlStatement}\n${'-'.repeat(30)}\nwith bindings:\n${Trace.inspect(bind)}`);
 		result = await databaseConnection.execute(sqlStatement, Object.assign(bind, para.bind));
+		trace.write(`results:\n${Trace.inspect(result)}`);
 	} catch (e) {
 		const error = `Error when executing procedure\n${sqlStatement}\n${e.toString()}`;
 		trace.write(error);
 		throw new ProcedureError(error, cgiObj, para.sql, para.bind);
 	}
-	trace.write(`result:\n${Trace.inspect(result)}`);
 
 	//
 	//	4) PROCESS RESULTS
@@ -303,7 +304,7 @@ async function getArguments(procedure: string, databaseConnection: oracledb$conn
 	try {
 		result = await databaseConnection.execute(sql.join('\n'), bind);
 	} catch (e) {
-		const message = `Error when retrieving arguments\n${sql.join('\n')}\n${e.toString()}`;
+		const message = `Error when retrieving arguments\n${sql.join('\n')}\n${e.stack()}`;
 		throw new RequestError(message);
 	}
 

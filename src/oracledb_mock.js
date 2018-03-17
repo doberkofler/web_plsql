@@ -2,7 +2,7 @@
 
 /* eslint-disable class-methods-use-this, no-unused-vars */
 
-type executeCallbackType = (sql: string, bindParams: ?Object, options: ?Object) => Object;
+type executeCallbackType = (sql: string, bindParams: ?Object) => Object;
 
 let _executeCallback: executeCallbackType | null = null;
 function setExecuteCallback(callback: executeCallbackType | null = null) {
@@ -22,7 +22,7 @@ class Lob {
 
 class Connection {
 	execute(sql: string, bindParams: ?Object, options: ?Object): Promise<Object> {
-		return Promise.resolve(_executeCallback ? _executeCallback(sql, bindParams, options) : {});
+		return Promise.resolve(_executeCallback ? _executeCallback(sql, bindParams) : {});
 	}
 	createLob(type: number): Promise<Lob> {
 		const lob = new Lob(type);
@@ -34,7 +34,7 @@ class Connection {
 }
 
 class ConnectionPool {
-	onExecuteCallback: ?(sql: string, bindParams: Object, options: Object) => Object;
+	onExecuteCallback: ?(sql: string, bindParams: Object) => Object;
 
 	constructor() {
 		this.onExecuteCallback = null;
@@ -48,11 +48,6 @@ class ConnectionPool {
 
 	close(): Promise<void> {
 		return Promise.resolve();
-	}
-
-	// set a callback that will be executed for each "execute" and return what the callback returns instead of an empty object
-	onExecute(callback: (sql: string, bindParams: Object, options: Object) => Object) {
-		this.onExecuteCallback = callback;
 	}
 }
 
