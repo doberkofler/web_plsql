@@ -8,7 +8,7 @@ const fs = require('fs');
 const path = require('path');
 const mkdirp = require('mkdirp');
 const util = require('util');
-const rimraf = require('rimraf');
+//const rimraf = require('rimraf');
 
 const TRACE_ROOT_DIRECTORY = 'trace';
 

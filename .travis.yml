@@ -1,0 +1,22 @@
+language: node_js
+
+node_js:
+  - "8"
+  - "9"
+
+env:
+  global:
+
+before_script:
+
+script:
+  - "gulp lint"
+  - "gulp test"
+  - "gulp coverage"
+
+install:
+  - npm install
+
+notifications:
+  email:
+    - dieter.oberkofler@gmail.com

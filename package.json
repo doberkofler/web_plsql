@@ -37,14 +37,14 @@
   "version": "0.0.1",
   "scripts": {
     "clean": "rimraf lib",
-    "build": "npm run clean && babel --out-dir=lib src",
+    "build": "babel --out-dir=lib src",
     "flow-typed": "flow-typed install",
     "lint": "eslint --report-unused-disable-directives src examples && flow check --show-all-errors",
     "test": "mocha --check-leaks --full-trace --require babel-core/register test",
     "sample": "node examples/sample.js",
     "watch-run": "nodemon --watch ./lib --watch examples examples/sample.js",
     "watch-build": "babel --source-maps --watch --out-dir=lib src",
-    "rebuild": "npm run build && npm run lint && npm run test",
+    "rebuild": "npm run clean && npm run lint && npm run build && npm run test",
     "create-package": "shx rm -f *.tgz && npm pack",
     "install": "npm run build"
   },
