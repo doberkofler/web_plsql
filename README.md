@@ -1,5 +1,6 @@
   [![NPM Version][npm-image]][npm-url]
   [![NPM Downloads][downloads-image]][downloads-url]
+  [![Linux Build](https://travis-ci.org/doberkofler/web_plsql.svg?branch=master)](https://travis-ci.org/doberkofler/web_plsql)
   [![Linux Build][travis-image]][travis-url]
   ![Windows Build](https://ci.appveyor.com/api/projects/status/github/doberkofler/web_plsql?branch=master&svg=true)
   <!--[![Test Coverage][coveralls-image]][coveralls-url]-->
@@ -125,9 +126,6 @@ app.listen(PORT);
 
 [downloads-image]: https://img.shields.io/npm/dm/web_plsql.svg
 [downloads-url]: https://npmjs.org/package/web_plsql
-
-[travis-image]: https://travis-ci.org/doberkofler/web_plsql.svg?branch=master
-[travis-url]: http://travis-ci.org/doberkofler/web_plsql
 
 [coveralls-image]: https://coveralls.io/repos/doberkofler/node_plsql/badge.svg
 [coveralls-url]: https://coveralls.io/r/doberkofler/node_plsql
