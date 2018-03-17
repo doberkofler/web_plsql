@@ -39,6 +39,7 @@
     "clean": "rimraf lib",
     "build": "babel --out-dir=lib src",
     "flow-typed": "flow-typed install",
+    "eslint": "eslint --report-unused-disable-directives src examples",
     "lint": "eslint --report-unused-disable-directives src examples && flow check --show-all-errors",
     "test": "mocha --check-leaks --full-trace --require babel-core/register test",
     "sample": "node examples/sample.js",
