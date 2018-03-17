@@ -10,9 +10,7 @@ env:
 before_script:
 
 script:
-  - "gulp lint"
-  - "gulp test"
-  - "gulp coverage"
+  - "npm run rebuild"
 
 install:
   - npm install
