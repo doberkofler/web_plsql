@@ -1,7 +1,6 @@
   [![NPM Version][npm-image]][npm-url]
   [![NPM Downloads][downloads-image]][downloads-url]
   [![Linux Build](https://travis-ci.org/doberkofler/web_plsql.svg?branch=master)](https://travis-ci.org/doberkofler/web_plsql)
-  [![Linux Build][travis-image]][travis-url]
   ![Windows Build](https://ci.appveyor.com/api/projects/status/github/doberkofler/web_plsql?branch=master&svg=true)
   <!--[![Test Coverage][coveralls-image]][coveralls-url]-->
 
