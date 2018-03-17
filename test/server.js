@@ -1,5 +1,6 @@
 // @flow
 
+const util = require('util');
 const path = require('path');
 const express = require('express');
 const bodyParser = require('body-parser');
@@ -46,234 +47,205 @@ describe('server static', () => {
 		serverConfig = await serverStart();
 	});
 
-	beforeEach('Reset the execute callback', () => {
-		oracledb.setExecuteCallback();
-	});
-
 	after('Stop the server', async () => {
 		await serverStop(serverConfig);
 	});
 
-	it('"GET /static/static.html" should return the static file /test/static/static.html', () => {
-		const test = request(serverConfig.app).get('/static/static.html');
-
-		return test.expect(200, new RegExp('.*<html><body><p>static</p></body></html>.*'));
+	beforeEach('Reset the execute callback', () => {
+		oracledb.setExecuteCallback();
 	});
 
-	it('"GET /static/does-not-exist" should report a 404 error', () => {
-		const test = request(serverConfig.app).get('/static/file_does_not_exist.html');
+	it('get a static file', () =>
+		request(serverConfig.app).get('/static/static.html')
+			.expect(200, new RegExp('.*<html><body><p>static</p></body></html>.*')));
 
-		return test.expect(404);
-	});
+	it('report a 404 error on a missing static file', () =>
+		request(serverConfig.app).get('/static/file_does_not_exist.html')
+			.expect(404));
 
-	it(`"GET ${PATH}/${DEFAULT_PAGE} should return the main page`, () => {
-		const executeOutBinds = {
-			fileType: null,
-			fileSize: null,
-			fileBlob: null,
+	it('get default page', () =>
+		request(serverConfig.app).get(PATH)
+			.expect(302, `Found. Redirecting to ${PATH}/${DEFAULT_PAGE}`));
+
+	it('get page', () => {
+		sqlExecuteProxy({
+			proc: 'sample.pageIndex();',
 			lines: [
 				'Content-type: text/html; charset=UTF-8\n',
 				'\n',
-				'<html><body><p>static</p></body></html>\n',
-			],
-			irows: 3
-		};
-
-		const test = executeRequest(serverConfig.app, `${PATH}/${DEFAULT_PAGE}`, executeOutBinds);
-
-		return test.expect(200, new RegExp('.*<html><body><p>static</p></body></html>.*'));
-	});
-
-	it(`"GET ${PATH} should return the default page`, () => {
-		const test = request(serverConfig.app).get(PATH);
-
-		return test.expect(302, `Found. Redirecting to ${PATH}/${DEFAULT_PAGE}`);
-	});
-
-	it(`"GET ${PATH}/${DEFAULT_PAGE}?p1=1&p2=2 should return the default page with the arguments a=1 and b=2`, () => {
-		oracledb.setExecuteCallback((sql, bindParams) => {
-			if (sql.indexOf('dbms_utility.name_resolve') !== -1) {
-				return {
-					outBinds: {
-						names: ['a', 'b'],
-						types: ['1', '2']
-					}
-				};
-			}
-
-			if (sql.indexOf('sample.pageIndex(a=>:p1,b=>:p2);') !== -1 && bindParams.p1.val === '1' && bindParams.p2.val === '2') {
-				return {
-					outBinds: {
-						fileType: null,
-						fileSize: null,
-						fileBlob: null,
-						lines: [
-							'Content-type: text/html; charset=UTF-8\n',
-							'\n',
-							'<html><body><p>static</p></body></html>\n',
-						],
-						irows: 3
-					}
-				};
-			}
-
-			return {};
+				'<html><body><p>static</p></body></html>\n'
+			]
 		});
 
-		const test = request(serverConfig.app).get(`${PATH}/${DEFAULT_PAGE}?a=1&b=2`);
-
-		return test.expect(200, new RegExp('.*<html><body><p>static</p></body></html>.*'));
+		return request(serverConfig.app).get(`${PATH}/${DEFAULT_PAGE}`)
+			.expect(200, new RegExp('.*<html><body><p>static</p></body></html>.*'));
 	});
 
+	it('get page with query string', () => {
+		sqlExecuteProxy({
+			proc: 'sample.pageIndex(a=>:p_a,b=>:p_b);',
+			para: [{name: 'a', value: '1'}, {name: 'b', value: '2'}],
+			lines: [
+				'Content-type: text/html; charset=UTF-8\n',
+				'\n',
+				'<html><body><p>static</p></body></html>\n'
+			]
+		});
+
+		return request(serverConfig.app).get(`${PATH}/${DEFAULT_PAGE}?a=1&b=2`)
+			.expect(200, new RegExp('.*<html><body><p>static</p></body></html>.*'));
+	});
+
+	it('get page with query string containing duplicate names', () => {
+		sqlExecuteProxy({
+			proc: 'sample.pageIndex(a=>:p_a);',
+			para: [{name: 'a', value: ['1', '2']}],
+			lines: [
+				'Content-type: text/html; charset=UTF-8\n',
+				'\n',
+				'<html><body><p>static</p></body></html>\n'
+			]
+		});
+
+		return request(serverConfig.app).get(`${PATH}/${DEFAULT_PAGE}?a=1&a=2`)
+			.expect(200, new RegExp('.*<html><body><p>static</p></body></html>.*'));
+	});
+
+	it('get page with flexible parameters', () => {
+		sqlExecuteProxy({
+			proc: 'sample.pageIndex(:argnames, :argvalues);',
+			para: [
+				{name: 'argnames', value: ['a', 'b']},
+				{name: 'argvalues', value: ['1', '2']}
+			],
+			lines: [
+				'Content-type: text/html; charset=UTF-8\n',
+				'\n',
+				'<html><body><p>static</p></body></html>\n'
+			]
+		});
+
+		return request(serverConfig.app).get(`${PATH}/!${DEFAULT_PAGE}?a=1&b=2`)
+			.expect(200, new RegExp('.*<html><body><p>static</p></body></html>.*'));
+	});
+
+	it('redirect to a new url', () => {
+		sqlExecuteProxy({
+			proc: 'sample.pageIndex();',
+			lines: ['Location: www.google.com\n']
+		});
+
+		return request(serverConfig.app).get(`${PATH}/${DEFAULT_PAGE}`)
+			.expect(302);
+	});
+
+	it('get json', () => {
+		sqlExecuteProxy({
+			proc: 'sample.pageJson();',
+			lines: [
+				'Content-type: application/json\n',
+				'\n',
+				'{"name":"johndoe"}'
+			]
+		});
+
+		return request(serverConfig.app).get(`${PATH}/sample.pageJson`)
+			.expect(200, '{"name":"johndoe"}');
+	});
 
 	/*
 
-		describe('GET /sampleRoute/arrayPage', () => {
-			let args = {para: ['value1', 'value2']};
+	it('should return a form with fields', () => {
+		let test = request(application.expressApplication).post('/sampleRoute/form_urlencoded');
 
-			it('should return the array page', function (done) {
-				request(application.expressApplication).get('/sampleRoute/arrayPage?para=value1&para=value2')
-					.expect(200, 'array page\n' + util.inspect(args), done);
-			});
-		});
+		test.set('Content-Type', 'application/x-www-form-urlencoded');
+		test.send('name=johndoe');
 
-		describe('GET /sampleRoute/redirect', () => {
-			it('should redirect to another page', function (done) {
-				request(application.expressApplication).get('/sampleRoute/redirect')
-					.expect(302, done);
-			});
-		});
-
-		describe('GET /sampleRoute/json', () => {
-			it('should parse JSON', function (done) {
-				request(application.expressApplication).get('/sampleRoute/json')
-					.expect(200, '{"name":"johndoe"}', done);
-			});
-		});
-
-		describe('POST /sampleRoute/form_urlencoded', () => {
-			it('should return a form with fields', function (done) {
-				let test = request(application.expressApplication).post('/sampleRoute/form_urlencoded');
-
-				test.set('Content-Type', 'application/x-www-form-urlencoded');
-				test.send('name=johndoe');
-
-				test.expect(200, '{"name":"johndoe"}', done);
-			});
-		});
-
-		describe('POST /sampleRoute/multipart_form_data', () => {
-			it('should return a multipart form with files', function (done) {
-				let test = request(application.expressApplication).post('/sampleRoute/multipart_form_data');
-
-				test.set('Content-Type', 'multipart/form-data; boundary=foo');
-				test.write('--foo\r\n');
-				test.write('Content-Disposition: form-data; name="user_name"\r\n');
-				test.write('\r\n');
-				test.write('Tobi');
-				test.write('\r\n--foo\r\n');
-				test.write('Content-Disposition: form-data; name="text"; filename="test/server.js"\r\n');
-				test.write('\r\n');
-				test.write('some text here');
-				test.write('\r\n--foo--');
-
-				test.expect(200, 'server.js', done);
-			});
-		});
-
-		describe('GET /sampleRoute/cgi', () => {
-			it('GET /sampleRoute/cgi should validate the cgi', function (done) {
-				request(application.expressApplication).get('/sampleRoute/cgi')
-					.expect(200, 'cgi', done);
-			});
-		});
-
+		test.expect(200, '{"name":"johndoe"}', done);
 	});
 
-	describe('basic authorization', () => {
-		describe('GET /basicRoute/basicPage unauthorized', () => {
-			it('GET /basicRoute/basicPage should generate a 401 error', function (done) {
-				request(application.expressApplication)
-					.get('/basicRoute/basicPage')
-					.expect(401, 'Access denied', done);
-			});
-		});
+	it('should return a multipart form with files', () => {
+		let test = request(application.expressApplication).post('/sampleRoute/multipart_form_data');
 
-		describe('GET /basicRoute/basicPage authorize', () => {
-			it('GET /basicRoute/basicPage should authorize', function (done) {
-				request(application.expressApplication)
-					.get('/basicRoute/basicPage')
-					.auth('myusername', 'mypassword')
-					.expect(200, done);
-			});
-		});
+		test.set('Content-Type', 'multipart/form-data; boundary=foo');
+		test.write('--foo\r\n');
+		test.write('Content-Disposition: form-data; name="user_name"\r\n');
+		test.write('\r\n');
+		test.write('Tobi');
+		test.write('\r\n--foo\r\n');
+		test.write('Content-Disposition: form-data; name="text"; filename="test/server.js"\r\n');
+		test.write('\r\n');
+		test.write('some text here');
+		test.write('\r\n--foo--');
 
+		test.expect(200, 'server.js', done);
 	});
 
-	describe('file upload', () => {
-		describe('Upload files (POST /sampleRoute/fileUpload)', () => {
-			it('should upload files', function (done) {
-				const FILENAME = 'temp/index.html';
-				const CONTENT = 'content of index.html';
-				let test;
-
-				// create a static file
-				mkdirp.sync('temp');
-				fs.writeFileSync(FILENAME, CONTENT);
-
-				// test the upload
-				test = request(application.expressApplication).post('/sampleRoute/fileUpload');
-				test.attach('file', FILENAME);
-				test.expect(200, done);
-			});
-		});
-
+	it('GET /sampleRoute/cgi should validate the cgi', () => {
+		request(application.expressApplication).get('/sampleRoute/cgi')
+			.expect(200, 'cgi', done);
 	});
 
-	describe('errors', () => {
-		describe('GET /invalidRoute', () => {
-			it('should respond with 404', function (done) {
-				let test = request(application.expressApplication).get('/invalidRoute');
-
-				test.expect(404, new RegExp('.*404 Not Found.*'), done);
-			});
-		});
-
-		describe('GET /sampleRoute/errorInPLSQL', () => {
-			it('should respond with 404', function (done) {
-				let test = request(application.expressApplication).get('/sampleRoute/errorInPLSQL');
-
-				test.expect(404, new RegExp('.*Failed to parse target procedure.*'), done);
-			});
-		});
-
-		describe('GET /sampleRoute/internalError', () => {
-			it('should respond with 500', function (done) {
-				let test = request(application.expressApplication).get('/sampleRoute/internalError');
-
-				test.expect(500, done);
-			});
-		});
-
+	it('GET /basicRoute/basicPage should generate a 401 error', () => {
+		request(application.expressApplication)
+			.get('/basicRoute/basicPage')
+			.expect(401, 'Access denied', done);
 	});
 
-	describe('start server with no routes', () => {
-		it('does stop', function (done) {
-			server.stop(application, () => {
-				application = null;
-				assert.ok(true);
-				done();
-			});
+	it('GET /basicRoute/basicPage should authorize', () => {
+		request(application.expressApplication)
+			.get('/basicRoute/basicPage')
+			.auth('myusername', 'mypassword')
+			.expect(200, done);
+	});
+
+	it('should upload files', () => {
+		const FILENAME = 'temp/index.html';
+		const CONTENT = 'content of index.html';
+		let test;
+
+		// create a static file
+		mkdirp.sync('temp');
+		fs.writeFileSync(FILENAME, CONTENT);
+
+		// test the upload
+		test = request(application.expressApplication).post('/sampleRoute/fileUpload');
+		test.attach('file', FILENAME);
+		test.expect(200, done);
+	});
+
+	it('should respond with 404', () => {
+		let test = request(application.expressApplication).get('/invalidRoute');
+
+		test.expect(404, new RegExp('.*404 Not Found.*'), done);
+	});
+
+	it('should respond with 404', () => {
+		let test = request(application.expressApplication).get('/sampleRoute/errorInPLSQL');
+
+		test.expect(404, new RegExp('.*Failed to parse target procedure.*'), done);
+	});
+
+	it('should respond with 500', () => {
+		let test = request(application.expressApplication).get('/sampleRoute/internalError');
+
+		test.expect(500, done);
+	});
+
+	it('does stop', () => {
+		server.stop(application, () => {
+			application = null;
+			assert.ok(true);
+			done();
 		});
 	});
 
-	describe('start server with invalid options', () => {
-		it('does not start', function (done) {
-			server.start().then(() => {
-			}, function (err) {
-				assert.strictEqual(err, 'Configuration object must be an object');
-				done();
-			});
+
+	it('does not start', () => {
+		server.start().then(() => {
+		}, function (err) {
+			assert.strictEqual(err, 'Configuration object must be an object');
+			done();
 		});
 	});
 
@@ -310,7 +282,6 @@ async function serverStart(): Promise<serverConfigType> {
 
 	// serving static files
 	const staticResourcesPath = path.join(process.cwd(), 'test', 'static');
-	console.log(staticResourcesPath);
 	app.use('/static', express.static(staticResourcesPath));
 
 	// listen on port
@@ -332,30 +303,100 @@ async function serverStop(config: serverConfigType) {
 }
 
 /*
-*	Execute a request
+*	Set the proxy for the next sql procedure to be executed
 */
-function executeRequest(app: express$Application, url: string, executeOutBinds: ?Object, getArgumentsOutBinds: ?Object) {
-	if (executeOutBinds) {
-		executeOutBinds = {outBinds: executeOutBinds};
-	} else {
-		executeOutBinds = {};
-	}
+function sqlExecuteProxy(config: {proc: string, para?: Array<{name: string, value: string | Array<string>}>, lines: Array<string>}) {
+	oracledb.setExecuteCallback((sql, bind) => {
+		if (sql.indexOf('dbms_utility.name_resolve') !== -1) {
+			const noPara = {outBinds: {names: [], types: []}};
 
-	if (getArgumentsOutBinds) {
-		getArgumentsOutBinds = {outBinds: getArgumentsOutBinds};
-	} else {
-		getArgumentsOutBinds = {outBinds: {names: [], types: []}};
-	}
-
-	oracledb.setExecuteCallback(sql => {
-		if (/.*dbms_utility\.name_resolve.*/.test(sql)) {
-			return getArgumentsOutBinds;
-		} else if (/.*-- execute the procedure.*/.test(sql)) {
-			return executeOutBinds;
+			return typeof config.para === 'undefined' ? noPara : config.para.reduce((accumulator, currentValue) => {
+				accumulator.outBinds.names.push(currentValue.name);
+				accumulator.outBinds.types.push('VARCHAR2');
+				return accumulator;
+			}, noPara);
 		}
+
+		if (sql.indexOf(config.proc) !== -1) {
+			if (typeof config.para !== 'undefined') {
+				if (!parameterEqual(sql, bind, config.para)) {
+					console.error(`===> Parameter mismatch\n${'-'.repeat(30)}\n${util.inspect(bind)}\n${'-'.repeat(30)}`);
+					return {};
+				}
+			}
+
+			return {
+				outBinds: {
+					fileType: null,
+					fileSize: null,
+					fileBlob: null,
+					lines: config.lines,
+					irows: config.lines.length
+				}
+			};
+		}
+
+		console.error(`===> sql statement cannot be identified\n${'-'.repeat(30)}\n${sql}\n${'-'.repeat(30)}`);
 
 		return {};
 	});
+}
 
-	return request(app).get(url);
+function parameterEqual(sql: string, bind: Object, parameters: Array<{name: string, value: string | Array<string>}>): boolean {
+	return sql.indexOf('(:argnames, :argvalues)') === -1 ? parameterFixedEqual(bind, parameters) : parameterFlexibleEqual(bind, parameters);
+}
+
+function parameterFixedEqual(bind: Object, parameters: Array<{name: string, value: string | Array<string>}>): boolean {
+	return parameters.every(para => {
+		if (!bind.hasOwnProperty('p_' + para.name)) {
+			console.error(`===> The parameter "${para.name}" is missing`);
+			return false;
+		}
+
+		if (Array.isArray(para.value)) {
+			return para.value.every((v, i) => {
+				const equal = v === bind['p_' + para.name].val[i];
+				if (!equal) {
+					console.error(`===> The value "${v}" of parameter "${para.name}" is different`);
+				}
+				return equal;
+			});
+		}
+
+		return para.value === bind['p_' + para.name].val;
+	});
+}
+
+function parameterFlexibleEqual(bind: Object, parameters: Array<{name: string, value: string | Array<string>}>): boolean { // eslint-disable-line no-unused-vars
+	if (parameters.length !== 2) {
+		console.error('===> Invalid number of parameters');
+		return false;
+	}
+
+	if (!parameters.every(para => ['argnames', 'argvalues'].indexOf(para.name) !== -1)) {
+		console.error('===> Invalid parameter names');
+		return false;
+	}
+
+	if (!bind.hasOwnProperty('argnames') || !bind.hasOwnProperty('argvalues')) {
+		console.error('===> Missing bindings');
+		return false;
+	}
+
+	return parameters.every(para => Array.isArray(para.value) && arrayEqual(para.value, bind[para.name].val));
+}
+
+/*
+*	Compare two arrays
+*/
+function arrayEqual(array1: Array<any>, array2: Array<any>): boolean {
+	if (!array1 || !array2) {
+		return false;
+	}
+
+	if (array1.length !== array2.length) {
+		return false;
+	}
+
+	return array1.every((e, i) => e === array2[i]);
 }

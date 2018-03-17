@@ -232,7 +232,7 @@ async function getFixArgsPara(procedure: string, argObj: Object, databaseConnect
 	let sql = procedure + '(';
 	for (const key in argObj) {
 		const value = argObj[key];
-		const parameterName = 'p' + (index + 1).toString();
+		const parameterName = 'p_' + key;
 
 		// prepend the separator, if this is not the first argument
 		if (index > 0) {

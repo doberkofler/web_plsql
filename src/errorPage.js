@@ -131,7 +131,7 @@ function getProcedure(output: outputType, sql: string, bind: oracledb$bindingTyp
 	let html = '<table>';
 	let text = '';
 
-	text += 'PROCEDURE: ' + sql;
+	text += 'PROCEDURE: ' + sql + '\n';
 	html += `<tr><td>PROCEDURE:</td><td>${sql}</td></tr>`;
 
 	try {
