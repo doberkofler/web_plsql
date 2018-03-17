@@ -6,6 +6,7 @@ node_js:
 
 env:
   global:
+    - test=1
 
 before_script:
 
