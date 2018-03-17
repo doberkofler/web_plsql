@@ -1,3 +1,5 @@
+[![Downloads][downloads-image]][npm-url] [![Build Status][travis-image]][travis-url] [![Coverage Status](https://coveralls.io/repos/doberkofler/node_plsql/badge.svg)](https://coveralls.io/r/doberkofler/node_plsql)
+
 # Oracle PL/SQL Gateway Middleware for the Express web framework for Node.js
 This Express Middleware is a bridge between a PL/SQL application running in an Oracle Database and an Express web server for Node.js.
 It is an open-source alternative to mod_plsql, the Embedded PL/SQL Gateway and ORDS,
@@ -5,6 +7,9 @@ allowing you to develop PL/SQL web applications using the PL/SQL Web Toolkit (OW
 and serve the content using the Express web framework for Node.js.
 
 Please feel free to try and suggest any improvements. Your thoughts and ideas are most welcome.
+
+# Release History
+See the [changelog](https://github.com/doberkofler/web_plsql/blob/master/CHANGELOG.md).
 
 # Installation
 
@@ -105,3 +110,8 @@ app.use('/static', express.static(path.join(process.cwd(), 'examples/static')));
 console.log(`Waiting on http://localhost:${PORT}${PATH}`);
 app.listen(PORT);
 ```
+
+[downloads-image]: http://img.shields.io/npm/dm/node_plsql.svg
+[npm-url]: https://npmjs.org/package/web_plsql
+[travis-url]: http://travis-ci.org/doberkofler/web_plsql
+[travis-image]: https://travis-ci.org/doberkofler/web_plsql.svg?branch=master
