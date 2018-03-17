@@ -111,7 +111,7 @@ console.log(`Waiting on http://localhost:${PORT}${PATH}`);
 app.listen(PORT);
 ```
 
-[downloads-image]: http://img.shields.io/npm/dm/node_plsql.svg
+[downloads-image]: http://img.shields.io/npm/dm/web_plsql.svg
 [npm-url]: https://npmjs.org/package/web_plsql
 [travis-url]: http://travis-ci.org/doberkofler/web_plsql
 [travis-image]: https://travis-ci.org/doberkofler/web_plsql.svg?branch=master
