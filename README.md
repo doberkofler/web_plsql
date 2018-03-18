@@ -115,6 +115,49 @@ console.log(`Waiting on http://localhost:${PORT}${PATH}`);
 app.listen(PORT);
 ```
 
+# Missing features
+
+## Features in mod_plsql that are not (yet) available in web_plsql:
+- Support for APEX 5.
+- Default exclusion list.
+- Basic and custom authentication methods, based on the OWA_SEC package and custom packages.
+- Override CGI environment variables in DAD configuration file.
+
+## Supported mod_plsql configurationb options:
+- PlsqlDatabaseConnectString
+- PlsqlDatabaseUserName
+- PlsqlDatabasePassword
+- PlsqlDefaultPage
+- PlsqlDocumentTablename
+- PlsqlLogEnable
+- PlsqlLogDirectory
+
+## Important configuration options that are not (yet) supported:
+- PlsqlAuthenticationMode
+- PlsqlDMSEnable
+- PlsqlIdleSessionCleanupInterval
+- PlsqlAfterProcedure
+- PlsqlAlwaysDescribeProcedure
+- PlsqlBeforeProcedure
+- PlsqlBindBucketLengths
+- PlsqlBindBucketWidths
+- PlsqlCGIEnvironmentList
+- PlsqlCompatibilityMode
+- PlsqlConnectionTimeout
+- PlsqlConnectionValidation
+- PlsqlDocumentPath
+- PlsqlDocumentProcedure
+- PlsqlErrorStyle
+- PlsqlExclusionList
+- PlsqlNLSLanguage
+- PlsqlPathAlias
+- PlsqlPathAliasProcedure
+- PlsqlRequestValidationFunction
+- PlsqlSessionCookieName
+- PlsqlSessionStateManagement
+- PlsqlTransferMode
+- PlsqlUploadAsLongRaw
+
 # License
 
 [MIT](LICENSE)
