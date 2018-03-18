@@ -23,12 +23,21 @@ module.exports = function validate(options: any): oracleExpressMiddleware$option
 		trace: 'off'
 	};
 
-	if (typeof options !== 'object') {
-		throw new TypeError('No configuration object was given');
+	if (typeof options !== 'undefined') {
+		if (arguments.length !== 1 || typeof options !== 'object' || options === null) {
+			throw new TypeError('Invalid configuration object was given');
+		}
+		Object.keys(options).forEach(option => {
+			if (['defaultPage', 'doctable', 'cgi', 'trace'].indexOf(option) === -1) {
+				throw new TypeError(`Invalid configuration options "${option}"`);
+			}
+		});
+	} else {
+		return validOptions;
 	}
 
 	if (typeof options.defaultPage !== 'undefined') {
-		if (typeof options.defaultPage === 'string' || options.defaultPage.length > 0) {
+		if (typeof options.defaultPage === 'string' && options.defaultPage.length > 0) {
 			validOptions.defaultPage = options.defaultPage;
 		} else {
 			throw new TypeError('The option "defaultPage" must be of type string and cannot be empty');
@@ -36,7 +45,7 @@ module.exports = function validate(options: any): oracleExpressMiddleware$option
 	}
 
 	if (typeof options.doctable !== 'undefined') {
-		if (typeof options.doctable === 'string' || options.doctable.length > 0) {
+		if (typeof options.doctable === 'string' && options.doctable.length > 0) {
 			validOptions.doctable = options.doctable;
 		} else {
 			throw new TypeError('The option "doctable" must be of type string and cannot be empty');

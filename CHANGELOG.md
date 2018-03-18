@@ -7,10 +7,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
-## [0.0.1] - 2018-03-17
-
 ### Added
+- Allow to add or override CGI environment variables using the "cgi" property in the configuration object.
 
 ### Changed
 
 ### Fixed
+
+## [0.0.1] - 2018-03-17
+
+- Initial release

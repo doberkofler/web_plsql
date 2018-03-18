@@ -121,7 +121,6 @@ app.listen(PORT);
 - Support for APEX 5.
 - Default exclusion list.
 - Basic and custom authentication methods, based on the OWA_SEC package and custom packages.
-- Override CGI environment variables in DAD configuration file.
 
 ## Supported mod_plsql configurationb options:
 - PlsqlDatabaseConnectString
