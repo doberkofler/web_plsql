@@ -14,7 +14,7 @@ script:
   - "npm run rebuild"
 
 after_success:
-  - 'if [ "$node_js" = "8" ]; then npm run coveralls; fi'
+  - "npm run coveralls"
 
 install:
   - npm install
