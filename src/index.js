@@ -9,7 +9,7 @@ const processRequest = require('./request');
 const validate = require('./config');
 const RequestError = require('./requestError');
 const errorPage = require('./errorPage');
-const {Trace} = require('./trace');
+const Trace = require('./trace');
 
 import type {oracleExpressMiddleware$options} from './config';
 

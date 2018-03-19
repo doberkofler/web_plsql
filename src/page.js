@@ -4,7 +4,7 @@
 *	Page the raw page content and return the content to the client
 */
 
-import type {Trace} from './trace';
+import type Trace from './trace';
 
 /**
 *	Parse the header and split it up into the individual components

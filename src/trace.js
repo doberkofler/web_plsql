@@ -14,7 +14,7 @@ const TRACE_ROOT_DIRECTORY = 'trace';
 
 const SEPARATOR_LINE = '*'.repeat(132);
 
-class Trace {
+module.exports = class Trace {
 	_enabled: boolean;
 	_directory: string;
 	_filename: string;
@@ -31,6 +31,7 @@ class Trace {
 		this._filename = '';
 		this._id = 0;
 
+		// istanbul ignore if
 		if (!this._enabled) {
 			return;
 		}
@@ -39,9 +40,11 @@ class Trace {
 		try {
 			mkdirp.sync(this._directory);
 			if (trace === 'on') {
+				// istanbul ignore next
 				console.log(`Tracing to the directory "${this._directory}" is enabled.`);
 			}
 		} catch (e) {
+			// istanbul ignore next
 			console.error(`Unable to create new trace directory "${this._directory}"`, e);
 		}
 	}
@@ -62,6 +65,7 @@ class Trace {
 	* @param {$Request} req - The req object represents the HTTP request.
 	*/
 	start(req: $Request) {
+		// istanbul ignore if
 		if (!this._enabled) {
 			return;
 		}
@@ -90,6 +94,7 @@ class Trace {
 	* @param {string} text - Text to append.
 	*/
 	write(text: string): void {
+		// istanbul ignore else
 		if (this._enabled) {
 			this.append(`${getTimestamp()}:\n${trimRight(text)}\n${SEPARATOR_LINE}\n`);
 		}
@@ -101,6 +106,7 @@ class Trace {
 	* @param {string} text - Text to append.
 	*/
 	append(text: string): void {
+		// istanbul ignore else
 		if (this._enabled) {
 			appendSync(this._filename, text);
 		}
@@ -126,6 +132,7 @@ class Trace {
 	static inspectRequest(req: $Request, simple: boolean = true): string {
 		const simpleRequest = {};
 
+		// istanbul ignore else
 		if (simple) {
 			['originalUrl', 'params', 'query', 'url', 'method', 'body', 'files', 'secret', 'cookies'].forEach(key => {
 				if (req[key]) {
@@ -140,7 +147,7 @@ class Trace {
 
 		return util.inspect(simpleRequest, {showHidden: false, depth: null, colors: false});
 	}
-}
+};
 
 /**
 * Append text to the trace file.
@@ -152,8 +159,8 @@ function appendSync(filename: string, text: string): void {
 	try {
 		fs.appendFileSync(filename, text);
 	} catch (e) {
-		console.error(`Unable to write to trace file "${filename}"`, e);
-		console.error(text);
+		// istanbul ignore next
+		console.error(`Unable to write to trace file "${filename}"`, e, text);
 	}
 }
 
@@ -185,12 +192,9 @@ function trimRight(text: string): string {
 	let s = text;
 
 	while (s[s.length] === '\n' || s[s.length] === '\r') {
+		// istanbul ignore next
 		s = s.slice(0, -1);
 	}
 
 	return s;
 }
-
-module.exports = {
-	Trace: Trace
-};

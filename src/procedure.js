@@ -10,7 +10,7 @@ const fileUpload = require('./fileUpload');
 const page = require('./page');
 const RequestError = require('./requestError');
 const ProcedureError = require('./procedureError');
-const {Trace} = require('./trace');
+const Trace = require('./trace');
 
 import type {oracleExpressMiddleware$options} from './config';
 import type {filesUploadType} from './fileUpload';

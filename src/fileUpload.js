@@ -46,7 +46,7 @@ function getFiles(req: $Request): filesUploadType {
 
 			// Add the file to upload
 			files.push({
-				fieldValue: filename,
+				fieldValue: file.fieldName,
 				filename: file.originalFilename,
 				physicalFilename: path.normalize(path.resolve(file.path)),
 				encoding: '',

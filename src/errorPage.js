@@ -8,7 +8,7 @@ const util = require('util');
 const escape = require('escape-html');
 const ProcedureError = require('./procedureError');
 const RequestError = require('./requestError');
-const {Trace} = require('./trace');
+const Trace = require('./trace');
 
 import type {oracleExpressMiddleware$options} from './config';
 import type {environmentType} from './cgi';

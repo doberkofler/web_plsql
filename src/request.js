@@ -9,9 +9,9 @@ const invokeProcedure = require('./procedure');
 const getCGI = require('./cgi');
 const fileUpload = require('./fileUpload');
 const RequestError = require('./requestError');
+const Trace = require('./trace');
 
 import type {oracleExpressMiddleware$options} from './config';
-import type {Trace} from './trace';
 
 /**
 * Process the request
@@ -82,7 +82,7 @@ async function executeRequest(req: $Request, res: $Response, options: oracleExpr
 
 	// Does the request contain any files
 	const filesToUpload = fileUpload.getFiles(req);
-	trace.write(`executeRequest: "${filesToUpload.length}" files to upload`);
+	trace.write(`executeRequest: "${filesToUpload.length}" files to upload:\n${Trace.inspect(filesToUpload)}`);
 	if (filesToUpload.length > 0 && (typeof options.doctable !== 'string' || options.doctable.length === 0)) {
 		const error = 'Unable to upload files if no document table "doctable" has been configured';
 		trace.write(error);
