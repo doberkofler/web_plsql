@@ -122,40 +122,31 @@ app.listen(PORT);
 - Default exclusion list.
 - Basic and custom authentication methods, based on the OWA_SEC package and custom packages.
 
-## Supported mod_plsql configurationb options:
-- PlsqlDatabaseConnectString
-- PlsqlDatabaseUserName
-- PlsqlDatabasePassword
-- PlsqlDefaultPage
-- PlsqlDocumentTablename
-- PlsqlLogEnable
-- PlsqlLogDirectory
+## Supported mod_plsql configuration options:
+- PlsqlDatabaseConnectString -> specified when creating the oracledb connection pool
+- PlsqlDatabaseUserName -> specified when creating the oracledb connection pool
+- PlsqlDatabasePassword -> specified when creating the oracledb connection pool
+- PlsqlDefaultPage -> use the "doctable" property in the configuration of the web_plsql middleware
+- PlsqlDocumentTablename -> use the "defaultPage" property in the configuration of the web_plsql middleware
+- PlsqlLogEnable -> use a HTTP request logger middleware for node.js like morgan
+- PlsqlLogDirectory -> use a HTTP request logger middleware for node.js like morgan
 
-## Important configuration options that are not (yet) supported:
-- PlsqlAuthenticationMode
-- PlsqlDMSEnable
+## Configuration options that are not (yet) supported:
 - PlsqlIdleSessionCleanupInterval
 - PlsqlAfterProcedure
 - PlsqlAlwaysDescribeProcedure
 - PlsqlBeforeProcedure
-- PlsqlBindBucketLengths
-- PlsqlBindBucketWidths
 - PlsqlCGIEnvironmentList
-- PlsqlCompatibilityMode
-- PlsqlConnectionTimeout
-- PlsqlConnectionValidation
 - PlsqlDocumentPath
 - PlsqlDocumentProcedure
 - PlsqlErrorStyle
 - PlsqlExclusionList
-- PlsqlNLSLanguage
 - PlsqlPathAlias
 - PlsqlPathAliasProcedure
 - PlsqlRequestValidationFunction
 - PlsqlSessionCookieName
 - PlsqlSessionStateManagement
 - PlsqlTransferMode
-- PlsqlUploadAsLongRaw
 
 # License
 
