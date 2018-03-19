@@ -8,11 +8,19 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [Unreleased]
 
 ### Added
-- Allow to add or override CGI environment variables using the "cgi" property in the configuration object.
 
 ### Changed
 
 ### Fixed
+
+## [0.0.2] - 2018-03-19
+
+### Added
+- Allow to add or override CGI environment variables using the "cgi" property in the configuration object.
+- Added unit tests with a code coverage of over 80%.
+
+### Fixed
+- Fixed wrong field name when uploading files using a form.
 
 ## [0.0.1] - 2018-03-17
 

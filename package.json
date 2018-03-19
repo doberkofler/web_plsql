@@ -1,5 +1,6 @@
 {
   "name": "web_plsql",
+  "version": "0.0.2",
   "author": "Dieter Oberkofler <dieter.oberkofler@gmail.com>",
   "description": "The Express Middleware for Oracle PL/SQL",
   "keywords": [
@@ -34,7 +35,6 @@
     "type": "git",
     "url": "git://github.com/doberkofler/web_plsql.git"
   },
-  "version": "0.0.1",
   "scripts": {
     "clean": "rimraf lib",
     "build": "babel --out-dir=lib src",

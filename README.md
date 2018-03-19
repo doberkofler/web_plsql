@@ -2,7 +2,7 @@
   [![NPM Downloads][downloads-image]][downloads-url]
   [![Linux Build](https://travis-ci.org/doberkofler/web_plsql.svg?branch=master)](https://travis-ci.org/doberkofler/web_plsql)
   ![Windows Build](https://ci.appveyor.com/api/projects/status/github/doberkofler/web_plsql?branch=master&svg=true)
-  <!--[![Test Coverage][coveralls-image]][coveralls-url]-->
+  [![Coverage Status](https://coveralls.io/repos/github/doberkofler/web_plsql/badge.svg?branch=master)](https://coveralls.io/github/doberkofler/web_plsql?branch=master)
 
 # Oracle PL/SQL Gateway Middleware for the Express web framework for Node.js
 This Express Middleware is a bridge between a PL/SQL application running in an Oracle Database and an Express web server for Node.js.
@@ -158,6 +158,3 @@ app.listen(PORT);
 
 [downloads-image]: https://img.shields.io/npm/dm/web_plsql.svg
 [downloads-url]: https://npmjs.org/package/web_plsql
-
-[coveralls-image]: https://coveralls.io/repos/doberkofler/node_plsql/badge.svg
-[coveralls-url]: https://coveralls.io/r/doberkofler/node_plsql
