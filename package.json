@@ -43,6 +43,7 @@
     "lint": "eslint --report-unused-disable-directives src examples && flow check --show-all-errors",
     "test": "mocha --check-leaks --full-trace --require babel-core/register test",
     "test-cov": "istanbul cover node_modules/mocha/bin/_mocha -- --require babel-core/register --colors --reporter dot test",
+    "coveralls": "npm run test-cov && cat ./coverage/lcov.info | coveralls",
     "sample": "node examples/sample.js",
     "watch-run": "nodemon --watch ./lib --watch examples examples/sample.js",
     "watch-build": "babel --source-maps --watch --out-dir=lib src",
@@ -69,6 +70,7 @@
   "devDependencies": {
     "babel-eslint": "^8.2.2",
     "chai": "^4.1.2",
+    "coveralls": "^3.0.0",
     "eslint": "^4.19.0",
     "eslint-plugin-flowtype": "^2.46.1",
     "flow-bin": "^0.68.0",
