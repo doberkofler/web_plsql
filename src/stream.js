@@ -27,5 +27,5 @@ async function streamToBuffer(readable: stream.Readable): Promise<Buffer> {
 }
 
 module.exports = {
-	streamToBuffer: streamToBuffer
+	streamToBuffer
 };
