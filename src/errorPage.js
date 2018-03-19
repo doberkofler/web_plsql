@@ -76,10 +76,13 @@ function getError(req: $Request, error: Error): outputType {
 	} else if (error instanceof Error) {
 		message = error.stack;
 	} else {
+		if (typeof error === 'string') {
+			message = error + '\n';
+		}
 		try {
 			new Error(); // eslint-disable-line no-new
 		} catch (e) {
-			message = e.stack;
+			message += e.stack;
 		}
 	}
 
