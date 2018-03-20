@@ -144,6 +144,7 @@ async function getProcedure(procedure, argObj, options, databaseConnection, trac
 	if (options.pathAlias && options.pathAlias.alias === procedure) {
 		trace.write(`getProcedure: path alias "${options.pathAlias.alias}" redirects to "${options.pathAlias.procedure}"`);
 		return Promise.resolve({
+			// $FlowFixMe
 			sql: options.pathAlias.procedure + '(p_path=>:p_path);',
 			bind: {
 				'p_path': {dir: oracledb.BIND_IN, type: oracledb.STRING, val: procedure}

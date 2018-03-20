@@ -366,7 +366,7 @@ async function serverStart(): Promise<serverConfigType> {
 			alias: 'alias',
 			procedure: 'pathAlias'
 		}
-		}));
+	}));
 
 	// serving static files
 	const staticResourcesPath = path.join(process.cwd(), 'test', 'static');
