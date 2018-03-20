@@ -39,7 +39,11 @@ const PATH = '/base';
 const OPTIONS = {
 	trace: 'on',
 	defaultPage: 'sample.pageIndex',
-	doctable: 'docTable'
+	doctable: 'docTable',
+	pathAlias: {
+		alias: 'myalias',
+		procedure: 'sample.pagePathAlias'
+	}
 };
 
 // create express app

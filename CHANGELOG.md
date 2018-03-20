@@ -13,6 +13,19 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 
+
+## [0.0.3] - 2018-03-20
+
+### Added
+- Added support for the PlsqlPathAlias and PlsqlPathAliasProcedure DAD settings.
+- Partial support of APEX application.
+- Added example configuration for APEX application.
+- Added unit tests with a code coverage of over 90%.
+
+### Fixed
+- Fixed some edge cases when processing the http headers.
+
+
 ## [0.0.2] - 2018-03-19
 
 ### Added
@@ -21,6 +34,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Fixed wrong field name when uploading files using a form.
+
 
 ## [0.0.1] - 2018-03-17
 

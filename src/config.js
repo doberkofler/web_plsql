@@ -9,6 +9,10 @@ export type oracleExpressMiddleware$options = {
 	defaultPage?: string,
 	doctable?: string,
 	cgi?: environmentType,
+	pathAlias?: {
+		alias: string,
+		procedure: string
+	},
 	trace: 'on' | 'off' | 'test'
 };
 
@@ -28,7 +32,7 @@ module.exports = function validate(options: any): oracleExpressMiddleware$option
 			throw new TypeError('Invalid configuration object was given');
 		}
 		Object.keys(options).forEach(option => {
-			if (['defaultPage', 'doctable', 'cgi', 'trace'].indexOf(option) === -1) {
+			if (['defaultPage', 'doctable', 'cgi', 'pathAlias', 'trace'].indexOf(option) === -1) {
 				throw new TypeError(`Invalid configuration options "${option}"`);
 			}
 		});
@@ -57,6 +61,19 @@ module.exports = function validate(options: any): oracleExpressMiddleware$option
 			validOptions.cgi = Object.assign({}, options.cgi);
 		} else {
 			throw new TypeError('The option "cgi" must be an object where all keys and values are of type string');
+		}
+	}
+
+	if (typeof options.pathAlias !== 'undefined') {
+		if (typeof options.pathAlias === 'object' &&
+			typeof options.pathAlias.alias === 'string' && options.pathAlias.alias.length > 0 &&
+			typeof options.pathAlias.procedure === 'string' && options.pathAlias.procedure.length > 0) {
+			validOptions.pathAlias = {
+				alias: options.pathAlias.alias,
+				procedure: options.pathAlias.procedure
+			};
+		} else {
+			throw new TypeError('The option "pathAlias" must be an object with the non-empty string properties "alias" and "procedure"');
 		}
 	}
 

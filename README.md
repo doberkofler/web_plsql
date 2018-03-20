@@ -130,6 +130,8 @@ app.listen(PORT);
 - PlsqlDocumentTablename -> use the "defaultPage" property in the configuration of the web_plsql middleware
 - PlsqlLogEnable -> use a HTTP request logger middleware for node.js like morgan
 - PlsqlLogDirectory -> use a HTTP request logger middleware for node.js like morgan
+- PlsqlPathAlias -> use the "pathAlias.alias" property in the configuration of the web_plsql middleware
+- PlsqlPathAliasProcedure -> use the "pathAlias.procedure" property in the configuration of the web_plsql middleware
 
 ## Configuration options that are not (yet) supported:
 - PlsqlIdleSessionCleanupInterval
@@ -141,8 +143,6 @@ app.listen(PORT);
 - PlsqlDocumentProcedure
 - PlsqlErrorStyle
 - PlsqlExclusionList
-- PlsqlPathAlias
-- PlsqlPathAliasProcedure
 - PlsqlRequestValidationFunction
 - PlsqlSessionCookieName
 - PlsqlSessionStateManagement

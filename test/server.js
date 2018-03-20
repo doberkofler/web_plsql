@@ -141,7 +141,7 @@ describe('server static', () => {
 			proc: 'sample.pageIndex();',
 			lines: [
 				'Content-type: text/html; charset=UTF-8\n',
-				'Set-Cookie: C1=V1; path=/apex; HttpOnly\n',
+				'Set-Cookie: C1=V1; path=/apex; Domain=mozilla.org; Expires=Wed, 21 Oct 2015 07:28:00 GMT; Secure; HttpOnly\n',
 				'\n',
 				'<html><body><p>static</p></body></html>\n'
 			]
@@ -149,7 +149,7 @@ describe('server static', () => {
 
 		return request(serverConfig.app).get(`${PATH}/${DEFAULT_PAGE}`)
 			.expect(200)
-			.expect('set-cookie', 'C1=V1; Path=/apex; HttpOnly')
+			.expect('set-cookie', 'C1=V1; Domain=mozilla.org; Path=/apex; Expires=Wed, 21 Oct 2015 07:28:00 GMT; HttpOnly')
 			.expect(new RegExp('.*<html><body><p>static</p></body></html>.*'));
 	});
 
@@ -229,12 +229,38 @@ describe('server static', () => {
 		sqlExecuteProxy({
 			proc: 'sample.pageIndex();',
 			lines: [
-				'Status: 302\n'
+				'Status: 302 status\n'
 			]
 		});
 
 		return request(serverConfig.app).get(`${PATH}/${DEFAULT_PAGE}`)
 			.expect(302);
+	});
+
+	it('set x-db-xontent-length header', () => {
+		sqlExecuteProxy({
+			proc: 'sample.pageJson();',
+			lines: [
+				'x-db-xontent-length: 0\n',
+			]
+		});
+
+		return request(serverConfig.app).get(`${PATH}/sample.pageJson`)
+			.expect(200);
+	});
+
+	it('use the pathAlias configuration setting', () => {
+		sqlExecuteProxy({
+			proc: 'pathAlias(p_path=>:p_path);',
+			lines: [
+				'Content-type: text/html; charset=UTF-8\n',
+				'\n',
+				'<html><body><p>static</p></body></html>\n'
+			]
+		});
+
+		return request(serverConfig.app).get(`${PATH}/alias`)
+			.expect(200, new RegExp('.*<html><body><p>static</p></body></html>.*'));
 	});
 
 	/*
@@ -335,8 +361,12 @@ async function serverStart(): Promise<serverConfigType> {
 	app.use(PATH + '/:name?', webplsql(connectionPool, {
 		trace: 'test',
 		defaultPage: DEFAULT_PAGE,
-		doctable: DOC_TABLE
-	}));
+		doctable: DOC_TABLE,
+		pathAlias: {
+			alias: 'alias',
+			procedure: 'pathAlias'
+		}
+		}));
 
 	// serving static files
 	const staticResourcesPath = path.join(process.cwd(), 'test', 'static');

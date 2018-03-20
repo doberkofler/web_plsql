@@ -38,6 +38,7 @@ module.exports = async function invokeProcedure(req: $Request, res: $Response, a
 	//
 
 	trace.write(`invokeProcedure: upload "${filesToUpload.length}" files`);
+	/* istanbul ignore else */
 	if (typeof options.doctable === 'string' && options.doctable.length > 0) {
 		fileUpload.uploadFiles(filesToUpload, options.doctable, databaseConnection);
 	}
@@ -46,14 +47,7 @@ module.exports = async function invokeProcedure(req: $Request, res: $Response, a
 	// 2) GET SQL STATEMENT AND ARGUMENTS
 	//
 
-	let para;
-	if (procedure.substring(0, 1) === '!') {
-		trace.write('invokeProcedure: get variable arguments');
-		para = await getVarArgsPara(procedure, argObj);
-	} else {
-		trace.write('invokeProcedure: get named arguments');
-		para = await getFixArgsPara(procedure, argObj, databaseConnection);
-	}
+	const para = await getProcedure(procedure, argObj, options, databaseConnection, trace);
 
 	//
 	//	3) EXECUTE PROCEDURE
@@ -142,6 +136,27 @@ module.exports = async function invokeProcedure(req: $Request, res: $Response, a
 
 	return Promise.resolve();
 };
+
+/*
+*	Get the procedure and arguments to execute
+*/
+async function getProcedure(procedure, argObj, options, databaseConnection, trace): Promise<{sql: string, bind: Object}> {
+	if (options.pathAlias && options.pathAlias.alias === procedure) {
+		trace.write(`getProcedure: path alias "${options.pathAlias.alias}" redirects to "${options.pathAlias.procedure}"`);
+		return Promise.resolve({
+			sql: options.pathAlias.procedure + '(p_path=>:p_path);',
+			bind: {
+				'p_path': {dir: oracledb.BIND_IN, type: oracledb.STRING, val: procedure}
+			}
+		});
+	} else if (procedure.substring(0, 1) === '!') {
+		trace.write('getProcedure: get variable arguments');
+		return getVarArgsPara(procedure, argObj);
+	}
+
+	trace.write('getProcedure: get named arguments');
+	return getFixArgsPara(procedure, argObj, databaseConnection);
+}
 
 /*
 * Get the SQL statement to execute when a new procedure is invoked

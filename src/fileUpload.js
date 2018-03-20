@@ -29,6 +29,7 @@ function getFiles(req: $Request): filesUploadType {
 	const files = [];
 
 	// are there any files
+	/* istanbul ignore next */
 	if (typeof req.files !== 'object') {
 		return files;
 	}
@@ -37,6 +38,7 @@ function getFiles(req: $Request): filesUploadType {
 	for (const key in req.files) {
 		const file = req.files[key];
 
+		/* istanbul ignore else */
 		if (typeof file.originalFilename === 'string' && file.originalFilename.length > 0) {
 			// get a temporary filename
 			const filename = getRandomizedFilename(file.originalFilename);
@@ -76,6 +78,7 @@ function uploadFiles(files: filesUploadType, docTableName: string, databaseConne
 */
 function uploadFile(file: fileUploadType, docTableName: string, databaseConnection: oracledb$connection): Promise<void> {
 	return new Promise((resolve, reject) => {
+		/* istanbul ignore next */
 		if (typeof docTableName !== 'string' || docTableName.length === 0) {
 			reject(new Error('The option "docTableName" has not been defined or the name is empty'));
 		}
@@ -84,7 +87,9 @@ function uploadFile(file: fileUploadType, docTableName: string, databaseConnecti
 		try {
 			blobContent = fs.readFileSync(file.physicalFilename);
 		} catch (e) {
+			/* istanbul ignore next */
 			reject(new Error(`Unable to read file "${file.physicalFilename}"\n` + e.toString()));
+			/* istanbul ignore next */
 			return;
 		}
 
@@ -98,13 +103,13 @@ function uploadFile(file: fileUploadType, docTableName: string, databaseConnecti
 
 		databaseConnection.execute(sql, bind, {autoCommit: true})
 			.then(result => {
+				/* istanbul ignore next */
 				if (result.rowsAffected !== 1) {
 					reject(new Error(`Invalid number of affected rows "${result.rowsAffected}"`));
 				} else {
 					resolve();
 				}
-
-			}).catch(e => {
+			}).catch(/* istanbul ignore next */e => {
 				reject(new Error(`Unable to insert file "${file.physicalFilename}"\n` + e.toString()));
 			});
 	});

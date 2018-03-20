@@ -25,6 +25,7 @@ BEGIN
 	htp.p('<li><a href="sample.pageFileUpload">File upload</a></li>');
 	htp.p('<li><a href="sample.pageRedirect">Redirect</a></li>');
 	htp.p('<li><a href="sample.pageLocation">Change location</a></li>');
+	htp.p('<li><a href="myalias">pathAlias configuration setting</a></li>');
 	htp.p('</ul>');
 	closePage();
 END pageIndex;
@@ -187,6 +188,14 @@ BEGIN
 	openPage('web_plsql - Other page');
 	closePage();
 END pageOther;
+
+PROCEDURE pagePathAlias(p_path IN VARCHAR2)
+IS
+BEGIN
+	openPage('web_plsql - pathAlias page');
+	htp.p('<p>p_path: "'||p_path||'"</p>');
+	closePage();
+END pagePathAlias;
 
 PROCEDURE openPage(title IN VARCHAR2)
 IS

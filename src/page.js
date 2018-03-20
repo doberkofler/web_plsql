@@ -80,6 +80,7 @@ function parse(text: string): {body: string, head: Object, file: Object} {
 				case 'set-cookie':
 					{
 						const cookie = parseCookie(header.value);
+						/* istanbul ignore else */
 						if (cookie !== null) {
 							page.head.cookies.push(cookie);
 						}
@@ -93,6 +94,7 @@ function parse(text: string): {body: string, head: Object, file: Object} {
 				case 'x-db-xontent-length':
 					{
 						const contentLength = parseInt(header.value, 10);
+						/* istanbul ignore else */
 						if (!Number.isNaN(contentLength)) {
 							page.head.contentLength = contentLength;
 						}
@@ -102,9 +104,11 @@ function parse(text: string): {body: string, head: Object, file: Object} {
 				case 'status':
 					{
 						const statusCode = parseInt(header.value, 10);
+						/* istanbul ignore else */
 						if (!Number.isNaN(statusCode)) {
 							page.head.statusCode = statusCode;
 							const index = header.value.indexOf(' ');
+							/* istanbul ignore else */
 							if (index !== -1) {
 								page.head.statusDescription = header.value.substr(index + 1);
 							}
@@ -200,10 +204,8 @@ function send(req: $Request, res: $Response, page: {body: string, head: Object, 
 	}
 
 	// Process the body
-	if (typeof page.body === 'string' && page.body.length > 0) {
-		res.send(page.body);
-		trace.append(`send: res.send\n${'-'.repeat(30)}${page.body}\n${'-'.repeat(30)}\n`);
-	}
+	res.send(page.body);
+	trace.append(`send: res.send\n${'-'.repeat(30)}${page.body}\n${'-'.repeat(30)}\n`);
 
 	trace.write('send: EXIT');
 }
@@ -213,6 +215,7 @@ function send(req: $Request, res: $Response, page: {body: string, head: Object, 
 */
 function parseCookie(text: string): cookieType | null {
 	// validate
+	/* istanbul ignore next */
 	if (typeof text !== 'string' || text.trim().length === 0) {
 		return null;
 	}
@@ -225,6 +228,7 @@ function parseCookie(text: string): cookieType | null {
 
 	// get name and value
 	const index = cookieElements[0].indexOf('=');
+	/* istanbul ignore next */
 	if (index <= 0) {
 		// if the index is -1, there is no equal sign and if it's 0 the name is empty
 		return null;

@@ -83,6 +83,7 @@ function getError(req: $Request, error: Error): outputType {
 		try {
 			new Error(); // eslint-disable-line no-new
 		} catch (e) {
+			/* istanbul ignore next */
 			message += e.stack;
 		}
 	}

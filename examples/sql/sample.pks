@@ -18,6 +18,7 @@ PROCEDURE pageFileUploaded(name_array IN owa.vc_arr, value_array IN owa.vc_arr);
 PROCEDURE pageRedirect;
 PROCEDURE pageLocation;
 PROCEDURE pageOther;
+PROCEDURE pagePathAlias(p_path IN VARCHAR2);
 
 END sample;
 /

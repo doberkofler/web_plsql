@@ -34,6 +34,7 @@ async function processRequest(req: $Request, res: $Response, options: oracleExpr
 		databasePool = await databasePoolPromise;
 		trace.write('processRequest: Connection pool has been allocated');
 	} catch (e) {
+		/* istanbul ignore next */
 		throw new RequestError(`Unable to create database pool.\n${e.message}`);
 	}
 
@@ -42,6 +43,7 @@ async function processRequest(req: $Request, res: $Response, options: oracleExpr
 		databaseConnection = await databasePool.getConnection();
 		trace.write('processRequest: Connection has been allocated');
 	} catch (e) {
+		/* istanbul ignore next */
 		throw new RequestError(`Unable to open database connection\n${e.message}`);
 	}
 
@@ -53,7 +55,7 @@ async function processRequest(req: $Request, res: $Response, options: oracleExpr
 		await databaseConnection.release();
 		trace.write('processRequest: Connection has been released');
 	} catch (e) {
-		//throw new RequestError(`Unable to release database connection\n${e.message}`);
+		/* istanbul ignore next */
 		console.error(`Unable to release database connection\n${e.message}`);
 	}
 
@@ -83,6 +85,7 @@ async function executeRequest(req: $Request, res: $Response, options: oracleExpr
 	// Does the request contain any files
 	const filesToUpload = fileUpload.getFiles(req);
 	trace.write(`executeRequest: "${filesToUpload.length}" files to upload:\n${Trace.inspect(filesToUpload)}`);
+	/* istanbul ignore next */
 	if (filesToUpload.length > 0 && (typeof options.doctable !== 'string' || options.doctable.length === 0)) {
 		const error = 'Unable to upload files if no document table "doctable" has been configured';
 		trace.write(error);
@@ -111,12 +114,15 @@ async function executeRequest(req: $Request, res: $Response, options: oracleExpr
 */
 function normalizeBody(req: $Request): Object {
 	const args = {};
+	/* istanbul ignore else */
 	if (typeof req.body === 'object') {
 		for (const key in req.body) {
 			const value = req.body[key];
+			/* istanbul ignore else */
 			if (isStringOrArrayOfString(value)) {
 				args[key] = value;
 			} else {
+				/* istanbul ignore next */
 				throw new RequestError(`The element "${key}" in the body is not a string or an array of strings!\n` + util.inspect(req.body, {showHidden: false, depth: null, colors: false}));
 			}
 		}
