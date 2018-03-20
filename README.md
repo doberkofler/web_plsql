@@ -1,7 +1,7 @@
   [![NPM Version][npm-image]][npm-url]
   [![NPM Downloads][downloads-image]][downloads-url]
   [![Linux Build](https://travis-ci.org/doberkofler/web_plsql.svg?branch=master)](https://travis-ci.org/doberkofler/web_plsql)
-  ![Windows Build](https://ci.appveyor.com/api/projects/status/github/doberkofler/web_plsql?branch=master&svg=true)
+  [![Build status][appveyor-image]][appveyor-url]
   [![Coverage Status](https://coveralls.io/repos/github/doberkofler/web_plsql/badge.svg?branch=master)](https://coveralls.io/github/doberkofler/web_plsql?branch=master)
 
 # Oracle PL/SQL Gateway Middleware for the Express web framework for Node.js
@@ -158,3 +158,6 @@ app.listen(PORT);
 
 [downloads-image]: https://img.shields.io/npm/dm/web_plsql.svg
 [downloads-url]: https://npmjs.org/package/web_plsql
+
+[appveyor-image]: https://ci.appveyor.com/api/projects/status/github/doberkofler/web_plsql?branch=master&svg=true
+[appveyor-url]: https://ci.appveyor.com/project/doberkofler/web-plsql
