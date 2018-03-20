@@ -72,6 +72,8 @@ describe('server static', () => {
 			proc: 'sample.pageIndex();',
 			lines: [
 				'Content-type: text/html; charset=UTF-8\n',
+				'X-ORACLE-IGNORE:  IGNORE\n',
+				'Custom-header:  important\n',
 				'\n',
 				'<html><body><p>static</p></body></html>\n'
 			]
@@ -139,7 +141,7 @@ describe('server static', () => {
 			proc: 'sample.pageIndex();',
 			lines: [
 				'Content-type: text/html; charset=UTF-8\n',
-				'Set-Cookie: C1=V1\n',
+				'Set-Cookie: C1=V1; path=/apex; HttpOnly\n',
 				'\n',
 				'<html><body><p>static</p></body></html>\n'
 			]
@@ -147,7 +149,7 @@ describe('server static', () => {
 
 		return request(serverConfig.app).get(`${PATH}/${DEFAULT_PAGE}`)
 			.expect(200)
-			.expect('set-cookie', 'C1=V1; Path=/')
+			.expect('set-cookie', 'C1=V1; Path=/apex; HttpOnly')
 			.expect(new RegExp('.*<html><body><p>static</p></body></html>.*'));
 	});
 
@@ -221,6 +223,18 @@ describe('server static', () => {
 		test.write('\r\n--foo--');
 
 		return test.expect(200, new RegExp('.*<html><body><p>static</p></body></html>.*'));
+	});
+
+	it('set status', () => {
+		sqlExecuteProxy({
+			proc: 'sample.pageIndex();',
+			lines: [
+				'Status: 302\n'
+			]
+		});
+
+		return request(serverConfig.app).get(`${PATH}/${DEFAULT_PAGE}`)
+			.expect(302);
 	});
 
 	/*

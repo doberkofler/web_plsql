@@ -33,14 +33,15 @@ module.exports = function errorPage(req: $Request, res: $Response, options: orac
 	try {
 		output = getError(req, error);
 	} catch (e) {
+		/* istanbul ignore next */
 		const header = 'ERROR';
+		/* istanbul ignore next */
 		const message = `${e.message}\n${e.stack}`;
 
-		output.html += getHeaderHtml(header);
-		output.html += getHtml(message);
-
-		output.text += getHeaderHtml(header);
-		output.text += getHtml(message);
+		/* istanbul ignore next */
+		output.html += getHeaderHtml(header) + getHtml(message);
+		/* istanbul ignore next */
+		output.text += getHeaderHtml(header) + getHtml(message);
 	}
 
 	// trace to file
@@ -157,8 +158,11 @@ function getProcedure(output: outputType, sql: string, bind: oracledb$bindingTyp
 			});
 		}
 	} catch (e) {
+		/* istanbul ignore next */
 		output.html += e.toString();
+		/* istanbul ignore next */
 		output.text += e.toString();
+		/* istanbul ignore next */
 		return;
 	}
 
@@ -181,8 +185,11 @@ function getEnvironment(output: outputType, environment: environmentType) {
 			text += key + '=' + environment[key] + '\n';
 		}
 	} catch (e) {
+		/* istanbul ignore next */
 		output.html += e.toString();
+		/* istanbul ignore next */
 		output.text += e.toString();
+		/* istanbul ignore next */
 		return;
 	}
 

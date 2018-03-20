@@ -50,15 +50,6 @@ module.exports = class Trace {
 	}
 
 	/**
-	* Return if tracing is enabled or not.
-	*
-	* @returns {boolean} - Is tracing enabled.
-	*/
-	enabled(): boolean {
-		return this._enabled === true;
-	}
-
-	/**
 	* Start a new trace session for a new request.
 	* This adds a trace line to the trace.log file and creating a new request trace file.
 	*

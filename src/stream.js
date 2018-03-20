@@ -21,6 +21,7 @@ async function streamToBuffer(readable: stream.Readable): Promise<Buffer> {
 		});
 
 		readable.on('error', err => {
+			// istanbul ignore next
 			reject(err);
 		});
 	});

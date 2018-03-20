@@ -6,6 +6,34 @@
 
 import type Trace from './trace';
 
+type cookieType = {
+	name: string,
+	value: string,
+	path?: string,
+	domain?: string,
+	secure?: string,
+	expires?: Date,
+	httpOnly?: boolean
+};
+
+type pageType = {
+	body: string,
+	head: {
+		cookies: Array<cookieType>,
+		contentType?: string,
+		contentLength?: number,
+		statusCode?: number,
+		statusDescription?: string,
+		redirectLocation?: string,
+		otherHeaders: {}
+	},
+	file: {
+		fileType: null,
+		fileSize: null,
+		fileBlob: null
+	}
+};
+
 /**
 *	Parse the header and split it up into the individual components
 *
@@ -13,16 +41,10 @@ import type Trace from './trace';
 * @returns {Object} - The parsed page.
 */
 function parse(text: string): {body: string, head: Object, file: Object} {
-	const page = {
+	const page: pageType = {
 		body: '',
 		head: {
-			server: '',
 			cookies: [],
-			contentType: '',
-			contentLength: '',
-			statusCode: 0,
-			statusDescription: '',
-			redirectLocation: '',
 			otherHeaders: {}
 		},
 		file: {
@@ -58,7 +80,7 @@ function parse(text: string): {body: string, head: Object, file: Object} {
 				case 'set-cookie':
 					{
 						const cookie = parseCookie(header.value);
-						if (cookie) {
+						if (cookie !== null) {
 							page.head.cookies.push(cookie);
 						}
 					}
@@ -69,7 +91,12 @@ function parse(text: string): {body: string, head: Object, file: Object} {
 					break;
 
 				case 'x-db-xontent-length':
-					page.head.contentLength = header.value;
+					{
+						const contentLength = parseInt(header.value, 10);
+						if (!Number.isNaN(contentLength)) {
+							page.head.contentLength = contentLength;
+						}
+					}
 					break;
 
 				case 'status':
@@ -162,10 +189,14 @@ function send(req: $Request, res: $Response, page: {body: string, head: Object, 
 
 	// Iterate over the headers object
 	for (const key in page.head.otherHeaders) {
-		if (key !== 'X-ORACLE-IGNORE') {
-			res.set(key, page.head.otherHeaders[key]);
-			trace.append(`send: res.set("${key}", "${page.head.otherHeaders[key]}")\n`);
-		}
+		res.set(key, page.head.otherHeaders[key]);
+		trace.append(`send: res.set("${key}", "${page.head.otherHeaders[key]}")\n`);
+	}
+
+	// Do we have a "Status" header
+	if (typeof page.head.statusCode === 'number') {
+		res.status(page.head.statusCode).send(page.head.statusDescription);
+		return;
 	}
 
 	// Process the body
@@ -180,12 +211,10 @@ function send(req: $Request, res: $Response, page: {body: string, head: Object, 
 /*
 *	Parses a cookie string
 */
-function parseCookie(text: string) {
-	let Undefined;
-
+function parseCookie(text: string): cookieType | null {
 	// validate
 	if (typeof text !== 'string' || text.trim().length === 0) {
-		return Undefined;
+		return null;
 	}
 
 	// split the cookie into it's parts
@@ -198,7 +227,7 @@ function parseCookie(text: string) {
 	const index = cookieElements[0].indexOf('=');
 	if (index <= 0) {
 		// if the index is -1, there is no equal sign and if it's 0 the name is empty
-		return Undefined;
+		return null;
 	}
 	const cookie = {};
 	cookie.name = cookieElements[0].substring(0, index).trim();
