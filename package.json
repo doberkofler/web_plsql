@@ -45,8 +45,8 @@
     "test-cov": "istanbul cover node_modules/mocha/bin/_mocha -- --require babel-core/register --colors --reporter dot test",
     "coveralls": "npm run test-cov && cat ./coverage/lcov.info | coveralls",
     "sample": "node examples/sample.js",
-    "watch-run": "nodemon --watch ./lib --watch examples examples/sample.js",
-    "watch-build": "babel --source-maps --watch --out-dir=lib src",
+    "start": "nodemon --watch ./lib --watch examples examples/sample.js",
+    "watch": "babel --source-maps --watch --out-dir=lib src",
     "rebuild": "npm run clean && npm run lint && npm run build && npm run test",
     "create-package": "shx rm -f *.tgz && npm pack",
     "install": "npm run build"

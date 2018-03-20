@@ -32,57 +32,69 @@ function parse(text: string): {body: string, head: Object, file: Object} {
 		}
 	};
 
-	// Split up the text in header and body
-	let head = '';
-	if (containsHttpHeader(text)) {
-		// Find the end of the header identified by \n\n
-		let headerEndPosition = text.indexOf('\n\n');
+	//
+	//	1)	Split up the text in header and body
+	//
 
-		// If we find no end of header marker, we only received a header without actual body
-		if (headerEndPosition === -1) {
-			head = text;
-		} else {
-			headerEndPosition += 2;
-			head = text.substring(0, headerEndPosition);
-			page.body = text.substring(headerEndPosition);
-		}
+	// Find the end of the header identified by \n\n
+	let head = '';
+	const headerEndPosition = text.indexOf('\n\n');
+	if (headerEndPosition === -1) {
+		head = text;
 	} else {
-		page.body = text;
+		head = text.substring(0, headerEndPosition + 2);
+		page.body = text.substring(headerEndPosition + 2);
 	}
 
-	// parse the headers
-	head.split('\n').forEach(headerLine => {
-		// Set-Cookie
-		if (headerLine.indexOf('Set-Cookie: ') === 0) {
-			const cookie = parseCookie(headerLine.substr(12));
-			if (cookie) {
-				page.head.cookies.push(cookie);
-			}
+	//
+	//	2)	parse the headers
+	//
 
-		// Content-type
-		} else if (headerLine.indexOf('Content-type: ') === 0) {
-			page.head.contentType = headerLine.substr(14);
+	head.split('\n').forEach(line => {
+		const header = getHeader(line);
 
-		// X-DB-Content-length
-		} else if (headerLine.indexOf('X-DB-Content-length: ') === 0) {
-			page.head.contentLength = headerLine.substr(21);
+		if (header) {
+			switch (header.name.toLowerCase()) {
+				case 'set-cookie':
+					{
+						const cookie = parseCookie(header.value);
+						if (cookie) {
+							page.head.cookies.push(cookie);
+						}
+					}
+					break;
 
-		// Status
-		} else if (headerLine.indexOf('Status: ') === 0) {
-			const s = headerLine.substr(8);
-			const t = s.split(' ')[0];
-			page.head.statusCode = parseInt(t, 10);
-			page.head.statusDescription = s.substr(t.length + 1);
+				case 'content-type':
+					page.head.contentType = header.value;
+					break;
 
-		// Location
-		} else if (headerLine.indexOf('Location: ') === 0) {
-			page.head.redirectLocation = headerLine.substr(10);
+				case 'x-db-xontent-length':
+					page.head.contentLength = header.value;
+					break;
 
-		// Other headers
-		} else {
-			const index = headerLine.indexOf(':');
-			if (index !== -1) {
-				page.head.otherHeaders[headerLine.substr(0, index)] = headerLine.substr(index + 2);
+				case 'status':
+					{
+						const statusCode = parseInt(header.value, 10);
+						if (!Number.isNaN(statusCode)) {
+							page.head.statusCode = statusCode;
+							const index = header.value.indexOf(' ');
+							if (index !== -1) {
+								page.head.statusDescription = header.value.substr(index + 1);
+							}
+						}
+					}
+					break;
+
+				case 'location':
+					page.head.redirectLocation = header.value;
+					break;
+
+				case 'x-oracle-ignore':
+					break;
+
+				default:
+					page.head.otherHeaders[header.name] = header.value;
+					break;
 			}
 		}
 	});
@@ -90,13 +102,24 @@ function parse(text: string): {body: string, head: Object, file: Object} {
 	return page;
 }
 
-/**
+/*
+*	get a header line
+*/
+function getHeader(line: string): {name: string, value: string} | null {
+	const index = line.indexOf(':');
+
+	if (index !== -1) {
+		return {
+			name: line.substr(0, index).trim(),
+			value: line.substr(index + 1).trim()
+		};
+	}
+
+	return null;
+}
+
+/*
 *	Send "default" response to the browser
-*
-* @param {$Request} req - The req object represents the HTTP request.
-* @param {$Response} res - The res object represents the HTTP response that an Express app sends when it gets an HTTP request.
-* @param {Object} page - The page to render.
-* @param {Trace} trace - Tracing object.
 */
 function send(req: $Request, res: $Response, page: {body: string, head: Object, file: Object}, trace: Trace): void {
 	trace.write('send: ENTER');
@@ -152,15 +175,6 @@ function send(req: $Request, res: $Response, page: {body: string, head: Object, 
 	}
 
 	trace.write('send: EXIT');
-}
-
-/*
-*	Does the body contain a HTTP header
-*/
-function containsHttpHeader(text: string): boolean {
-	const t = text.toUpperCase();
-
-	return (t.indexOf('CONTENT-TYPE: ') !== -1 || t.indexOf('SET-COOKIE: ') !== -1 || t.indexOf('LOCATION: ') !== -1 || t.indexOf('STATUS: ') !== -1 || t.indexOf('X-DB-CONTENT-LENGTH: ') !== -1 || t.indexOf('WWW-AUTHENTICATE: ') !== -1);
 }
 
 /*
