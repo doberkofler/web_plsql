@@ -43,7 +43,8 @@ const OPTIONS = {
 	pathAlias: {
 		alias: 'r',
 		procedure: 'wwv_flow.resolve_friendly_url'
-	}
+	},
+	errorStyle: 'debug'
 };
 
 // create express app

@@ -51,7 +51,11 @@ module.exports = function errorPage(req: $Request, res: $Response, options: orac
 	console.error(output.text);
 
 	// show page
-	res.status(404).send(getHtmlPage(output.html));
+	if (options.errorStyle === 'basic') {
+		res.status(404).send('Not found');
+	} else {
+		res.status(404).send(getHtmlPage(output.html));
+	}
 };
 
 /*

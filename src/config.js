@@ -13,6 +13,7 @@ export type oracleExpressMiddleware$options = {
 		alias: string,
 		procedure: string
 	},
+	errorStyle: 'basic' | 'debug',
 	trace: 'on' | 'off' | 'test'
 };
 
@@ -24,6 +25,7 @@ export type oracleExpressMiddleware$options = {
 */
 module.exports = function validate(options: any): oracleExpressMiddleware$options {
 	const validOptions: oracleExpressMiddleware$options = {
+		errorStyle: 'basic',
 		trace: 'off'
 	};
 
@@ -32,7 +34,7 @@ module.exports = function validate(options: any): oracleExpressMiddleware$option
 			throw new TypeError('Invalid configuration object was given');
 		}
 		Object.keys(options).forEach(option => {
-			if (['defaultPage', 'doctable', 'cgi', 'pathAlias', 'trace'].indexOf(option) === -1) {
+			if (['defaultPage', 'doctable', 'cgi', 'pathAlias', 'errorStyle', 'trace'].indexOf(option) === -1) {
 				throw new TypeError(`Invalid configuration options "${option}"`);
 			}
 		});
@@ -74,6 +76,14 @@ module.exports = function validate(options: any): oracleExpressMiddleware$option
 			};
 		} else {
 			throw new TypeError('The option "pathAlias" must be an object with the non-empty string properties "alias" and "procedure"');
+		}
+	}
+
+	if (typeof options.errorStyle !== 'undefined') {
+		if (typeof options.errorStyle !== 'string' || ['basic', 'debug'].indexOf(options.errorStyle) === -1) {
+			throw new TypeError('The optional option "errorStyle" must be "basic" or "debug"');
+		} else {
+			validOptions.errorStyle = options.errorStyle;
 		}
 	}
 

@@ -43,8 +43,12 @@ const OPTIONS = {
 	pathAlias: {
 		alias: 'myalias',
 		procedure: 'sample.pagePathAlias'
-	}
+	},
+	errorStyle: 'debug'
 };
+
+// Welcome message
+console.log(`Welcome to web_plsql version ${webplsql.version}!`);
 
 // create express app
 const app = express();
@@ -57,6 +61,10 @@ app.use(cookieParser());
 app.use(compression());
 app.use(morgan('combined', {stream: fs.createWriteStream(path.join(process.cwd(), 'access.log'), {flags: 'a'})}));
 
+// add express status monitor
+app.use(require('express-status-monitor')());
+console.log(`Express status monitor is listening on http://localhost:${PORT}/status`);
+
 // add the oracle pl/sql express middleware
 app.use(PATH + '/:name?', webplsql(connectionPool, OPTIONS));
 
@@ -64,5 +72,5 @@ app.use(PATH + '/:name?', webplsql(connectionPool, OPTIONS));
 app.use('/static', express.static(path.join(process.cwd(), 'examples/static')));
 
 // listen on port
-console.log(`Listening on http://localhost:${PORT}${PATH}`);
+console.log(`Sample app is listening on http://localhost:${PORT}${PATH}`);
 app.listen(PORT);

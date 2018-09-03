@@ -1,5 +1,5 @@
-// flow-typed signature: 7599ac3bddd92797de6f6c8d58914f6c
-// flow-typed version: 03669c2773/mocha_v5.x.x/flow_>=v0.28.x
+// flow-typed signature: f62ca66631267f8f6e8d0bd048ee83e8
+// flow-typed version: fee7183de9/mocha_v5.x.x/flow_>=v0.28.x
 
 declare interface $npm$mocha$SetupOptions {
   slow?: number;
@@ -160,6 +160,7 @@ declare interface $npm$mocha$Test extends $npm$mocha$Runnable {
   pending: boolean;
   state: 'failed' | 'passed' | void;
   fullTitle(): string;
+  timeout(ms: number): void;
 }
 
 // declare interface $npm$mocha$BeforeAndAfterContext extends $npm$mocha$HookCallbackContext {

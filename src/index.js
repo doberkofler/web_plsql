@@ -10,6 +10,8 @@ const validate = require('./config');
 const RequestError = require('./requestError');
 const errorPage = require('./errorPage');
 const Trace = require('./trace');
+// $FlowFixMe
+const version = require('../package.json').version;
 
 import type {oracleExpressMiddleware$options} from './config';
 
@@ -20,7 +22,7 @@ import type {oracleExpressMiddleware$options} from './config';
 * @param {Object} options - The configuration options.
 * @returns {Function} - The request handler.
 */
-module.exports = function (databasePoolPromise: Promise<oracledb$connectionpool>, options: oracleExpressMiddleware$options) {
+const webplsql = function (databasePoolPromise: Promise<oracledb$connectionpool>, options: oracleExpressMiddleware$options) {
 	// validate the configuration options
 	const validOptions = validate(options);
 
@@ -31,6 +33,9 @@ module.exports = function (databasePoolPromise: Promise<oracledb$connectionpool>
 		requestHandler(req, res, databasePoolPromise, validOptions, trace);
 	};
 };
+
+webplsql.version = version;
+exports = module.exports = webplsql;
 
 /*
 * Request handler

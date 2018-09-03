@@ -237,11 +237,11 @@ describe('server static', () => {
 			.expect(302);
 	});
 
-	it('set x-db-xontent-length header', () => {
+	it('set x-db-content-length header', () => {
 		sqlExecuteProxy({
 			proc: 'sample.pageJson();',
 			lines: [
-				'x-db-xontent-length: 0\n',
+				'x-db-content-length: 0\n',
 			]
 		});
 

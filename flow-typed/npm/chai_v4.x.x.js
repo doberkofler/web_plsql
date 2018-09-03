@@ -1,5 +1,5 @@
-// flow-typed signature: 796fb655e355782c793f63ad8c09c4a3
-// flow-typed version: 37b0393aaf/chai_v4.x.x/flow_>=v0.25.0
+// flow-typed signature: b91bbe7f844163c944206cda326d98f9
+// flow-typed version: 64da3eb66a/chai_v4.x.x/flow_>=v0.25.0
 
 declare module "chai" {
   declare type ExpectChain<T> = {
@@ -22,41 +22,42 @@ declare module "chai" {
     any: ExpectChain<T>,
     all: ExpectChain<T>,
 
-    a: ExpectChain<T> & ((type: string) => ExpectChain<T>),
-    an: ExpectChain<T> & ((type: string) => ExpectChain<T>),
+    a: ExpectChain<T> & ((type: string, message?: string) => ExpectChain<T>),
+    an: ExpectChain<T> & ((type: string, message?: string) => ExpectChain<T>),
 
-    include: ExpectChain<T> & ((value: mixed) => ExpectChain<T>),
-    includes: ExpectChain<T> & ((value: mixed) => ExpectChain<T>),
-    contain: ExpectChain<T> & ((value: mixed) => ExpectChain<T>),
-    contains: ExpectChain<T> & ((value: mixed) => ExpectChain<T>),
+    include: ExpectChain<T> & ((value: mixed, message?: string) => ExpectChain<T>),
+    includes: ExpectChain<T> & ((value: mixed, message?: string) => ExpectChain<T>),
+    contain: ExpectChain<T> & ((value: mixed, message?: string) => ExpectChain<T>),
+    contains: ExpectChain<T> & ((value: mixed, message?: string) => ExpectChain<T>),
 
-    eq: (value: T) => ExpectChain<T>,
-    eql: (value: T) => ExpectChain<T>,
-    equal: (value: T) => ExpectChain<T>,
-    equals: (value: T) => ExpectChain<T>,
+    eq: (value: T, message?: string) => ExpectChain<T>,
+    eql: (value: T, message?: string) => ExpectChain<T>,
+    equal: (value: T, message?: string) => ExpectChain<T>,
+    equals: (value: T, message?: string) => ExpectChain<T>,
 
-    above: (value: T & number) => ExpectChain<T>,
-    gt: (value: T & number) => ExpectChain<T>,
-    greaterThan: (value: T & number) => ExpectChain<T>,
-    least: (value: T & number) => ExpectChain<T>,
-    below: (value: T & number) => ExpectChain<T>,
-    lessThan: (value: T & number) => ExpectChain<T>,
-    lt: (value: T & number) => ExpectChain<T>,
-    most: (value: T & number) => ExpectChain<T>,
-    within: (start: T & number, finish: T & number) => ExpectChain<T>,
+    above: (value: T & number, message?: string) => ExpectChain<T>,
+    gt: (value: T & number, message?: string) => ExpectChain<T>,
+    greaterThan: (value: T & number, message?: string) => ExpectChain<T>,
+    least: (value: T & number, message?: string) => ExpectChain<T>,
+    below: (value: T & number, message?: string) => ExpectChain<T>,
+    lessThan: (value: T & number, message?: string) => ExpectChain<T>,
+    lt: (value: T & number, message?: string) => ExpectChain<T>,
+    most: (value: T & number, message?: string) => ExpectChain<T>,
+    within: (start: T & number, finish: T & number, message?: string) => ExpectChain<T>,
 
-    instanceof: (constructor: mixed) => ExpectChain<T>,
+    instanceof: (constructor: mixed, message?: string) => ExpectChain<T>,
     nested: ExpectChain<T>,
     property: <P>(
       name: string,
-      value?: P
+      value?: P,
+      message?: string
     ) => ExpectChain<P> & ((name: string) => ExpectChain<mixed>),
 
-    length: (value: number) => ExpectChain<T> | ExpectChain<number>,
-    lengthOf: (value: number) => ExpectChain<T>,
+    length: (value: number, message?: string) => ExpectChain<T> | ExpectChain<number>,
+    lengthOf: (value: number, message?: string) => ExpectChain<T>,
 
-    match: (regex: RegExp) => ExpectChain<T>,
-    string: (string: string) => ExpectChain<T>,
+    match: (regex: RegExp, message?: string) => ExpectChain<T>,
+    string: (string: string, message?: string) => ExpectChain<T>,
 
     key: (key: string) => ExpectChain<T>,
     keys: (
@@ -70,19 +71,22 @@ declare module "chai" {
       msg?: string
     ) => ExpectChain<T>,
 
-    respondTo: (method: string) => ExpectChain<T>,
+    respondTo: (method: string, message?: string) => ExpectChain<T>,
     itself: ExpectChain<T>,
 
-    satisfy: (method: (value: T) => boolean) => ExpectChain<T>,
+    satisfy: (method: (value: T) => boolean, message?: string) => ExpectChain<T>,
 
-    closeTo: (expected: T & number, delta: number) => ExpectChain<T>,
+    closeTo: (expected: T & number, delta: number, message?: string) => ExpectChain<T>,
 
-    members: (set: mixed) => ExpectChain<T>,
-    oneOf: (list: Array<T>) => ExpectChain<T>,
+    members: (set: mixed, message?: string) => ExpectChain<T>,
+    oneOf: (list: Array<T>, message?: string) => ExpectChain<T>,
 
-    change: (obj: mixed, key: string) => ExpectChain<T>,
-    increase: (obj: mixed, key: string) => ExpectChain<T>,
-    decrease: (obj: mixed, key: string) => ExpectChain<T>,
+    change: (obj: mixed, key: string, message?: string) => ExpectChain<T>,
+    increase: (obj: mixed, key: string, message?: string) => ExpectChain<T>,
+    decrease: (obj: mixed, key: string, message?: string) => ExpectChain<T>,
+
+    by: (delta: number, message?: string) => ExpectChain<T>,
+    ordered: ExpectChain<T>,
 
     // dirty-chai
     ok: () => ExpectChain<T>,
@@ -136,7 +140,12 @@ declare module "chai" {
     data: (key: string, val?: any) => ExpectChain<T>,
     prop: (key: string, val?: any) => ExpectChain<T>,
     state: (key: string, val?: any) => ExpectChain<T>,
-    value: (val: string) => ExpectChain<T>
+    value: (val: string) => ExpectChain<T>,
+    className: (val: string) => ExpectChain<T>,
+    text: (val: string) => ExpectChain<T>,
+
+    // chai-karma-snapshot
+    matchSnapshot: (lang?: any, update?: boolean, msg?: any) => ExpectChain<T>
   };
 
   declare function expect<T>(actual: T, message?: string): ExpectChain<T>;
@@ -154,6 +163,11 @@ declare module "chai" {
 
     static isOk(object: mixed, message?: string): void;
     static isNotOk(object: mixed, message?: string): void;
+
+    static empty(object: mixed, message?: string): void;
+    static isEmpty(object: mixed, message?: string): void;
+    static notEmpty(object: mixed, message?: string): void;
+    static isNotEmpty(object: mixed, message?: string): void;
 
     static equal(actual: mixed, expected: mixed, message?: string): void;
     static notEqual(actual: mixed, expected: mixed, message?: string): void;

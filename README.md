@@ -90,7 +90,8 @@ const PORT = 8000;
 const PATH = '/pls/sample';
 const OPTIONS = {
 	defaultPage: 'sample.pageIndex',
-	doctable: 'docTable'
+  doctable: 'docTable',
+  errorStyle: 'debug'
 };
 
 // create express app
@@ -126,12 +127,13 @@ app.listen(PORT);
 - PlsqlDatabaseConnectString -> specified when creating the oracledb connection pool
 - PlsqlDatabaseUserName -> specified when creating the oracledb connection pool
 - PlsqlDatabasePassword -> specified when creating the oracledb connection pool
-- PlsqlDefaultPage -> use the "doctable" property in the configuration of the web_plsql middleware
-- PlsqlDocumentTablename -> use the "defaultPage" property in the configuration of the web_plsql middleware
+- PlsqlDefaultPage -> use the "doctable" configuration option
+- PlsqlDocumentTablename -> use the "defaultPage" configuration option
+- PlsqlErrorStyle -> use the "errorStyle" configuration option
 - PlsqlLogEnable -> use a HTTP request logger middleware for node.js like morgan
 - PlsqlLogDirectory -> use a HTTP request logger middleware for node.js like morgan
-- PlsqlPathAlias -> use the "pathAlias.alias" property in the configuration of the web_plsql middleware
-- PlsqlPathAliasProcedure -> use the "pathAlias.procedure" property in the configuration of the web_plsql middleware
+- PlsqlPathAlias -> use the "pathAlias.alias" configuration option
+- PlsqlPathAliasProcedure -> use the "pathAlias.procedure" configuration option
 
 ## Configuration options that are not (yet) supported:
 - PlsqlIdleSessionCleanupInterval
@@ -141,7 +143,6 @@ app.listen(PORT);
 - PlsqlCGIEnvironmentList
 - PlsqlDocumentPath
 - PlsqlDocumentProcedure
-- PlsqlErrorStyle
 - PlsqlExclusionList
 - PlsqlRequestValidationFunction
 - PlsqlSessionCookieName

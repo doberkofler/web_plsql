@@ -91,7 +91,7 @@ function parse(text: string): {body: string, head: Object, file: Object} {
 					page.head.contentType = header.value;
 					break;
 
-				case 'x-db-xontent-length':
+				case 'x-db-content-length':
 					{
 						const contentLength = parseInt(header.value, 10);
 						/* istanbul ignore else */
@@ -167,14 +167,20 @@ function send(req: $Request, res: $Response, page: {body: string, head: Object, 
 		trace.append(`send: res.cookie("${name}", "${value}")\n`);
 	});
 
-	// Is the a "redirectLocation" header
+	// If there is a "redirectLocation" header, we immediately redirect and return
 	if (typeof page.head.redirectLocation === 'string' && page.head.redirectLocation.length > 0) {
 		res.redirect(302, page.head.redirectLocation);
 		trace.append(`send: res.redirect(302, "${page.head.redirectLocation}")\n`);
 		return;
 	}
 
-	// Is this a file download
+	// Send all the "otherHeaders"
+	for (const key in page.head.otherHeaders) {
+		res.set(key, page.head.otherHeaders[key]);
+		trace.append(`send: res.set("${key}", "${page.head.otherHeaders[key]}")\n`);
+	}
+
+	// If this is a file download, we eventually set the "Content-Type" and the file content and then return.
 	if (page.file.fileType === 'B' || page.file.fileType === 'F') {
 		if (typeof page.head.contentType === 'string' && page.head.contentType.length > 0) {
 			res.writeHead(200, {'Content-Type': page.head.contentType});
@@ -191,19 +197,13 @@ function send(req: $Request, res: $Response, page: {body: string, head: Object, 
 		trace.append(`send: res.set("Content-Type", "${page.head.contentType}")\n`);
 	}
 
-	// Iterate over the headers object
-	for (const key in page.head.otherHeaders) {
-		res.set(key, page.head.otherHeaders[key]);
-		trace.append(`send: res.set("${key}", "${page.head.otherHeaders[key]}")\n`);
-	}
-
-	// Do we have a "Status" header
+	// If we have a "Status" header, we send the header and then return.
 	if (typeof page.head.statusCode === 'number') {
 		res.status(page.head.statusCode).send(page.head.statusDescription);
 		return;
 	}
 
-	// Process the body
+	// Send the body
 	res.send(page.body);
 	trace.append(`send: res.send\n${'-'.repeat(30)}${page.body}\n${'-'.repeat(30)}\n`);
 

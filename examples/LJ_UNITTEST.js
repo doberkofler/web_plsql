@@ -23,6 +23,11 @@ process.on('unhandledRejection', (reason, p) => {
 */
 
 const PASSWORD = process.env.LJ_UNITTEST_PASSWORD || '';
+if (PASSWORD === '') {
+	console.error('You must set the password for user LJ_UNITTEST using the environment variable LJ_UNITTEST_PASSWORD');
+	process.exit(1);
+}
+
 const connectionPool = oracledb.createPool({
 	user: 'LJ_UNITTEST',					// The database user name.
 	password: PASSWORD,						// The password of the database user.
@@ -50,7 +55,8 @@ const STATIC_PATH = process.env.PERISCOPE_DEPLOY_DIR || '';
 const OPTIONS = {
 	trace: 'on',
 	defaultPage: 'LAS_DLG_Startup.GO',
-	doctable: 'ljp_documents'
+	doctable: 'ljp_documents',
+	errorStyle: 'debug'
 };
 
 // create express app
@@ -63,6 +69,7 @@ app.use(bodyParser.urlencoded({extended: true}));
 app.use(cookieParser());
 app.use(compression());
 app.use(morgan('combined', {stream: fs.createWriteStream(path.join(process.cwd(), 'access.log'), {flags: 'a'})}));
+app.use(require('express-status-monitor')());
 
 // add the oracle pl/sql express middleware
 app.use(ROOT + '/:name?', webplsql(connectionPool, OPTIONS));
