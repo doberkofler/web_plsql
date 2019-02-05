@@ -14,13 +14,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 
 
-## [0.1.1] - ????-??-??
-
-### Added
+## [0.1.1] - 2019-02-05
 
 ### Changed
+- Migrated from Babel to TypeScript
 
 ### Fixed
+- Updated all dependencies.
 
 
 ## [0.1.0] - 2018-09-03

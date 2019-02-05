@@ -1,6 +1,6 @@
 {
   "name": "web_plsql",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "author": "Dieter Oberkofler <dieter.oberkofler@gmail.com>",
   "description": "The Express Middleware for Oracle PL/SQL",
   "keywords": [
