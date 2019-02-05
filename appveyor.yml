@@ -8,9 +8,8 @@ version: "{build}"
 environment:
   NODE_ENV: test
   matrix:
-    - nodejs_version: 8
-    - nodejs_version: 9
     - nodejs_version: 10
+    - nodejs_version: 11
 
 branches:
   only:

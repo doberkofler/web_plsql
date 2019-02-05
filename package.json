@@ -20,7 +20,7 @@
   "homepage": "https://github.com/doberkofler/web_plsql",
   "license": "MIT",
   "engines": {
-    "node": ">=8"
+    "node": ">=10"
   },
   "maintainers": [
     {
