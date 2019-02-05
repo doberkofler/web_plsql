@@ -1,6 +1,10 @@
-/coverage/
-/lib/
-/node_modules/
-/trace/
+.vscode/
+.nyc_output/
+coverage/
+lib/
+temp/
+node_modules/
+trace/
 *.log
 *.tgz
+.eslintcache

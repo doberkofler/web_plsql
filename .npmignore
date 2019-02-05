@@ -1,7 +1,11 @@
-/coverage/
-/lib/
-/temp/
-/trace/
-examples/LJ_UNITTEST.js
+.vscode/
+.nyc_output/
+coverage/
+lib/
+temp/
+node_modules/
+trace/
 *.log
 *.tgz
+.eslintcache
+examples/LJ_UNITTEST.js
