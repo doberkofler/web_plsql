@@ -1,0 +1,7 @@
+--project ./tsconfig.test.json
+--require ts-node/register
+--require source-map-support/register
+--check-leaks
+--full-trace
+--bail
+./test/*.ts
