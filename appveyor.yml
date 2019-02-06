@@ -20,7 +20,7 @@ branches:
 
 install:
   # Get the latest stable version of Node.js
-  - ps: Install-Product node $env:nodejs_version
+  # - ps: Install-Product node $env:nodejs_version x64
   # install modules
   - npm install
 
