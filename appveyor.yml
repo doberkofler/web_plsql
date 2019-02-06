@@ -11,16 +11,13 @@ environment:
     - nodejs_version: 10
     - nodejs_version: 11
 
-platform:
-  - x64
-
 branches:
   only:
     - master
 
 install:
   # Get the latest stable version of Node.js
-  # - ps: Install-Product node $env:nodejs_version x64
+  - ps: Install-Product node $env:nodejs_version x64
   # install modules
   - npm install
 
