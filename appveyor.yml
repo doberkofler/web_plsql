@@ -11,6 +11,9 @@ environment:
     - nodejs_version: 10
     - nodejs_version: 11
 
+platform:
+  - x64
+
 branches:
   only:
     - master
