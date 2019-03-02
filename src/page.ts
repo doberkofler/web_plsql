@@ -249,6 +249,7 @@ function parseCookie(text: string): cookieType | null {
 		} else if (element.toLowerCase().indexOf('domain=') === 0) {
 			cookie.domain = element.substring(7);
 		} else if (element.toLowerCase().indexOf('secure=') === 0) {
+			/* istanbul ignore next */
 			cookie.secure = element.substring(7);
 		} else if (element.toLowerCase().indexOf('expires=') === 0) {
 			const date = tryDecodeDate(element.substring(8));

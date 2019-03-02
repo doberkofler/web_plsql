@@ -144,8 +144,11 @@ export async function invokeProcedure(req: express.Request, res: express.Respons
 /*
 * Report error in procedure
 */
+/* istanbul ignore next */
 function throwError(error: string, para: {sql: string; bind: any}, cgiObj: any, trace: Trace) {
+	/* istanbul ignore next */
 	trace.write(error);
+	/* istanbul ignore next */
 	throw new ProcedureError(error, cgiObj, para.sql, para.bind);
 }
 

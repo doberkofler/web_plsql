@@ -36,7 +36,7 @@
     "url": "git://github.com/doberkofler/web_plsql.git"
   },
   "scripts": {
-    "clean": "rimraf lib",
+    "clean": "rimraf access.log lib trace coverage .nyc_output",
     "build": "tsc --project ./tsconfig.src.json",
     "eslint": "eslint --cache --report-unused-disable-directives \"./**/*.ts\"",
     "type-check": "tsc --project ./tsconfig.json --noEmit",
@@ -71,15 +71,14 @@
     "body-parser": "1.18.3",
     "compression": "1.7.3",
     "connect-multiparty": "2.2.0",
-    "cookie-parser": "1.4.3",
+    "cookie-parser": "1.4.4",
     "escape-html": "1.0.3",
     "express": "4.16.4",
     "express-status-monitor": "1.2.3",
     "http-parser-js": "0.5.0",
     "mkdirp": "0.5.1",
     "morgan": "1.9.1",
-    "rimraf": "2.6.3",
-    "typescript": "3.2.4"
+    "rimraf": "2.6.3"
   },
   "devDependencies": {
     "@types/body-parser": "1.17.0",
@@ -89,23 +88,23 @@
     "@types/escape-html": "0.0.20",
     "@types/express": "4.16.1",
     "@types/mkdirp": "0.5.2",
-    "@types/mocha": "5.2.5",
+    "@types/mocha": "5.2.6",
     "@types/morgan": "1.7.35",
     "@types/node": "10.12.21",
     "@types/oracledb": "1.11.34",
-    "@typescript-eslint/eslint-plugin": "1.2.0",
-    "@typescript-eslint/parser": "1.2.0",
+    "@typescript-eslint/eslint-plugin": "1.4.2",
+    "@typescript-eslint/parser": "1.4.2",
     "chai": "4.2.0",
-    "coveralls": "3.0.2",
-    "eslint": "5.13.0",
+    "coveralls": "3.0.3",
+    "eslint": "5.15.0",
     "istanbul": "1.1.0-alpha.1",
-    "mocha": "5.2.0",
-    "nodemon": "1.18.9",
-    "nyc": "13.2.0",
+    "mocha": "6.0.2",
+    "nyc": "13.3.0",
     "shx": "0.3.2",
     "source-map-support": "0.5.10",
     "supertest": "3.4.2",
-    "ts-node": "8.0.2"
+    "ts-node": "8.0.2",
+    "typescript": "3.3.3333"
   },
   "optionalDependencies": {
     "oracledb": "3.1.1"
