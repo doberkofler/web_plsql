@@ -19,7 +19,7 @@ See the [changelog](https://github.com/doberkofler/web_plsql/blob/master/CHANGEL
 
 ## Prerequisites
 There are several prerequisites needed to both compile and run the Oracle database driver.
-Please visit the [node-oracledb INSTALL.md](https://github.com/oracle/node-oracledb/blob/master/INSTALL.md) page for more information.
+Please visit the [node-oracledb INSTALL.md](https://oracle.github.io/node-oracledb/INSTALL.html) page for more information.
 
 ## Installing
 * Create and move to a new directory

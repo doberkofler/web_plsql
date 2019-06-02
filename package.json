@@ -68,19 +68,6 @@
     "all": true
   },
   "dependencies": {
-    "body-parser": "1.18.3",
-    "compression": "1.7.3",
-    "connect-multiparty": "2.2.0",
-    "cookie-parser": "1.4.4",
-    "escape-html": "1.0.3",
-    "express": "4.16.4",
-    "express-status-monitor": "1.2.3",
-    "http-parser-js": "0.5.0",
-    "mkdirp": "0.5.1",
-    "morgan": "1.9.1",
-    "rimraf": "2.6.3"
-  },
-  "devDependencies": {
     "@types/body-parser": "1.17.0",
     "@types/chai": "4.1.7",
     "@types/compression": "0.0.36",
@@ -88,25 +75,36 @@
     "@types/escape-html": "0.0.20",
     "@types/express": "4.16.1",
     "@types/mkdirp": "0.5.2",
-    "@types/mocha": "5.2.6",
+    "@types/mocha": "5.2.7",
     "@types/morgan": "1.7.35",
-    "@types/node": "10.12.21",
+    "@types/node": "12.0.4",
     "@types/oracledb": "1.11.34",
-    "@typescript-eslint/eslint-plugin": "1.4.2",
-    "@typescript-eslint/parser": "1.4.2",
+    "@typescript-eslint/eslint-plugin": "1.9.0",
+    "@typescript-eslint/parser": "1.9.0",
+    "body-parser": "1.19.0",
     "chai": "4.2.0",
+    "compression": "1.7.4",
+    "connect-multiparty": "2.2.0",
+    "cookie-parser": "1.4.4",
     "coveralls": "3.0.3",
-    "eslint": "5.15.0",
+    "escape-html": "1.0.3",
+    "eslint": "5.16.0",
+    "express": "4.17.1",
+    "express-status-monitor": "1.2.5",
+    "http-parser-js": "0.5.0",
     "istanbul": "1.1.0-alpha.1",
-    "mocha": "6.0.2",
-    "nyc": "13.3.0",
+    "mkdirp": "0.5.1",
+    "mocha": "6.1.4",
+    "morgan": "1.9.1",
+    "nyc": "14.1.1",
+    "rimraf": "2.6.3",
     "shx": "0.3.2",
-    "source-map-support": "0.5.10",
-    "supertest": "3.4.2",
-    "ts-node": "8.0.2",
-    "typescript": "3.3.3333"
+    "source-map-support": "0.5.12",
+    "supertest": "4.0.2",
+    "ts-node": "8.2.0",
+    "typescript": "3.5.1"
   },
   "optionalDependencies": {
-    "oracledb": "3.1.1"
+    "oracledb": "3.1.2"
   }
 }
