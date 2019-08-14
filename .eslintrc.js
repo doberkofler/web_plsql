@@ -232,7 +232,8 @@ module.exports = {
 		"yield-star-spacing": "error",
 
 		// typescript
-		'@typescript-eslint/array-type': ['warn', 'generic'],
+		'@typescript-eslint/array-type': ['warn', {'default': 'generic'}],
+		'@typescript-eslint/ban-ts-ignore': 'off',
 		'camelcase': 'off',
 		'@typescript-eslint/camelcase': ['warn', {'properties': 'never'}],
 		'@typescript-eslint/explicit-function-return-type': 'off',
