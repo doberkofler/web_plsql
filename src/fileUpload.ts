@@ -87,7 +87,7 @@ export function uploadFile(file: fileUploadType, docTableName: string, databaseC
 			reject(new Error('The option "docTableName" has not been defined or the name is empty'));
 		}
 
-		let blobContent: Buffer;
+		let blobContent;
 		try {
 			blobContent = fs.readFileSync(file.physicalFilename);
 		} catch (e) {
@@ -99,10 +99,10 @@ export function uploadFile(file: fileUploadType, docTableName: string, databaseC
 
 		const sql = `INSERT INTO ${docTableName} (name, mime_type, doc_size, dad_charset, last_updated, content_type, blob_content) VALUES (:name, :mime_type, :doc_size, 'ascii', SYSDATE, 'BLOB', :blob_content)`;
 		const bind = {
-			'name': file.fieldValue,
-			'mime_type': file.mimetype,
-			'doc_size': file.size,
-			'blob_content': blobContent
+			name: file.fieldValue,
+			mime_type: file.mimetype,
+			doc_size: file.size,
+			blob_content: blobContent
 		};
 
 		//@ts-ignore
