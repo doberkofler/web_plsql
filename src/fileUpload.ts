@@ -102,7 +102,10 @@ export function uploadFile(file: fileUploadType, docTableName: string, databaseC
 			name: file.fieldValue,
 			mime_type: file.mimetype,
 			doc_size: file.size,
-			blob_content: blobContent
+			blob_content: {
+				val: blobContent,
+				type: oracledb.BUFFER
+			}
 		};
 
 		//@ts-ignore
