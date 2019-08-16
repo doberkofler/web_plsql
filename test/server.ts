@@ -23,7 +23,7 @@ const DOC_TABLE = 'docTable';
 type serverConfigType = {
 	app: express.Application;
 	server: http.Server;
-	connectionPool: oracledb.IConnectionPool;
+	connectionPool: oracledb.Pool;
 }
 
 describe('server utilities', () => {
@@ -33,7 +33,7 @@ describe('server utilities', () => {
 		assert.strictEqual(Object.prototype.toString.call(serverConfig), '[object Object]');
 		assert.strictEqual(Object.prototype.toString.call(serverConfig.app.listen), '[object Function]');
 		assert.strictEqual(Object.prototype.toString.call(serverConfig.server), '[object Object]');
-		//assert.isTrue(serverConfig.connectionPool instanceof oracledb.IConnectionPool);
+		//assert.isTrue(serverConfig.connectionPool instanceof oracledb.Pool);
 
 		await serverStop(serverConfig);
 	});

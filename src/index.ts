@@ -15,11 +15,11 @@ const version = require('../package.json').version;
 /**
 * Express middleware.
 *
-* @param {Promise<oracledb.IConnectionPool>} databasePoolPromise - The promise that will be fullfilled when the database pool has been allocated.
+* @param {Promise<oracledb.Pool>} databasePoolPromise - The promise that will be fullfilled when the database pool has been allocated.
 * @param {Object} options - The configuration options.
 * @returns {Function} - The request handler.
 */
-const webplsql = function (databasePoolPromise: Promise<oracledb.IConnectionPool>, options: oracleExpressMiddleware$options) {
+const webplsql = function (databasePoolPromise: Promise<oracledb.Pool>, options: oracleExpressMiddleware$options) {
 	// validate the configuration options
 	const validOptions = validate(options);
 
@@ -37,7 +37,7 @@ exports = module.exports = webplsql;
 /*
 * express.Request handler
 */
-function requestHandler(req: express.Request, res: express.Response, databasePoolPromise: Promise<oracledb.IConnectionPool>, options: oracleExpressMiddleware$options, trace: Trace) {
+function requestHandler(req: express.Request, res: express.Response, databasePoolPromise: Promise<oracledb.Pool>, options: oracleExpressMiddleware$options, trace: Trace) {
 	try {
 		trace.start(req);
 

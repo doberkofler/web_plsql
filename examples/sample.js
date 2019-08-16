@@ -10,14 +10,22 @@ const morgan = require('morgan');
 const oracledb = require('oracledb');
 const webplsql = require('../lib');
 
+
+/*
+*	Holds the credentials used by node-oracledb examples to connect
+*	to the database.  Production applications should consider using
+*	External Authentication to avoid hard coded credentials.
+*/
+const dbConfig = require('./credentials.js');
+
 /*
 *	Allocate the Oracle database pool
 */
 
 const connectionPool = oracledb.createPool({
-	user: 'sample',							// The database user name.
-	password: 'sample',						// The password of the database user.
-	connectString: 'localhost:1521/TEST',	// The Oracle database instance to connect to. The string can be an Easy Connect string, or a Net Service Name from a tnsnames.ora file, or the name of a local Oracle database instance.
+	user: dbConfig.user,					// The database user name.
+	password: dbConfig.password,			// The password of the database user.
+	connectString: dbConfig.connectString,	// The Oracle database instance to connect to. The string can be an Easy Connect string, or a Net Service Name from a tnsnames.ora file, or the name of a local Oracle database instance.
 	poolMin: 10,							// The minimum number of connections a connection pool maintains, even when there is no activity to the target database.
 	poolMax: 1000,							// The maximum number of connections to which a connection pool can grow.
 	poolIncrement: 10,						// The number of connections that are opened whenever a connection request exceeds the number of currently open connections.

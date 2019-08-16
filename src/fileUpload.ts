@@ -70,24 +70,24 @@ export function getFiles(req: express.Request): filesUploadType {
 *
 * @param {Array<string>} files - array of file path's.
 * @param {string} docTableName - name of the oracle table holding the uploaded files.
-* @param {oracledb.IConnection} databaseConnection - Database connection.
+* @param {oracledb.Connection} databaseConnection - Database connection.
 * @returns {Promise<void>} - Promise that resolves when the request has been fullfilled.
 */
-export function uploadFiles(files: filesUploadType, docTableName: string, databaseConnection: oracledb.IConnection) {
+export function uploadFiles(files: filesUploadType, docTableName: string, databaseConnection: oracledb.Connection) {
 	return Promise.all(files.map(file => uploadFile(file, docTableName, databaseConnection)));
 }
 
 /*
 *	Upload the given file and return a promise.
 */
-export function uploadFile(file: fileUploadType, docTableName: string, databaseConnection: oracledb.IConnection): Promise<void> {
+export function uploadFile(file: fileUploadType, docTableName: string, databaseConnection: oracledb.Connection): Promise<void> {
 	return new Promise((resolve, reject) => {
 		/* istanbul ignore next */
 		if (typeof docTableName !== 'string' || docTableName.length === 0) {
 			reject(new Error('The option "docTableName" has not been defined or the name is empty'));
 		}
 
-		let blobContent;
+		let blobContent: Buffer;
 		try {
 			blobContent = fs.readFileSync(file.physicalFilename);
 		} catch (e) {
@@ -105,15 +105,16 @@ export function uploadFile(file: fileUploadType, docTableName: string, databaseC
 			'blob_content': blobContent
 		};
 
+		//@ts-ignore
 		databaseConnection.execute(sql, bind, {autoCommit: true})
-			.then(result => {
+			.then((result: oracledb.Result) => {
 				/* istanbul ignore next */
 				if (result.rowsAffected !== 1) {
 					reject(new Error(`Invalid number of affected rows "${result.rowsAffected}"`));
 				} else {
 					resolve();
 				}
-			}).catch(/* istanbul ignore next */e => {
+			}).catch(/* istanbul ignore next */(e: any) => {
 				reject(new Error(`Unable to insert file "${file.physicalFilename}"\n` + e.toString()));
 			});
 	});

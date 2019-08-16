@@ -18,11 +18,11 @@ import {oracleExpressMiddleware$options} from './config';
 * @param {express.Request} req - The req object represents the HTTP request.
 * @param {express.Response} res - The res object represents the HTTP response that an Express app sends when it gets an HTTP request.
 * @param {oracleExpressMiddleware$options} options - the options for the middleware.
-* @param {Promise<oracledb.IConnectionPool>} databasePoolPromise - Promise returning a database pool.
+* @param {Promise<oracledb.Pool>} databasePoolPromise - Promise returning a database pool.
 * @param {Trace} trace - Tracing object.
 * returns {Promise<void>} - Promise that resolves when the request has been fullfilled.
 */
-export async function processRequest(req: express.Request, res: express.Response, options: oracleExpressMiddleware$options, databasePoolPromise: Promise<oracledb.IConnectionPool>, trace: Trace): Promise<void> {
+export async function processRequest(req: express.Request, res: express.Response, options: oracleExpressMiddleware$options, databasePoolPromise: Promise<oracledb.Pool>, trace: Trace): Promise<void> {
 	trace.write('processRequest: ENTER');
 
 	let databasePool;
@@ -67,11 +67,11 @@ export async function processRequest(req: express.Request, res: express.Response
 * @param {express.Request} req - The req object represents the HTTP request.
 * @param {express.Response} res - The res object represents the HTTP response that an Express app sends when it gets an HTTP request.
 * @param {oracleExpressMiddleware$options} options - the options for the middleware.
-* @param {oracledb.IConnection} databaseConnection - Database connection.
+* @param {oracledb.Connection} databaseConnection - Database connection.
 * @param {Trace} trace - Tracing object.
 * @returns {Promise<void>} - Promise resolving to th page
 */
-async function executeRequest(req: express.Request, res: express.Response, options: oracleExpressMiddleware$options, databaseConnection: oracledb.IConnection, trace: Trace): Promise<void> {
+async function executeRequest(req: express.Request, res: express.Response, options: oracleExpressMiddleware$options, databaseConnection: oracledb.Connection, trace: Trace): Promise<void> {
 	trace.write('executeRequest: ENTER');
 
 	// Get the CGI

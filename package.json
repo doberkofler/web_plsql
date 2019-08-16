@@ -78,7 +78,7 @@
     "@types/mocha": "5.2.7",
     "@types/morgan": "1.7.36",
     "@types/node": "12.7.1",
-    "@types/oracledb": "1.11.34",
+    "@types/oracledb": "4.0.0",
     "@typescript-eslint/eslint-plugin": "2.0.0",
     "@typescript-eslint/parser": "2.0.0",
     "body-parser": "1.19.0",
@@ -105,6 +105,6 @@
     "typescript": "3.5.3"
   },
   "optionalDependencies": {
-    "oracledb": "3.1.2"
+    "oracledb": "4.0.0"
   }
 }
