@@ -110,7 +110,7 @@ export function uploadFile(file: fileUploadType, docTableName: string, databaseC
 
 		//@ts-ignore
 		databaseConnection.execute(sql, bind, {autoCommit: true})
-			.then((result: oracledb.Result) => {
+			.then((result: oracledb.Result<any>) => {
 				/* istanbul ignore next */
 				if (result.rowsAffected !== 1) {
 					reject(new Error(`Invalid number of affected rows "${result.rowsAffected}"`));

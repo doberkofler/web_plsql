@@ -1,6 +1,6 @@
 {
   "name": "web_plsql",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "author": "Dieter Oberkofler <dieter.oberkofler@gmail.com>",
   "description": "The Express Middleware for Oracle PL/SQL",
   "keywords": [
@@ -68,19 +68,19 @@
     "all": true
   },
   "dependencies": {
-    "@types/body-parser": "1.17.0",
-    "@types/chai": "4.2.0",
-    "@types/compression": "1.0.0",
-    "@types/cookie-parser": "1.4.1",
+    "@types/body-parser": "1.17.1",
+    "@types/chai": "4.2.3",
+    "@types/compression": "1.0.1",
+    "@types/cookie-parser": "1.4.2",
     "@types/escape-html": "0.0.20",
-    "@types/express": "4.17.0",
+    "@types/express": "4.17.1",
     "@types/mkdirp": "0.5.2",
     "@types/mocha": "5.2.7",
-    "@types/morgan": "1.7.36",
-    "@types/node": "12.7.2",
-    "@types/oracledb": "4.0.0",
-    "@typescript-eslint/eslint-plugin": "2.0.0",
-    "@typescript-eslint/parser": "2.0.0",
+    "@types/morgan": "1.7.37",
+    "@types/node": "12.7.5",
+    "@types/oracledb": "4.0.3",
+    "@typescript-eslint/eslint-plugin": "2.3.0",
+    "@typescript-eslint/parser": "2.3.0",
     "body-parser": "1.19.0",
     "chai": "4.2.0",
     "compression": "1.7.4",
@@ -88,7 +88,7 @@
     "cookie-parser": "1.4.4",
     "coveralls": "3.0.6",
     "escape-html": "1.0.3",
-    "eslint": "6.1.0",
+    "eslint": "6.4.0",
     "express": "4.17.1",
     "express-status-monitor": "1.2.6",
     "http-parser-js": "0.5.1",
@@ -101,10 +101,10 @@
     "shx": "0.3.2",
     "source-map-support": "0.5.13",
     "supertest": "4.0.2",
-    "ts-node": "8.3.0",
-    "typescript": "3.5.3"
+    "ts-node": "8.4.1",
+    "typescript": "3.6.3"
   },
   "optionalDependencies": {
-    "oracledb": "4.0.0"
+    "oracledb": "4.0.1"
   }
 }
