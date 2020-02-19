@@ -9,7 +9,7 @@ describe('errorPage', () => {
 
 	before(() => {
 		errorSave = console.error;
-		console.error = () => {};
+		console.error = () => {}; // eslint-disable-line @typescript-eslint/no-empty-function
 	});
 
 	after(() => {
