@@ -8,13 +8,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [?.?.?] - 2021-??-??
 
 ### Added
-- ...
-
 ### Changed
-- ...
-
 ### Fixed
-- ...
+
 
 ## [0.3.0] - 2021-04-09
 
@@ -33,7 +29,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 
-### Changed
+## [0.2.0] - 2019-06-02
 
 ### Fixed
 - Fixed a problem with the dependencies when installing the npm package.
