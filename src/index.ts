@@ -10,7 +10,7 @@ import {validate, oracleExpressMiddleware$options} from './config';
 import {RequestError} from './requestError';
 import {errorPage} from './errorPage';
 import {Trace} from './trace';
-const version = require('../package.json').version;
+const version = require('../package.json').version; // eslint-disable-line @typescript-eslint/no-var-requires
 
 /**
 * Express middleware.
@@ -53,7 +53,6 @@ function requestHandler(req: express.Request, res: express.Response, databasePoo
 			}
 		} else {
 			processRequest(req, res, options, databasePoolPromise, trace)
-				//@ts-ignore
 				.catch(e => {
 					/* istanbul ignore next */
 					errorPage(req, res, options, trace, e);

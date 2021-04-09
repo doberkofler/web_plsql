@@ -10,7 +10,7 @@ describe('configuration options', () => {
 			{pathAlias: {alias: 'r', procedure: 'p'}},
 			{errorStyle: 'debug'}
 		].forEach(options => {
-			assert.strictEqual(typeof validate(options), 'object', JSON.stringify(options));
+			assert.strictEqual(typeof validate(options as unknown as Record<string, unknown>), 'object', JSON.stringify(options));
 		});
 	});
 });
@@ -34,7 +34,7 @@ describe('configuration errors', () => {
 	].forEach(test => {
 		it(`should throw the exception "${test.error}"`, () => {
 			assert.throws(() => {
-				validate(test.config);
+				validate(test.config as unknown as Record<string, unknown>);
 			}, test.error);
 		});
 	});

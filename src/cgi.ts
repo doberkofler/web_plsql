@@ -6,7 +6,7 @@ import os from 'os';
 import {URL} from 'url';
 import express from 'express';
 export type environmentType = {[key: string]: string};
-import {oracleExpressMiddleware$options} from './config';
+import type {oracleExpressMiddleware$options} from './config';
 
 /**
 * Create a CGI object

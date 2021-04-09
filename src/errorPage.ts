@@ -68,18 +68,13 @@ function getError(req: express.Request, error: Error): outputType {
 
 	// what type of Error did we receive
 	if (error instanceof ProcedureError) {
-		//@ts-ignore
 		timestamp = error.timestamp;
 		/* istanbul ignore next */
 		message = error.stack || '';
-		//@ts-ignore
 		environment = error.environment;
-		//@ts-ignore
 		sql = error.sql;
-		//@ts-ignore
 		bind = error.bind;
 	} else if (error instanceof RequestError) {
-		//@ts-ignore
 		timestamp = error.timestamp;
 		/* istanbul ignore next */
 		message = error.stack || '';

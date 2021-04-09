@@ -52,7 +52,7 @@ export class Trace {
 	*
 	* @param {express.Request} req - The req object represents the HTTP request.
 	*/
-	start(req: express.Request) {
+	start(req: express.Request): void {
 		// istanbul ignore if
 		if (!this._enabled) {
 			return;
@@ -108,33 +108,34 @@ export class Trace {
 	/**
 	* Return a string representation of the value.
 	*
-	* @param {*} value - Any value.
+	* @param {unknown} value - Any value.
 	* @returns {string} - The string representation.
 	*/
-	static inspect(value: any): string {
+	static inspect(value: unknown): string {
 		return util.inspect(value, {showHidden: false, depth: null, colors: false});
 	}
 
 	/**
 	* Return a string representation of the request.
 	*
-	* @param {any} req - express.Request.
+	* @param {express.Request} req - express.Request.
 	* @param {boolean} simple - Set to false to see all public properties of the request.
 	* @returns {string} - The string representation.
 	*/
-	static inspectRequest(req: any, simple: boolean = true): string {
+	static inspectRequest(req: express.Request, simple: boolean = true): string {
+		type RequestKeysType = keyof express.Request;
 		const simpleRequest: any = {};
 
 		// istanbul ignore else
 		if (simple) {
 			['originalUrl', 'params', 'query', 'url', 'method', 'body', 'files', 'secret', 'cookies'].forEach(key => {
-				if (req[key]) {
-					simpleRequest[key] = req[key];
+				if (req[key as RequestKeysType]) {
+					simpleRequest[key] = req[key as RequestKeysType];
 				}
 			});
 		} else {
 			Object.keys(req).filter(key => typeof key === 'string' && key.length > 1 && key[0] !== '_').forEach(key => {
-				simpleRequest[key] = req[key];
+				simpleRequest[key] = req[key as RequestKeysType];
 			});
 		}
 

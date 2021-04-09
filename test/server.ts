@@ -5,11 +5,10 @@ import http from 'http';
 import oracledb from 'oracledb';
 import path from 'path';
 import bodyParser from 'body-parser';
-//@ts-ignore
+// @ts-expect-error
 import multipart from 'connect-multiparty';
 import cookieParser from 'cookie-parser';
 import compression from 'compression';
-//@ts-ignore
 import request from 'supertest';
 import {setExecuteCallback, createPool} from './mock/oracledb';
 
@@ -350,7 +349,6 @@ async function serverStart(): Promise<serverConfigType> {
 	const app = express();
 
 	// add middleware
-	//@ts-ignore
 	app.use(multipart());
 	app.use(bodyParser.json());
 	app.use(bodyParser.urlencoded({extended: true}));
@@ -375,8 +373,7 @@ async function serverStart(): Promise<serverConfigType> {
 	// listen on port
 	const server = app.listen(PORT);
 
-	//@ts-ignore
-	return {app, server, connectionPool};
+	return {app, server, connectionPool: connectionPool as unknown as oracledb.Pool};
 }
 
 /*

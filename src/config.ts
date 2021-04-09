@@ -21,7 +21,7 @@ export type oracleExpressMiddleware$options = {
 * @param {Object} options - The configuration options.
 * @returns {oracleExpressMiddleware$options} - The validated configuration options.
 */
-export function validate(options: any): oracleExpressMiddleware$options {
+export function validate(options: Record<string, any>): oracleExpressMiddleware$options {
 	const validOptions: oracleExpressMiddleware$options = {
 		errorStyle: 'basic',
 		trace: 'off'
@@ -81,7 +81,7 @@ export function validate(options: any): oracleExpressMiddleware$options {
 		if (typeof options.errorStyle !== 'string' || ['basic', 'debug'].indexOf(options.errorStyle) === -1) {
 			throw new TypeError('The optional option "errorStyle" must be "basic" or "debug"');
 		} else {
-			validOptions.errorStyle = options.errorStyle;
+			validOptions.errorStyle = options.errorStyle as 'basic' | 'debug';
 		}
 	}
 
@@ -89,7 +89,7 @@ export function validate(options: any): oracleExpressMiddleware$options {
 		if (typeof options.trace !== 'string' || ['on', 'off', 'test'].indexOf(options.trace.toLowerCase()) === -1) {
 			throw new TypeError('The optional option "trace" must be "on" or "off"');
 		} else {
-			validOptions.trace = options.trace.toLowerCase();
+			validOptions.trace = options.trace.toLowerCase() as 'on' | 'off' | 'test';
 		}
 	}
 

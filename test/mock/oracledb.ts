@@ -4,7 +4,7 @@ type executeCallbackType = (sql: string, bindParams?: any) => any;
 
 let _executeCallback: executeCallbackType | null = null;
 
-export function setExecuteCallback(callback: executeCallbackType | null = null) {
+export function setExecuteCallback(callback: executeCallbackType | null = null): void {
 	_executeCallback = callback;
 }
 
@@ -14,13 +14,13 @@ export class Lob {
 	constructor(type: number) {
 		this.type = type;
 	}
-	close() {
+	close(): Promise<void> {
 		return Promise.resolve();
 	}
 }
 
 export class Connection {
-	execute(sql: string, bindParams?: any, options?: any): Promise<any> {
+	execute(sql: string, bindParams?: Record<string, unknown>, options?: Record<string, unknown>): Promise<any> {
 		return Promise.resolve(_executeCallback ? _executeCallback(sql, bindParams) : {});
 	}
 	createLob(type: number): Promise<Lob> {
@@ -50,13 +50,13 @@ export class ConnectionPool {
 	}
 }
 
-export function createPool(options: any): Promise<ConnectionPool> {
+export function createPool(options: Record<string, unknown>): Promise<ConnectionPool> {
 	const connectionPool = new ConnectionPool();
 
 	return Promise.resolve(connectionPool);
 }
 
-export function getConnection(options: any): Promise<Connection> {
+export function getConnection(options: Record<string, unknown>): Promise<Connection> {
 	const connection = new Connection();
 
 	return Promise.resolve(connection);

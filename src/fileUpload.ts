@@ -73,8 +73,8 @@ export function getFiles(req: express.Request): filesUploadType {
 * @param {oracledb.Connection} databaseConnection - Database connection.
 * @returns {Promise<void>} - Promise that resolves when the request has been fullfilled.
 */
-export function uploadFiles(files: filesUploadType, docTableName: string, databaseConnection: oracledb.Connection) {
-	return Promise.all(files.map(file => uploadFile(file, docTableName, databaseConnection)));
+export async function uploadFiles(files: filesUploadType, docTableName: string, databaseConnection: oracledb.Connection): Promise<void> {
+	await Promise.all(files.map(file => uploadFile(file, docTableName, databaseConnection)));
 }
 
 /*
@@ -108,15 +108,9 @@ export function uploadFile(file: fileUploadType, docTableName: string, databaseC
 			}
 		};
 
-		//@ts-ignore
 		databaseConnection.execute(sql, bind, {autoCommit: true})
-			.then((result: oracledb.Result) => {
-				/* istanbul ignore next */
-				if (result.rowsAffected !== 1) {
-					reject(new Error(`Invalid number of affected rows "${result.rowsAffected}"`));
-				} else {
-					resolve();
-				}
+			.then(() => {
+				resolve();
 			}).catch(/* istanbul ignore next */(e: any) => {
 				reject(new Error(`Unable to insert file "${file.physicalFilename}"\n` + e.toString()));
 			});

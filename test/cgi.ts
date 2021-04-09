@@ -1,6 +1,8 @@
 import {assert} from 'chai';
 import {getCGI} from '../src/cgi';
+import express from 'express';
 import os from 'os';
+import type {oracleExpressMiddleware$options} from '../src/config';
 
 describe('cgi', () => {
 	it('with a proper configuration object and request', () => {
@@ -55,8 +57,7 @@ describe('cgi', () => {
 			doctable: DOCUMENT_TABLE_NAME
 		};
 
-		//@ts-ignore
-		const cgi = getCGI(req, options);
+		const cgi = getCGI(req as unknown as express.Request, options as unknown as oracleExpressMiddleware$options);
 
 		assert.strictEqual(Object.keys(cgi).length, 29);
 

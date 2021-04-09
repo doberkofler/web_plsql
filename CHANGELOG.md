@@ -5,7 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [0.3.0] - 2019-??-??
+## [?.?.?] - 2021-??-??
+
+### Added
+- ...
+
+### Changed
+- ...
+
+### Fixed
+- ...
+
+## [0.3.0] - 2021-04-09
 
 ### Added
 - Added a simple oracledb example "examples/oracledb_example.js".
@@ -14,8 +25,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - The credentials for the "examples/sample.js" are stored in "examples/credentials.js" and can also be set using the environment.
 
 ### Fixed
-- Updated to oracledb 4 and full binary support for node 12 and later.
+- Updated to oracledb 5 and full binary support for node 14 and later.
 - Updated all minor dependencies.
+
 
 ## [0.2.0] - 2019-06-02
 

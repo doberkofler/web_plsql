@@ -24,7 +24,7 @@ type pageType = {
 		statusCode?: number;
 		statusDescription?: string;
 		redirectLocation?: string;
-		otherHeaders: {};
+		otherHeaders: Record<string, unknown>;
 		server?: string;
 	};
 	file: {
@@ -124,7 +124,6 @@ export function parse(text: string): pageType {
 					break;
 
 				default:
-					//@ts-ignore
 					page.head.otherHeaders[header.name] = header.value;
 					break;
 			}
@@ -157,10 +156,9 @@ export function send(req: express.Request, res: express.Response, page: {body: s
 	trace.write('send: ENTER');
 
 	// Send the "cookies"
-	//@ts-ignore
-	page.head.cookies.forEach(cookie => {
-		const name = cookie.name;
-		const value = cookie.value;
+	page.head.cookies.forEach((cookie: Record<string, unknown>) => {
+		const name = cookie.name as string;
+		const value = cookie.value as string;
 
 		delete cookie.name;
 		delete cookie.value;

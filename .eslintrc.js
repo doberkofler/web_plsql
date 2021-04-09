@@ -233,9 +233,15 @@ module.exports = {
 
 		// typescript
 		'@typescript-eslint/array-type': ['warn', {'default': 'generic'}],
-		'@typescript-eslint/ban-ts-ignore': 'off',
+		'@typescript-eslint/ban-ts-comment': ['warn',
+			{
+				'ts-expect-error': false,
+				'ts-ignore': true,
+				'ts-nocheck': true,
+				'ts-check': false
+			}
+		],
 		'camelcase': 'off',
-		'@typescript-eslint/camelcase': ['warn', {'properties': 'never'}],
 		'@typescript-eslint/explicit-function-return-type': 'off',
 		'@typescript-eslint/explicit-member-accessibility': 'off',
 		'indent': 'off',
@@ -251,6 +257,74 @@ module.exports = {
 					requireLast: true
 				}
 			}
+		],
+		'@typescript-eslint/naming-convention': [
+			'error',
+			{
+				selector: 'variable',
+				modifiers: ['const'],
+				format: ['camelCase', 'UPPER_CASE'],
+			},
+			{
+				selector: 'variable',
+				format: ['camelCase'],
+				leadingUnderscore: 'allow',
+			},
+			{
+				selector: 'function',
+				format: ['camelCase'],
+				leadingUnderscore: 'allow',
+			},
+			{
+				selector: 'parameter',
+				format: ['camelCase'],
+				leadingUnderscore: 'allow',
+			},
+			{
+				selector: ['property', 'typeProperty'],
+				format: null,
+			},
+			/*
+			{
+				selector: 'parameterProperty',
+				format: ['camelCase'],
+			},
+			*/
+			{
+				selector: 'class',
+				format: ['PascalCase'],
+			},
+			{
+				selector: 'method',
+				format: ['camelCase'],
+				leadingUnderscore: 'allow',
+			},
+			/*
+			{
+				selector: 'accessor',
+				format: ['camelCase'],
+			},
+			{
+				selector: 'enumMember',
+				format: ['camelCase'],
+			},
+			{
+				selector: 'interface',
+				format: ['camelCase'],
+			},
+			{
+				selector: 'typeAlias',
+				format: ['camelCase'],
+			},
+			{
+				selector: 'enum',
+				format: ['camelCase'],
+			},
+			{
+				selector: 'typeParameter',
+				format: ['camelCase'],
+			},
+			*/
 		],
 		'@typescript-eslint/no-explicit-any': 'off',
 		'@typescript-eslint/no-extraneous-class': 'warn',

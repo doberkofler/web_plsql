@@ -10,7 +10,7 @@ export class ProcedureError extends Error {
 	sql: string;
 	bind: any;
 
-	constructor(message: string, environment: environmentType, sql: string, bind: any) {
+	constructor(message: string, environment: environmentType, sql: string, bind: any) { // eslint-disable-line @typescript-eslint/explicit-module-boundary-types
 		super(message);
 
 		// Maintains proper stack trace for where our error was thrown (only available on V8)
