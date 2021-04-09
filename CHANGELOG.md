@@ -12,7 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 
 
-## [0.3.0] - 2021-04-09
+## [0.4.0] - 2021-04-09
 
 ### Added
 - Added a simple oracledb example "examples/oracledb_example.js".
@@ -22,6 +22,18 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Updated to oracledb 5 and full binary support for node 14 and later.
+- Updated all minor dependencies.
+
+
+## [0.3.2] - 2020-03-29
+
+### Fixed
+- Updated all minor dependencies.
+
+
+## [0.3.1] - 2020-02-19
+
+### Fixed
 - Updated all minor dependencies.
 
 
