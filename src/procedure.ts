@@ -81,9 +81,9 @@ export async function invokeProcedure(req: express.Request, res: express.Respons
 		trace.write(`execute:\n${'-'.repeat(30)}\n${sqlStatement}\n${'-'.repeat(30)}\nwith bindings:\n${Trace.inspect(bind)}`);
 		result = await databaseConnection.execute(sqlStatement, Object.assign(bind, para.bind));
 		trace.write(`results:\n${Trace.inspect(result)}`);
-	} catch (e) {
+	} catch (err) {
 		/* istanbul ignore next */
-		throwError(`Error when executing procedure\n${sqlStatement}\n${e.toString()}`, para, cgiObj, trace);
+		throwError(`Error when executing procedure\n${sqlStatement}\n${err instanceof Error ? err.toString() : ''}`, para, cgiObj, trace);
 	}
 
 	//
@@ -332,9 +332,9 @@ async function getArguments(procedure: string, databaseConnection: oracledb.Conn
 
 	try {
 		result = await databaseConnection.execute<{names: Array<string>; types: Array<string>}>(sql.join('\n'), bind);
-	} catch (e) {
+	} catch (err) {
 		/* istanbul ignore next */
-		const message = `Error when retrieving arguments\n${sql.join('\n')}\n${e.stack()}`;
+		const message = `Error when retrieving arguments\n${sql.join('\n')}\n${err instanceof Error ? err.stack : ''}`;
 		/* istanbul ignore next */
 		throw new RequestError(message);
 	}

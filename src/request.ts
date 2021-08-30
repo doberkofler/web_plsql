@@ -32,18 +32,18 @@ export async function processRequest(req: express.Request, res: express.Response
 	try {
 		databasePool = await databasePoolPromise;
 		trace.write('processRequest: Connection pool has been allocated');
-	} catch (e) {
+	} catch (err) {
 		/* istanbul ignore next */
-		throw new RequestError(`Unable to create database pool.\n${e.message}`);
+		throw new RequestError(`Unable to create database pool.\n${err instanceof Error ? err.message : ''}`);
 	}
 
 	// open database connection
 	try {
 		databaseConnection = await databasePool.getConnection();
 		trace.write('processRequest: Connection has been allocated');
-	} catch (e) {
+	} catch (err) {
 		/* istanbul ignore next */
-		throw new RequestError(`Unable to open database connection\n${e.message}`);
+		throw new RequestError(`Unable to open database connection\n${err instanceof Error ? err.message: ''}`);
 	}
 
 	// execute request
@@ -53,9 +53,9 @@ export async function processRequest(req: express.Request, res: express.Response
 	try {
 		await databaseConnection.release();
 		trace.write('processRequest: Connection has been released');
-	} catch (e) {
+	} catch (err) {
 		/* istanbul ignore next */
-		console.error(`Unable to release database connection\n${e.message}`);
+		console.error(`Unable to release database connection\n${err instanceof Error ? err.message : ''}`);
 	}
 
 	trace.write('processRequest: EXIT');

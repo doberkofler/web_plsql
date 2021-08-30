@@ -58,8 +58,8 @@ function requestHandler(req: express.Request, res: express.Response, databasePoo
 					errorPage(req, res, options, trace, e);
 				});
 		}
-	} catch (e) {
+	} catch (err) {
 		/* istanbul ignore next */
-		errorPage(req, res, options, trace, e);
+		errorPage(req, res, options, trace, err);
 	}
 }

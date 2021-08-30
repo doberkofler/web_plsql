@@ -90,9 +90,9 @@ export function uploadFile(file: fileUploadType, docTableName: string, databaseC
 		let blobContent;
 		try {
 			blobContent = fs.readFileSync(file.physicalFilename);
-		} catch (e) {
+		} catch (err) {
 			/* istanbul ignore next */
-			reject(new Error(`Unable to read file "${file.physicalFilename}"\n` + e.toString()));
+			reject(new Error(`Unable to read file "${file.physicalFilename}"\n${err instanceof Error ? err.toString() : ''}`));
 			/* istanbul ignore next */
 			return;
 		}

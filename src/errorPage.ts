@@ -21,7 +21,7 @@ type outputType = {html: string; text: string};
 * @param {Trace} trace - Tracing object.
 * @param {Error} error - The error.
 */
-export function errorPage(req: express.Request, res: express.Response, options: oracleExpressMiddleware$options, trace: Trace, error: Error): void {
+export function errorPage(req: express.Request, res: express.Response, options: oracleExpressMiddleware$options, trace: Trace, error: any): void { // eslint-disable-line @typescript-eslint/explicit-module-boundary-types
 	let output = {
 		html: '',
 		text: ''
@@ -30,14 +30,16 @@ export function errorPage(req: express.Request, res: express.Response, options: 
 	// get the error description
 	try {
 		output = getError(req, error);
-	} catch (e) {
+	} catch (err) {
 		/* istanbul ignore next */
 		const header = 'ERROR';
+
 		/* istanbul ignore next */
-		const message = `${e.message}\n${e.stack}`;
+		const message = err instanceof Error ? `${err.message}\n${err.stack}` : JSON.stringify(err);
 
 		/* istanbul ignore next */
 		output.html += getHeaderHtml(header) + getHtml(message);
+
 		/* istanbul ignore next */
 		output.text += getHeaderHtml(header) + getHtml(message);
 	}
@@ -89,9 +91,9 @@ function getError(req: express.Request, error: Error): outputType {
 		try {
 			/* istanbul ignore next */
 			new Error(); // eslint-disable-line no-new
-		} catch (e) {
+		} catch (err) {
 			/* istanbul ignore next */
-			message += e.stack;
+			message += err instanceof Error ? err.stack : '';
 		}
 	}
 
@@ -163,11 +165,12 @@ function getProcedure(output: outputType, sql: string, bind: any) {
 				text += name + ': ' + value + '\n';
 			});
 		}
-	} catch (e) {
+	} catch (err) {
 		/* istanbul ignore next */
-		output.html += e.toString();
+		output.html += err instanceof Error ? err.toString() : 'ERROR';
+
 		/* istanbul ignore next */
-		output.text += e.toString();
+		output.text += err instanceof Error ? err.toString() : 'ERROR';
 		/* istanbul ignore next */
 		return;
 	}
@@ -190,11 +193,13 @@ function getEnvironment(output: outputType, environment: environmentType) {
 			html += `<tr><td>${key}:</td><td>${environment[key]}</td></tr>`;
 			text += key + '=' + environment[key] + '\n';
 		}
-	} catch (e) {
+	} catch (err) {
 		/* istanbul ignore next */
-		output.html += e.toString();
+		output.html += err instanceof Error ? err.toString() : 'ERROR';
+
 		/* istanbul ignore next */
-		output.text += e.toString();
+		output.text += err instanceof Error ? err.toString() : 'ERROR';
+
 		/* istanbul ignore next */
 		return;
 	}
