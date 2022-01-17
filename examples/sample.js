@@ -79,6 +79,23 @@ app.use(PATH + '/:name?', webplsql(connectionPool, OPTIONS));
 // serving static files
 app.use('/static', express.static(path.join(process.cwd(), 'examples/static')));
 
+// shutdown
+process.on('SIGTERM', shutDown);
+process.on('SIGINT', shutDown);
+
 // listen on port
 console.log(`Sample app is listening on http://localhost:${PORT}${PATH}`);
-app.listen(PORT);
+const server = app.listen(PORT);
+
+function shutDown() {
+	console.log('Received kill signal, shutting down gracefully');
+	server.close(() => {
+		console.log('Closed out remaining connections');
+		process.exit(0);
+	});
+
+	setTimeout(() => {
+		console.error('Could not close connections in time, forcefully shutting down');
+		process.exit(1);
+	}, 10000);
+}

@@ -26,7 +26,7 @@ export function getCGI(req: express.Request, options: oracleExpressMiddleware$op
 		'GATEWAY_IVERSION': '2',
 		'SERVER_SOFTWARE': 'web_plsql',
 		'GATEWAY_INTERFACE': 'CGI/1.1',
-		'SERVER_PORT': req.socket.localPort.toString(),
+		'SERVER_PORT': typeof req.socket.localPort === 'number' ? req.socket.localPort.toString() : '',
 		'SERVER_NAME': os.hostname(),
 		'REQUEST_METHOD': req.method,
 		'PATH_INFO': req.params.name,

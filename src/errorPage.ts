@@ -21,7 +21,7 @@ type outputType = {html: string; text: string};
 * @param {Trace} trace - Tracing object.
 * @param {Error} error - The error.
 */
-export function errorPage(req: express.Request, res: express.Response, options: oracleExpressMiddleware$options, trace: Trace, error: any): void { // eslint-disable-line @typescript-eslint/explicit-module-boundary-types
+export function errorPage(req: express.Request, res: express.Response, options: oracleExpressMiddleware$options, trace: Trace, error: unknown): void {
 	let output = {
 		html: '',
 		text: ''
@@ -61,7 +61,7 @@ export function errorPage(req: express.Request, res: express.Response, options: 
 /*
 * Show an error page
 */
-function getError(req: express.Request, error: Error): outputType {
+function getError(req: express.Request, error: unknown): outputType {
 	let timestamp: Date = new Date();
 	let message: string = '';
 	let environment: environmentType | null = null;
