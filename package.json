@@ -20,7 +20,7 @@
   ],
   "homepage": "https://github.com/doberkofler/web_plsql",
   "engines": {
-    "node": ">=10"
+    "node": ">=16"
   },
   "maintainers": [
     {
