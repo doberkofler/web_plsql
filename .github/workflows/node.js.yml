@@ -31,4 +31,4 @@ jobs:
         cache: 'npm'
     - run: npm ci
     - run: npm run rebuild --if-present
-    - run: npm coveralls
+    - run: npm run coveralls
