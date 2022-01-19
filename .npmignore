@@ -1,3 +1,4 @@
+.github
 .vscode/
 .nyc_output/
 coverage/
@@ -8,6 +9,4 @@ trace/
 *.log
 *.tgz
 .eslintcache
-.travis.yml
-appveyor.yml
 examples/LJ_UNITTEST.js
