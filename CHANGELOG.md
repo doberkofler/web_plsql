@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Changed
 - Replaced mocha with jest.
+- Added support for node 18.
 
 ### Fixed
 - Updated all dependencies.
