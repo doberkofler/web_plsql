@@ -1,5 +1,5 @@
-import {assert} from 'chai';
-import {streamToBuffer} from '../src/stream';
+import {describe, it, expect} from '@jest/globals';
+import {streamToBuffer} from '../../src/stream';
 import fs from 'fs';
 
 describe('stream', () => {
@@ -14,7 +14,7 @@ describe('stream', () => {
 		const readStream = fs.createReadStream('file.tmp');
 		const readBuffer = await streamToBuffer(readStream);
 
-		assert.isTrue(buffer.equals(readBuffer));
+		expect(buffer.equals(readBuffer)).toBeTruthy();
 
 		fs.unlinkSync(filename);
 	});

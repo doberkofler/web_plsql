@@ -1,4 +1,4 @@
-import {assert} from 'chai';
+import {describe, beforeAll, afterAll, beforeEach, it, expect} from '@jest/globals';
 import util from 'util';
 import express from 'express';
 import http from 'http';
@@ -10,9 +10,9 @@ import multipart from 'connect-multiparty';
 import cookieParser from 'cookie-parser';
 import compression from 'compression';
 import request from 'supertest';
-import {setExecuteCallback, createPool} from './mock/oracledb';
+import {setExecuteCallback, createPool} from '../mock/oracledb';
 
-const webplsql = require('../src/index'); // eslint-disable-line @typescript-eslint/no-var-requires
+const webplsql = require('../../src/index'); // eslint-disable-line @typescript-eslint/no-var-requires
 
 const PORT = 8765;
 const PATH = '/base';
@@ -29,10 +29,10 @@ describe('server utilities', () => {
 	it('should start a server', async () => {
 		const serverConfig = await serverStart();
 
-		assert.strictEqual(Object.prototype.toString.call(serverConfig), '[object Object]');
-		assert.strictEqual(Object.prototype.toString.call(serverConfig.app.listen), '[object Function]');
-		assert.strictEqual(Object.prototype.toString.call(serverConfig.server), '[object Object]');
-		//assert.isTrue(serverConfig.connectionPool instanceof oracledb.Pool);
+		expect(Object.prototype.toString.call(serverConfig)).toBe('[object Object]');
+		expect(Object.prototype.toString.call(serverConfig.app.listen)).toBe('[object Function]');
+		expect(Object.prototype.toString.call(serverConfig.server)).toBe('[object Object]');
+		//expect(serverConfig.connectionPool).toBeInstanceOf(oracledb.Pool);
 
 		await serverStop(serverConfig);
 	});
@@ -41,15 +41,15 @@ describe('server utilities', () => {
 describe('server static', () => {
 	let serverConfig: any;
 
-	before('Start the server', async () => {
+	beforeAll(async () => {
 		serverConfig = await serverStart();
 	});
 
-	after('Stop the server', async () => {
+	afterAll(async () => {
 		await serverStop(serverConfig);
 	});
 
-	beforeEach('Reset the execute callback', () => {
+	beforeEach(() => {
 		setExecuteCallback();
 	});
 

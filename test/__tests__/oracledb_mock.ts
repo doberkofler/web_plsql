@@ -1,16 +1,16 @@
-import {assert} from 'chai';
-import {setExecuteCallback, createPool, Connection, getConnection, ConnectionPool, Lob, BLOB} from './mock/oracledb';
+import {describe, it, expect} from '@jest/globals';
+import {setExecuteCallback, createPool, Connection, getConnection, ConnectionPool, Lob, BLOB} from '../mock/oracledb';
 
 describe('oracledb', () => {
 	it('createPool', async () => {
 		const connectionPool = await _createPool();
-		assert.isTrue(connectionPool instanceof ConnectionPool);
+		expect(connectionPool).toBeInstanceOf(ConnectionPool);
 		return connectionPool;
 	});
 
 	it('getConnection', async () => {
 		const connection = await _getConnection();
-		assert.isTrue(connection instanceof Connection);
+		expect(connection).toBeInstanceOf(Connection);
 		return connection;
 	});
 });
@@ -20,7 +20,7 @@ describe('ConnectionPool', () => {
 		const connectionPool = await _createPool();
 		const connection = await connectionPool.getConnection();
 
-		assert.isTrue(connection instanceof Connection);
+		expect(connection).toBeInstanceOf(Connection);
 
 		return connection;
 	});
@@ -34,14 +34,14 @@ describe('ConnectionPool', () => {
 describe('Connection', () => {
 	it('getConnection', async () => {
 		const connection = await _getConnection();
-		assert.isTrue(connection instanceof Connection);
+		expect(connection).toBeInstanceOf(Connection);
 		return connection;
 	});
 
 	it('createLob', async () => {
 		const connection = await _getConnection();
 		const lob = await connection.createLob(BLOB);
-		assert.isTrue(lob instanceof Lob);
+		expect(lob).toBeInstanceOf(Lob);
 		return lob;
 	});
 
@@ -58,7 +58,7 @@ describe('Connection.execute', () => {
 
 	it('execute', async () => {
 		const connection = await _getConnection();
-		assert.deepEqual(await connection.execute('select * from dual'), {});
+		expect(await connection.execute('select * from dual')).toStrictEqual({});
 	});
 
 	it('execute with execution callback', async () => {
@@ -67,11 +67,11 @@ describe('Connection.execute', () => {
 
 		// register an execute callback
 		setExecuteCallback((sql: string) => {
-			assert.strictEqual(sql, SQL);
+			expect(sql).toBe(SQL);
 			return {sql: SQL};
 		});
 
-		assert.deepEqual(await connection.execute(SQL), {sql: SQL});
+		expect(await connection.execute(SQL)).toStrictEqual({sql: SQL});
 	});
 });
 

@@ -12,9 +12,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 
 
-## [0.4.2] - 2022-01-17
+## [0.5.0] - 2022-05-09
 
-### Added
+### Changed
+- Replaced mocha with jest.
+
+### Fixed
+- Updated all dependencies.
+
+
+## [0.4.2] - 2022-01-17
 
 ### Changed
 - node.js support starting with v16.
@@ -24,10 +31,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 ## [0.4.1] - 2021-08-30
-
-### Added
-
-### Changed
 
 ### Fixed
 - Updated all dependencies.
@@ -59,8 +62,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 ## [0.2.0] - 2019-06-02
-
-### Added
 
 ## [0.2.0] - 2019-06-02
 

@@ -1,8 +1,8 @@
-import {assert} from 'chai';
-import {getCGI} from '../src/cgi';
+import {describe, it, expect} from '@jest/globals';
+import {getCGI} from '../../src/cgi';
 import express from 'express';
 import os from 'os';
-import type {oracleExpressMiddleware$options} from '../src/config';
+import type {oracleExpressMiddleware$options} from '../../src/config';
 
 describe('cgi', () => {
 	it('with a proper configuration object and request', () => {
@@ -59,9 +59,9 @@ describe('cgi', () => {
 
 		const cgi = getCGI(req as unknown as express.Request, options as unknown as oracleExpressMiddleware$options);
 
-		assert.strictEqual(Object.keys(cgi).length, 29);
+		expect(Object.keys(cgi)).toHaveLength(29);
 
-		assert.deepEqual(cgi, {
+		expect(cgi).toStrictEqual({
 			'PLSQL_GATEWAY': 'WebDb',
 			'GATEWAY_IVERSION': '2',
 			'SERVER_SOFTWARE': 'web_plsql',

@@ -1,5 +1,5 @@
-import {assert} from 'chai';
-import {validate} from '../src/config';
+import {describe, it, expect} from '@jest/globals';
+import {validate} from '../../src/config';
 
 describe('configuration options', () => {
 	it('should allow the following options', () => {
@@ -10,7 +10,7 @@ describe('configuration options', () => {
 			{pathAlias: {alias: 'r', procedure: 'p'}},
 			{errorStyle: 'debug'}
 		].forEach(options => {
-			assert.strictEqual(typeof validate(options as unknown as Record<string, unknown>), 'object', JSON.stringify(options));
+			expect(typeof validate(options as unknown as Record<string, unknown>)).toBe('object');
 		});
 	});
 });
@@ -33,9 +33,9 @@ describe('configuration errors', () => {
 		{config: {trace: 'enabled'}, error: 'The optional option "trace" must be "on" or "off"'},
 	].forEach(test => {
 		it(`should throw the exception "${test.error}"`, () => {
-			assert.throws(() => {
+			expect(() => {
 				validate(test.config as unknown as Record<string, unknown>);
-			}, test.error);
+			}).toThrow(test.error);
 		});
 	});
 });
