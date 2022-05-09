@@ -1,4 +1,4 @@
-import {describe, it, expect} from '@jest/globals';
+import {describe, beforeEach, it, expect} from '@jest/globals';
 import {setExecuteCallback, createPool, Connection, getConnection, ConnectionPool, Lob, BLOB} from '../mock/oracledb';
 
 describe('oracledb', () => {
