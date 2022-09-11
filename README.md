@@ -119,11 +119,6 @@ app.listen(PORT);
 
 # Missing features
 
-## Features in mod_plsql that are not (yet) available in web_plsql:
-- Support for APEX 5.
-- Default exclusion list.
-- Basic and custom authentication methods, based on the OWA_SEC package and custom packages.
-
 ## Supported mod_plsql configuration options:
 - PlsqlDatabaseConnectString -> specified when creating the oracledb connection pool
 - PlsqlDatabaseUserName -> specified when creating the oracledb connection pool
@@ -136,16 +131,21 @@ app.listen(PORT);
 - PlsqlPathAlias -> use the "pathAlias.alias" configuration option
 - PlsqlPathAliasProcedure -> use the "pathAlias.procedure" configuration option
 
-## Configuration options that are not (yet) supported:
+## Features in mod_plsql that are planned t be available in web_plsql:
+- PlsqlDocumentPath
+- PlsqlDocumentProcedure
+- PlsqlExclusionList
+- PlsqlRequestValidationFunction
+- Support for APEX 5.
+- Default exclusion list.
+- Basic and custom authentication methods, based on the OWA_SEC package and custom packages.
+
+## Configuration options that will not be supported:
 - PlsqlIdleSessionCleanupInterval
 - PlsqlAfterProcedure
 - PlsqlAlwaysDescribeProcedure
 - PlsqlBeforeProcedure
 - PlsqlCGIEnvironmentList
-- PlsqlDocumentPath
-- PlsqlDocumentProcedure
-- PlsqlExclusionList
-- PlsqlRequestValidationFunction
 - PlsqlSessionCookieName
 - PlsqlSessionStateManagement
 - PlsqlTransferMode
