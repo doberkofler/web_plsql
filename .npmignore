@@ -9,4 +9,5 @@ trace/
 *.log
 *.tgz
 .eslintcache
+PUBLISH.md
 examples/LJ_UNITTEST.js
