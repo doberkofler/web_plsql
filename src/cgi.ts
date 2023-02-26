@@ -32,7 +32,7 @@ export function getCGI(req: express.Request, options: oracleExpressMiddleware$op
 		'PATH_INFO': req.params.name,
 		'SCRIPT_NAME': PATH.script,
 		'REMOTE_ADDR': (req.ip || '').replace('::ffff:', ''),
-		'SERVER_PROTOCOL': PROTOCOL + '/' + req.httpVersion,
+		'SERVER_PROTOCOL': `${PROTOCOL}/${req.httpVersion}`,
 		'REQUEST_PROTOCOL': PROTOCOL,
 		'REMOTE_USER': '',
 		'HTTP_COOKIE': getCookieString(req),
@@ -63,7 +63,7 @@ function getCookieString(req: express.Request): string {
 	let cookieString = '';
 
 	for (const propName in req.cookies) {
-		cookieString += propName + '=' + req.cookies[propName] + ';';
+		cookieString += `${propName}=${req.cookies[propName]};`;
 	}
 
 	return cookieString;
@@ -74,14 +74,14 @@ function getCookieString(req: express.Request): string {
 */
 function getPath(req: express.Request): {script: string; prefix: string; dad: string} {
 	// create a valid url
-	const validUrl = req.protocol + '://' + os.hostname() + req.originalUrl;
+	const validUrl = `${req.protocol}://${os.hostname()}${req.originalUrl}`;
 
 	// get the pathname from the url (new URL('https://example.org/abc/xyz?123').pathname => /abc/xyz)
 	const pathname = new URL(validUrl).pathname;
 
 	const tmp = trimPath(pathname.substr(0, pathname.lastIndexOf('/') + 1));
-	const script = '/' + tmp;
-	const prefix = '/' + tmp.substr(0, tmp.lastIndexOf('/'));
+	const script = `/${tmp}`;
+	const prefix = `/${tmp.substr(0, tmp.lastIndexOf('/'))}`;
 	const dad = tmp.substr(tmp.indexOf('/') + 1);
 
 	return {script,	prefix, dad};

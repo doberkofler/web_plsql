@@ -158,7 +158,7 @@ async function getProcedure(procedure: string, argObj: argObjType, options: orac
 	if (options.pathAlias && options.pathAlias.alias === procedure) {
 		trace.write(`getProcedure: path alias "${options.pathAlias.alias}" redirects to "${options.pathAlias.procedure}"`);
 		return Promise.resolve({
-			sql: options.pathAlias.procedure + '(p_path=>:p_path);',
+			sql: `${options.pathAlias.procedure}(p_path=>:p_path);`,
 			bind: {
 				'p_path': {dir: oracledb.BIND_IN, type: oracledb.STRING, val: procedure}
 			}
@@ -240,7 +240,7 @@ async function getVarArgsPara(procedure: string, argObj: argObjType): Promise<{s
 	}
 
 	return Promise.resolve({
-		sql: procedure.substring(1) + '(:argnames, :argvalues);',
+		sql: `${procedure.substring(1)}(:argnames, :argvalues);`,
 		bind: {
 			argnames: {dir: oracledb.BIND_IN, type: oracledb.STRING, val: names},
 			argvalues: {dir: oracledb.BIND_IN, type: oracledb.STRING, val: values}
@@ -258,10 +258,10 @@ async function getFixArgsPara(procedure: string, argObj: argObjType, databaseCon
 	const argTypes = await getArguments(procedure, databaseConnection);
 
 	// bindings for the statement
-	let sql = procedure + '(';
+	let sql = `${procedure}(`;
 	for (const key in argObj) {
 		const value = argObj[key];
-		const parameterName = 'p_' + key;
+		const parameterName = `p_${key}`;
 
 		// prepend the separator, if this is not the first argument
 		if (index > 0) {
@@ -270,7 +270,7 @@ async function getFixArgsPara(procedure: string, argObj: argObjType, databaseCon
 		index++;
 
 		// add the argument
-		sql += key + '=>:' + parameterName;
+		sql += `${key}=>:${parameterName}`;
 
 		// add the binding
 		bind[parameterName] = {dir: oracledb.BIND_IN, type: oracledb.STRING};

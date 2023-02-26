@@ -74,7 +74,7 @@ app.use(require('express-status-monitor')());
 console.log(`Express status monitor is listening on http://localhost:${PORT}/status`);
 
 // add the oracle pl/sql express middleware
-app.use(PATH + '/:name?', webplsql(connectionPool, OPTIONS));
+app.use(`${PATH}/:name?`, webplsql(connectionPool, OPTIONS));
 
 // serving static files
 app.use('/static', express.static(path.join(process.cwd(), 'examples/static')));

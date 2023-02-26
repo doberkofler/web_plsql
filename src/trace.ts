@@ -2,9 +2,8 @@
 *	Trace utilities
 */
 
-import fs from 'fs';
+import fs from 'fs-extra';
 import path from 'path';
-import mkdirp from 'mkdirp';
 import util from 'util';
 import express from 'express';
 
@@ -35,7 +34,7 @@ export class Trace {
 
 		// create the trace directory
 		try {
-			mkdirp.sync(this._directory);
+			fs.ensureDirSync(this._directory);
 			if (trace === 'on') {
 				// istanbul ignore next
 				console.log(`Tracing to the directory "${this._directory}" is enabled.`);
@@ -70,7 +69,7 @@ export class Trace {
 		appendSync(path.join(this._directory, 'trace.log'), `${customRequest.uniqueRequestID.toString().padEnd(10)} - ${getTimestamp()} - ${customRequest.originalUrl}\n`);
 
 		// compute the trace filename
-		this._filename = path.join(this._directory, customRequest.uniqueRequestID.toString() + '.log');
+		this._filename = path.join(this._directory, `${customRequest.uniqueRequestID.toString()}.log`);
 
 		// write the initial request information
 		this.append(SEPARATOR_LINE +
@@ -134,7 +133,7 @@ export class Trace {
 				}
 			});
 		} else {
-			Object.keys(req).filter(key => typeof key === 'string' && key.length > 1 && key[0] !== '_').forEach(key => {
+			Object.keys(req).filter(key => typeof key === 'string' && key.length > 1 && !key.startsWith('_')).forEach(key => {
 				simpleRequest[key] = req[key as RequestKeysType];
 			});
 		}

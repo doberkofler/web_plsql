@@ -356,7 +356,7 @@ async function serverStart(): Promise<serverConfigType> {
 	app.use(compression());
 
 	// add the oracle pl/sql express middleware
-	app.use(PATH + '/:name?', webplsql(connectionPool, {
+	app.use(`${PATH}/:name?`, webplsql(connectionPool, {
 		trace: 'test',
 		defaultPage: DEFAULT_PAGE,
 		doctable: DOC_TABLE,
@@ -441,14 +441,14 @@ function parameterEqual(sql: string, bind: any, parameters: Array<{name: string;
 
 function parameterFixedEqual(bind: any, parameters: Array<{name: string; value: string | Array<string>}>): boolean {
 	return parameters.every(para => {
-		if (!bind.hasOwnProperty('p_' + para.name)) {
+		if (!bind.hasOwnProperty(`p_${para.name}`)) {
 			console.error(`===> The parameter "${para.name}" is missing`);
 			return false;
 		}
 
 		if (Array.isArray(para.value)) {
 			return para.value.every((v, i) => {
-				const equal = v === bind['p_' + para.name].val[i];
+				const equal = v === bind[`p_${para.name}`].val[i];
 				if (!equal) {
 					console.error(`===> The value "${v}" of parameter "${para.name}" is different`);
 				}
@@ -456,7 +456,7 @@ function parameterFixedEqual(bind: any, parameters: Array<{name: string; value: 
 			});
 		}
 
-		return para.value === bind['p_' + para.name].val;
+		return para.value === bind[`p_${para.name}`].val;
 	});
 }
 

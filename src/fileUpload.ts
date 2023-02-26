@@ -112,7 +112,7 @@ export function uploadFile(file: fileUploadType, docTableName: string, databaseC
 			.then(() => {
 				resolve();
 			}).catch(/* istanbul ignore next */(e: any) => {
-				reject(new Error(`Unable to insert file "${file.physicalFilename}"\n` + e.toString()));
+				reject(new Error(`Unable to insert file "${file.physicalFilename}"\n${e.toString()}`));
 			});
 	});
 }
@@ -122,5 +122,5 @@ export function uploadFile(file: fileUploadType, docTableName: string, databaseC
 */
 function getRandomizedFilename(filename: string): string {
 	++sequencialID;
-	return 'F' + (Date.now() + sequencialID).toString() + '/' + path.basename(filename);
+	return `F${(Date.now() + sequencialID).toString()}/${path.basename(filename)}`;
 }

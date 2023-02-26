@@ -122,7 +122,7 @@ function normalizeBody(req: express.Request): {[key: string]: string} {
 				args[key] = value;
 			} else {
 				/* istanbul ignore next */
-				throw new RequestError(`The element "${key}" in the body is not a string or an array of strings!\n` + util.inspect(req.body, {showHidden: false, depth: null, colors: false}));
+				throw new RequestError(`The element "${key}" in the body is not a string or an array of strings!\n${util.inspect(req.body, {showHidden: false, depth: null, colors: false})}`);
 			}
 		}
 	}

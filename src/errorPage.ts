@@ -86,7 +86,7 @@ function getError(req: express.Request, error: unknown): outputType {
 	} else {
 		if (typeof error === 'string') {
 			/* istanbul ignore next */
-			message = error + '\n';
+			message = `${error}\n`;
 		}
 		try {
 			/* istanbul ignore next */
@@ -145,7 +145,7 @@ function getProcedure(output: outputType, sql: string, bind: any) {
 	let html = '<table>';
 	let text = '';
 
-	text += 'PROCEDURE: ' + sql + '\n';
+	text += `PROCEDURE: ${sql}\n`;
 	html += `<tr><td>PROCEDURE:</td><td>${sql}</td></tr>`;
 
 	try {
@@ -155,14 +155,14 @@ function getProcedure(output: outputType, sql: string, bind: any) {
 				const value = inspect(bind[key].val);
 
 				html += `<tr><td>${key}:</td><td>${value}</td></tr>`;
-				text += key + ': ' + value + '\n';
+				text += `${key}: ${value}\n`;
 			}
 		} else {
 			bind.argnames.val.forEach((name: string, index: number) => {
 				const value = inspect(bind.argvalues.val[index]);
 
 				html += `<tr><td>${name}:</td><td>${value}</td></tr>`;
-				text += name + ': ' + value + '\n';
+				text += `${name}: ${value}\n`;
 			});
 		}
 	} catch (err) {
@@ -191,7 +191,7 @@ function getEnvironment(output: outputType, environment: environmentType) {
 	try {
 		for (const key in environment) {
 			html += `<tr><td>${key}:</td><td>${environment[key]}</td></tr>`;
-			text += key + '=' + environment[key] + '\n';
+			text += `${key}=${environment[key]}\n`;
 		}
 	} catch (err) {
 		/* istanbul ignore next */
@@ -228,7 +228,7 @@ function getHeaderHtml(text: string): string {
 *	get text
 */
 function getText(text: string): string {
-	return text + '\n';
+	return `${text}\n`;
 }
 
 /*

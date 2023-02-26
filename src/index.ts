@@ -44,7 +44,7 @@ function requestHandler(req: express.Request, res: express.Response, databasePoo
 		// should we switch to the default page if there is one defined
 		if (typeof req.params.name !== 'string' || req.params.name.length === 0) {
 			if (typeof options.defaultPage === 'string' && options.defaultPage.length > 0) {
-				const newUrl = url.resolve(req.originalUrl + '/' + options.defaultPage, '');
+				const newUrl = url.resolve(`${req.originalUrl}/${options.defaultPage}`, '');
 				trace.write(`Redirect to the url "${newUrl}"`);
 				res.redirect(newUrl);
 			} else {
