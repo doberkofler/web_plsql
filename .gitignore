@@ -1,4 +1,5 @@
 **/.DS_Store
+examples/LJ_UNITTEST.js
 .vscode/
 .nyc_output/
 coverage/
