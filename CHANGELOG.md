@@ -12,6 +12,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 
 
+## [0.6.0] - 2025-01-24
+
+### Changed
+- Switch to ESM.
+- Switch to JSDOC type annotations.
+- Switch to native JavaScript code.
+
+### Fixed
+- Updated all dependencies.
+
+
 ## [0.5.2] - 2023-02-26
 
 ### Fixed

@@ -1,57 +1,78 @@
 /*
-*	Page the raw page content and return the content to the client
-*/
+ *	Page the raw page content and return the content to the client
+ */
 
-import {Trace} from './trace';
-import express from 'express';
+import {Trace} from './trace.js';
 
-type cookieType = {
-	name: string;
-	value: string;
-	path?: string;
-	domain?: string;
-	secure?: string;
-	expires?: Date;
-	httpOnly?: boolean;
-};
+/**
+ * @typedef {import('express').Request} Request
+ * @typedef {import('express').Response} Response
+ * @typedef {import('./types.js').environmentType} environmentType
+ * @typedef {import('./types.js').middlewareOptions} middlewareOptions
+ */
 
-type pageType = {
-	body: string;
-	head: {
-		cookies: Array<cookieType>;
-		contentType?: string;
-		contentLength?: number;
-		statusCode?: number;
-		statusDescription?: string;
-		redirectLocation?: string;
-		otherHeaders: Record<string, unknown>;
-		server?: string;
-	};
-	file: {
-		fileType: any;
-		fileSize: any;
-		fileBlob: any;
-	};
+/**
+ * @typedef {object} cookieType
+ * @property {string} name - The name of the cookie.
+ * @property {string} value - The value of the cookie.
+ * @property {string} [path] - The path of the cookie.
+ * @property {string} [domain] - The domain of the cookie.
+ * @property {string} [secure] - The secure flag.
+ * @property {Date} [expires] - The expiration date.
+ * @property {boolean} [httpOnly] - The httpOnly flag.
+ */
+
+/**
+ * @typedef {object} pageType - The page.
+ * @property {string} body - The body of the page.
+ * @property {object} head - The head of the page.
+ * @property {cookieType[]} head.cookies - The cookies.
+ * @property {string} [head.contentType] - The content type.
+ * @property {number} [head.contentLength] - The content length.
+ * @property {number} [head.statusCode] - The status code.
+ * @property {string} [head.statusDescription] - The status description.
+ * @property {string} [head.redirectLocation] - The redirect location.
+ * @property {Record<string, string>} head.otherHeaders - The other headers.
+ * @property {string} [head.server] - The server.
+ * @property {object} file - The file.
+ * @property {string | null} file.fileType - The file type.
+ * @property {number | null} file.fileSize - The file size.
+ * @property {Buffer | null} file.fileBlob - The file blob.
+ */
+
+/**
+ * Try to decode a date
+ * @param {string} value - The value to decode.
+ * @returns {Date | null} - The decoded date or null.
+ */
+const tryDecodeDate = (value) => {
+	try {
+		return new Date(value);
+	} catch (err) {
+		/* istanbul ignore next */
+		return null;
+	}
 };
 
 /**
-*	Parse the header and split it up into the individual components
-*
-* @param {string} text - The text returned from the PL/SQL procedure.
-* @returns {Object} - The parsed page.
-*/
-export function parse(text: string): pageType {
-	const page: pageType = {
+ *	Parse the header and split it up into the individual components
+ *
+ * @param {string} text - The text returned from the PL/SQL procedure.
+ * @returns {pageType} - The parsed page.
+ */
+export function parse(text) {
+	/** @type {pageType} */
+	const page = {
 		body: '',
 		head: {
 			cookies: [],
-			otherHeaders: {}
+			otherHeaders: {},
 		},
 		file: {
 			fileType: null,
 			fileSize: null,
-			fileBlob: null
-		}
+			fileBlob: null,
+		},
 	};
 
 	//
@@ -72,7 +93,7 @@ export function parse(text: string): pageType {
 	//	2)	parse the headers
 	//
 
-	head.split('\n').forEach(line => {
+	head.split('\n').forEach((line) => {
 		const header = getHeader(line);
 
 		if (header) {
@@ -110,7 +131,7 @@ export function parse(text: string): pageType {
 							const index = header.value.indexOf(' ');
 							/* istanbul ignore else */
 							if (index !== -1) {
-								page.head.statusDescription = header.value.substr(index + 1);
+								page.head.statusDescription = header.value.substring(index + 1);
 							}
 						}
 					}
@@ -133,37 +154,46 @@ export function parse(text: string): pageType {
 	return page;
 }
 
-/*
-*	get a header line
-*/
-function getHeader(line: string): {name: string; value: string} | null {
+/**
+ *	Get a header line
+ *	@param {string} line - The line
+ *	@returns {{name: string, value: string} | null} - The header.
+ */
+function getHeader(line) {
 	const index = line.indexOf(':');
 
 	if (index !== -1) {
 		return {
-			name: line.substr(0, index).trim(),
-			value: line.substr(index + 1).trim()
+			name: line.substring(0, index).trim(),
+			value: line.substring(index + 1).trim(),
 		};
 	}
 
 	return null;
 }
 
-/*
-*	Send "default" response to the browser
-*/
-export function send(req: express.Request, res: express.Response, page: {body: string; head: any; file: any}, trace: Trace): void {
+/**
+ *	Send "default" response to the browser
+ *	@param {Request} req - The req object represents the HTTP request.
+ *	@param {Response} res - The res object represents the HTTP response that an Express app sends when it gets an HTTP request.
+ *	@param {pageType} page - The page to send.
+ *	@param {Trace} trace - Tracing object.
+ *	@returns {void}
+ */
+export function send(req, res, page, trace) {
 	trace.write('send: ENTER');
 
 	// Send the "cookies"
-	page.head.cookies.forEach((cookie: Record<string, unknown>) => {
-		const name = cookie.name as string;
-		const value = cookie.value as string;
+	page.head.cookies.forEach((cookie) => {
+		const name = cookie.name;
+		const value = cookie.value;
 
+		/*
 		delete cookie.name;
 		delete cookie.value;
+		*/
 
-		res.cookie(name, value, cookie);
+		res.cookie(name, value);
 		trace.append(`send: res.cookie("${name}", "${value}")\n`);
 	});
 
@@ -210,10 +240,12 @@ export function send(req: express.Request, res: express.Response, page: {body: s
 	trace.write('send: EXIT');
 }
 
-/*
-*	Parses a cookie string
-*/
-function parseCookie(text: string): cookieType | null {
+/**
+ *	Parses a cookie string
+ *	@param {string} text - The cookie string.
+ *	@returns {cookieType | null} - The parsed cookie.
+ */
+function parseCookie(text) {
 	// validate
 	/* istanbul ignore next */
 	if (typeof text !== 'string' || text.trim().length === 0) {
@@ -224,7 +256,7 @@ function parseCookie(text: string): cookieType | null {
 	let cookieElements = text.split(';');
 
 	// trim cookie elements
-	cookieElements = cookieElements.map(element => element.trim());
+	cookieElements = cookieElements.map((element) => element.trim());
 
 	// get name and value
 	const index = cookieElements[0].indexOf('=');
@@ -233,43 +265,34 @@ function parseCookie(text: string): cookieType | null {
 		// if the index is -1, there is no equal sign and if it's 0 the name is empty
 		return null;
 	}
-	const cookie: any = {};
-	cookie.name = cookieElements[0].substring(0, index).trim();
-	cookie.value = cookieElements[0].substring(index + 1).trim();
+
+	/** @type {cookieType} */
+	const cookie = {
+		name: cookieElements[0].substring(0, index).trim(),
+		value: cookieElements[0].substring(index + 1).trim(),
+	};
 
 	// remove the fisrt element
 	cookieElements.shift();
 
 	// get the other options
-	cookieElements.forEach(element => {
-		if (element.indexOf('path=') === 0) {
+	cookieElements.forEach((element) => {
+		if (element.startsWith('path=')) {
 			cookie.path = element.substring(5);
-		} else if (element.toLowerCase().indexOf('domain=') === 0) {
+		} else if (element.toLowerCase().startsWith('domain=')) {
 			cookie.domain = element.substring(7);
-		} else if (element.toLowerCase().indexOf('secure=') === 0) {
+		} else if (element.toLowerCase().startsWith('secure=')) {
 			/* istanbul ignore next */
 			cookie.secure = element.substring(7);
-		} else if (element.toLowerCase().indexOf('expires=') === 0) {
+		} else if (element.toLowerCase().startsWith('expires=')) {
 			const date = tryDecodeDate(element.substring(8));
 			if (date) {
 				cookie.expires = date;
 			}
-		} else if (element.toLowerCase().indexOf('httponly') === 0) {
+		} else if (element.toLowerCase().startsWith('httponly')) {
 			cookie.httpOnly = true;
 		}
 	});
 
 	return cookie;
-}
-
-/*
-*	Decode a date
-*/
-function tryDecodeDate(value: string): Date | null {
-	try {
-		return new Date(value);
-	} catch (err) {
-		/* istanbul ignore next */
-		return null;
-	}
 }

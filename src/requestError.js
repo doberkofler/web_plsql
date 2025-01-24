@@ -1,11 +1,15 @@
 /*
-*	RequestError
-*/
+ *	RequestError
+ */
 
 export class RequestError extends Error {
-	timestamp: Date;
+	/** @type {Date} */
+	timestamp;
 
-	constructor(message: string) {
+	/**
+	 * @param {string} message - The error message.
+	 */
+	constructor(message) {
 		super(message);
 
 		// Maintains proper stack trace for where our error was thrown (only available on V8)

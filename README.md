@@ -117,9 +117,9 @@ console.log(`Waiting on http://localhost:${PORT}${PATH}`);
 app.listen(PORT);
 ```
 
-# Missing features
+# Configuration options
 
-## Supported mod_plsql configuration options:
+## Supported mod_plsql configuration options
 - PlsqlDatabaseConnectString -> specified when creating the oracledb connection pool
 - PlsqlDatabaseUserName -> specified when creating the oracledb connection pool
 - PlsqlDatabasePassword -> specified when creating the oracledb connection pool
@@ -131,8 +131,18 @@ app.listen(PORT);
 - PlsqlPathAlias -> use the "pathAlias.alias" configuration option
 - PlsqlPathAliasProcedure -> use the "pathAlias.procedure" configuration option
 
-## Features in mod_plsql that are planned t be available in web_plsql:
+## Configuration options that will not be supported:
+- PlsqlAfterProcedure
+- PlsqlAlwaysDescribeProcedure
+- PlsqlBeforeProcedure
+- PlsqlCGIEnvironmentList
 - PlsqlDocumentPath
+- PlsqlIdleSessionCleanupInterval
+- PlsqlSessionCookieName
+- PlsqlSessionStateManagement
+- PlsqlTransferMode
+
+## Features that are planned to be available in web_plsql
 - PlsqlDocumentProcedure
 - PlsqlExclusionList
 - PlsqlRequestValidationFunction
@@ -140,15 +150,6 @@ app.listen(PORT);
 - Default exclusion list.
 - Basic and custom authentication methods, based on the OWA_SEC package and custom packages.
 
-## Configuration options that will not be supported:
-- PlsqlIdleSessionCleanupInterval
-- PlsqlAfterProcedure
-- PlsqlAlwaysDescribeProcedure
-- PlsqlBeforeProcedure
-- PlsqlCGIEnvironmentList
-- PlsqlSessionCookieName
-- PlsqlSessionStateManagement
-- PlsqlTransferMode
 
 # License
 

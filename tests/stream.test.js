@@ -1,6 +1,7 @@
-import {describe, it, expect} from '@jest/globals';
-import {streamToBuffer} from '../../src/stream';
-import fs from 'fs';
+import assert from 'node:assert';
+import {describe, it} from 'node:test';
+import fs from 'node:fs';
+import {streamToBuffer} from '../src/stream.js';
 
 describe('stream', () => {
 	it('should convert a stream to a buffer', async () => {
@@ -14,7 +15,7 @@ describe('stream', () => {
 		const readStream = fs.createReadStream('file.tmp');
 		const readBuffer = await streamToBuffer(readStream);
 
-		expect(buffer.equals(readBuffer)).toBeTruthy();
+		assert.strictEqual(buffer.equals(readBuffer), true);
 
 		fs.unlinkSync(filename);
 	});
