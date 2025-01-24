@@ -53,13 +53,16 @@ const main = async () => {
 	app.use(cookieParser());
 	app.use(compression());
 	app.use(morgan('combined', {stream: fs.createWriteStream(path.join(process.cwd(), 'access.log'), {flags: 'a'})}));
+
+	// add express status monitor
 	app.use(expressStatusMonitor());
+	console.log(`Express status monitor is listening on http://localhost:${PORT}/status`);
 
 	// add the oracle pl/sql express middleware
 	app.use(
 		`${ROOT}/:name?`,
 		webplsql(connectionPool, {
-			trace: 'on',
+			trace: 'off',
 			defaultPage: 'LAS_DLG_Startup.GO',
 			doctable: 'ljp_documents',
 			errorStyle: 'debug',

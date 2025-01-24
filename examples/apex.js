@@ -43,7 +43,7 @@ const main = async () => {
 	app.use(
 		`${PATH}/:name?`,
 		webplsql(connectionPool, {
-			trace: 'on',
+			trace: 'off',
 			defaultPage: 'apex',
 			doctable: 'wwv_flow_file_objects$',
 			pathAlias: {

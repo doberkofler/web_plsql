@@ -93,7 +93,7 @@ export const validate = (options) => {
 
 	if (typeof options.trace !== 'undefined') {
 		const trace = typeof options.trace === 'string' ? options.trace.toLowerCase() : '';
-		if (trace === 'on' || trace === 'off' || trace === 'test') {
+		if (trace === 'on' || trace === 'off') {
 			validOptions.trace = trace;
 		} else {
 			throw new TypeError('The optional option "trace" must be "on" or "off"');

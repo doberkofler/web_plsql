@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Switch to ESM.
 - Switch to JSDOC type annotations.
 - Switch to native JavaScript code.
+- Support for NodeJS 22 or higher.
 
 ### Fixed
 - Updated all dependencies.

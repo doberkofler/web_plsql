@@ -11,22 +11,15 @@ import expressStatusMonitor from 'express-status-monitor';
 import oracledb from 'oracledb';
 import webplsql from '../src/index.js';
 
-/*
- *	Holds the credentials used by node-oracledb examples to connect
- *	to the database.  Production applications should consider using
- *	External Authentication to avoid hard coded credentials.
- */
-import dbConfig from './credentials.js';
-
 const main = async () => {
 	/*
 	 *	Allocate the Oracle database pool
 	 */
 
 	const connectionPool = await oracledb.createPool({
-		user: dbConfig.user, // The database user name.
-		password: dbConfig.password, // The password of the database user.
-		connectString: dbConfig.connectString, // The Oracle database instance to connect to. The string can be an Easy Connect string, or a Net Service Name from a tnsnames.ora file, or the name of a local Oracle database instance.
+		user: process.env.NODE_ORACLEDB_USER || 'scott', // The database user name.
+		password: process.env.NODE_ORACLEDB_PASSWORD || 'tiger', // The password of the database user.
+		connectString: process.env.NODE_ORACLEDB_CONNECTIONSTRING || 'localhost:1521/test', // The Oracle database instance to connect to. The string can be an Easy Connect string, or a Net Service Name from a tnsnames.ora file, or the name of a local Oracle database instance.
 		poolMin: 10, // The minimum number of connections a connection pool maintains, even when there is no activity to the target database.
 		poolMax: 1000, // The maximum number of connections to which a connection pool can grow.
 		poolIncrement: 10, // The number of connections that are opened whenever a connection request exceeds the number of currently open connections.
@@ -62,7 +55,7 @@ const main = async () => {
 	app.use(
 		`${PATH}/:name?`,
 		webplsql(connectionPool, {
-			trace: 'on',
+			trace: 'off',
 			defaultPage: 'sample.pageIndex',
 			doctable: 'docTable',
 			pathAlias: {

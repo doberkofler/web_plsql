@@ -9,7 +9,7 @@
  * @property {environmentType} [cgi] - The CGI environment variables.
  * @property {{alias: string, procedure: string}} [pathAlias] - The path alias.
  * @property {'basic' | 'debug'} errorStyle - The error style.
- * @property {'on' | 'off' | 'test'} trace - The trace level.
+ * @property {'on' | 'off'} trace - The trace level.
  */
 
 /**

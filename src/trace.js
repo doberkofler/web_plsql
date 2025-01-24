@@ -30,7 +30,7 @@ export class Trace {
 	/**
 	 * Instantiate a new trace object.
 	 *
-	 * @param {'on' | 'off' | 'test'} trace - Tracing.
+	 * @param {'on' | 'off'} trace - Tracing.
 	 */
 	constructor(trace) {
 		/** @type {boolean} */
