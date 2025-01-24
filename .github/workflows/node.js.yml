@@ -15,7 +15,7 @@ jobs:
 
         strategy:
             matrix:
-                node-version: [18.x, 19.x]
+                node-version: [21.x, 22.x]
                 # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
 
         steps:
@@ -26,5 +26,5 @@ jobs:
                   node-version: ${{ matrix.node-version }}
                   cache: 'npm'
             - run: npm ci
-            - run: npm run rebuild --if-present
-            - run: npm run test:coverage
+            - run: npm run lint
+            - run: npm run test
