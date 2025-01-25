@@ -2,6 +2,9 @@
  *	Process the http request
  */
 
+import debugModule from 'debug';
+const debug = debugModule('webplsql:request');
+
 import util from 'node:util';
 import oracledb from 'oracledb';
 import {invokeProcedure} from './procedure.js';
@@ -63,7 +66,7 @@ export async function processRequest(req, res, connectionPool, options, trace) {
 		trace.write('processRequest: Connection has been released');
 	} catch (err) {
 		/* istanbul ignore next */
-		console.error(`Unable to release database connection\n${err instanceof Error ? err.message : ''}`);
+		throw new RequestError(`Unable to release database connection\n${err instanceof Error ? err.message : ''}`);
 	}
 
 	trace.write('processRequest: EXIT');
@@ -79,11 +82,12 @@ export async function processRequest(req, res, connectionPool, options, trace) {
  * @param {Trace} trace - Tracing object.
  * @returns {Promise<void>} - Promise resolving to th page
  */
-async function executeRequest(req, res, options, databaseConnection, trace) {
+const executeRequest = async (req, res, options, databaseConnection, trace) => {
 	trace.write('executeRequest: ENTER');
 
 	// Get the CGI
 	const cgiObj = getCGI(req, options);
+	debug('executeRequest: cgiObj=', cgiObj);
 
 	// Add the query properties
 	/** @type {argObjType} */
@@ -92,6 +96,7 @@ async function executeRequest(req, res, options, databaseConnection, trace) {
 
 	// Does the request contain any files
 	const filesToUpload = getFiles(req);
+	debug('executeRequest: filesToUpload=', filesToUpload);
 	trace.write(`executeRequest: "${filesToUpload.length}" files to upload:\n${Trace.inspect(filesToUpload)}`);
 	/* istanbul ignore next */
 	if (filesToUpload.length > 0 && (typeof options.doctable !== 'string' || options.doctable.length === 0)) {
@@ -102,7 +107,7 @@ async function executeRequest(req, res, options, databaseConnection, trace) {
 
 	// Add the files to the arguments
 	filesToUpload.reduce((aggregator, file) => {
-		aggregator[file.fieldValue] = file.filename;
+		aggregator[file.fieldname] = file.originalname;
 		return aggregator;
 	}, argObj);
 
@@ -113,9 +118,7 @@ async function executeRequest(req, res, options, databaseConnection, trace) {
 	await invokeProcedure(req, res, argObj, cgiObj, filesToUpload, options, databaseConnection, trace);
 
 	trace.write('executeRequest: EXIT');
-
-	return Promise.resolve();
-}
+};
 
 /**
  *	Normalize the body by making sure that only "simple" parameters and no nested objects are submitted

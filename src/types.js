@@ -30,11 +30,12 @@
 /**
  * File upload metadata
  * @typedef {object} fileUploadType
- * @property {string} fieldValue - The field value.
- * @property {string} filename - The filename.
- * @property {string} physicalFilename - The physical filename.
+ * @property {string} fieldname - The field value.
+ * @property {string} originalname - The filename.
  * @property {string} encoding - The encoding.
  * @property {string} mimetype - The mimetype.
+ * @property {string} filename - The filename.
+ * @property {string} path - The path.
  * @property {number} size - The size.
  */
 

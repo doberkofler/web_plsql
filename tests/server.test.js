@@ -6,8 +6,7 @@ import util from 'node:util';
 import path from 'node:path';
 import express from 'express';
 import bodyParser from 'body-parser';
-// @ts-expect-error type definition missing
-import multipart from 'connect-multiparty';
+import multer from 'multer';
 import cookieParser from 'cookie-parser';
 import compression from 'compression';
 import request from 'supertest';
@@ -61,24 +60,20 @@ describe('server static', () => {
 	});
 
 	it('get a static file', async () => {
-		const response = await request(serverConfig.app).get('/static/static.html');
-		assert.strictEqual(response.status, 200);
-		assert.strictEqual(response.text, '<html>\n\t<body>\n\t\t<p>static</p>\n\t</body>\n</html>\n');
+		await request(serverConfig.app).get('/static/static.html').expect(200, '<html>\n\t<body>\n\t\t<p>static</p>\n\t</body>\n</html>\n');
 	});
 
 	it('report a 404 error on a missing static file', async () => {
-		const response = await request(serverConfig.app).get('/static/file_does_not_exist.html');
-		assert.strictEqual(response.status, 404);
-		assert.strictEqual(
-			response.text,
-			'<!DOCTYPE html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n<title>Error</title>\n</head>\n<body>\n<pre>Cannot GET /static/file_does_not_exist.html</pre>\n</body>\n</html>\n',
-		);
+		await request(serverConfig.app)
+			.get('/static/file_does_not_exist.html')
+			.expect(
+				404,
+				'<!DOCTYPE html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n<title>Error</title>\n</head>\n<body>\n<pre>Cannot GET /static/file_does_not_exist.html</pre>\n</body>\n</html>\n',
+			);
 	});
 
 	it('get default page', async () => {
-		const response = await request(serverConfig.app).get(PATH);
-		assert.strictEqual(response.status, 302);
-		assert.strictEqual(response.text, `Found. Redirecting to ${PATH}/${DEFAULT_PAGE}`);
+		await request(serverConfig.app).get(PATH).expect(302, `Found. Redirecting to ${PATH}/${DEFAULT_PAGE}`);
 	});
 
 	it('get page', async () => {
@@ -93,14 +88,10 @@ describe('server static', () => {
 			],
 		});
 
-		const response = await request(serverConfig.app).get(`${PATH}/${DEFAULT_PAGE}`);
-		assert.strictEqual(response.status, 200);
-		assert.match(response.text, new RegExp('.*<html><body><p>static</p></body></html>.*'));
+		await request(serverConfig.app).get(`${PATH}/${DEFAULT_PAGE}`).expect(200, new RegExp('.*<html><body><p>static</p></body></html>.*'));
 	});
 
-	/*
-
-	it('get page with query string', () => {
+	it('get page with query string', async () => {
 		sqlExecuteProxy({
 			proc: 'sample.pageIndex(a=>:p_a,b=>:p_b);',
 			para: [
@@ -110,20 +101,20 @@ describe('server static', () => {
 			lines: ['Content-type: text/html; charset=UTF-8\n', '\n', '<html><body><p>static</p></body></html>\n'],
 		});
 
-		return request(serverConfig.app).get(`${PATH}/${DEFAULT_PAGE}?a=1&b=2`).expect(200, new RegExp('.*<html><body><p>static</p></body></html>.*'));
+		await request(serverConfig.app).get(`${PATH}/${DEFAULT_PAGE}?a=1&b=2`).expect(200, new RegExp('.*<html><body><p>static</p></body></html>.*'));
 	});
 
-	it('get page with query string containing duplicate names', () => {
+	it('get page with query string containing duplicate names', async () => {
 		sqlExecuteProxy({
 			proc: 'sample.pageIndex(a=>:p_a);',
 			para: [{name: 'a', value: ['1', '2']}],
 			lines: ['Content-type: text/html; charset=UTF-8\n', '\n', '<html><body><p>static</p></body></html>\n'],
 		});
 
-		return request(serverConfig.app).get(`${PATH}/${DEFAULT_PAGE}?a=1&a=2`).expect(200, new RegExp('.*<html><body><p>static</p></body></html>.*'));
+		await request(serverConfig.app).get(`${PATH}/${DEFAULT_PAGE}?a=1&a=2`).expect(200, new RegExp('.*<html><body><p>static</p></body></html>.*'));
 	});
 
-	it('get page with flexible parameters', () => {
+	it('get page with flexible parameters', async () => {
 		sqlExecuteProxy({
 			proc: 'sample.pageIndex(:argnames, :argvalues);',
 			para: [
@@ -133,10 +124,10 @@ describe('server static', () => {
 			lines: ['Content-type: text/html; charset=UTF-8\n', '\n', '<html><body><p>static</p></body></html>\n'],
 		});
 
-		return request(serverConfig.app).get(`${PATH}/!${DEFAULT_PAGE}?a=1&b=2`).expect(200, new RegExp('.*<html><body><p>static</p></body></html>.*'));
+		await request(serverConfig.app).get(`${PATH}/!${DEFAULT_PAGE}?a=1&b=2`).expect(200, new RegExp('.*<html><body><p>static</p></body></html>.*'));
 	});
 
-	it('get page with cookies', () => {
+	it('get page with cookies', async () => {
 		sqlExecuteProxy({
 			proc: 'sample.pageIndex();',
 			lines: [
@@ -147,46 +138,46 @@ describe('server static', () => {
 			],
 		});
 
-		return request(serverConfig.app)
+		await request(serverConfig.app)
 			.get(`${PATH}/${DEFAULT_PAGE}`)
 			.expect(200)
-			.expect('set-cookie', 'C1=V1; Domain=mozilla.org; Path=/apex; Expires=Wed, 21 Oct 2015 07:28:00 GMT; HttpOnly')
+			.expect('set-cookie', 'C1=V1; Path=/')
 			.expect(new RegExp('.*<html><body><p>static</p></body></html>.*'));
 	});
 
-	it('redirect to a new url', () => {
+	it('redirect to a new url', async () => {
 		sqlExecuteProxy({
 			proc: 'sample.pageIndex();',
 			lines: ['Location: www.google.com\n'],
 		});
 
-		return request(serverConfig.app).get(`${PATH}/${DEFAULT_PAGE}`).expect(302);
+		await request(serverConfig.app).get(`${PATH}/${DEFAULT_PAGE}`).expect(302);
 	});
 
-	it('get json', () => {
+	it('get json', async () => {
 		sqlExecuteProxy({
 			proc: 'sample.pageJson();',
 			lines: ['Content-type: application/json\n', '\n', '{"name":"johndoe"}'],
 		});
 
-		return request(serverConfig.app).get(`${PATH}/sample.pageJson`).expect(200, '{"name":"johndoe"}');
+		await request(serverConfig.app).get(`${PATH}/sample.pageJson`).expect(200, {name: 'johndoe'});
 	});
 
-	it('get application/x-www-form-urlencoded', () => {
+	it('get application/x-www-form-urlencoded', async () => {
 		sqlExecuteProxy({
 			proc: 'sample.pageForm(name=>:p_name);',
 			para: [{name: 'name', value: 'johndoe'}],
 			lines: ['Content-Type: text/html\n', '\n', '<html><body><p>static</p></body></html>\n'],
 		});
 
-		return request(serverConfig.app)
+		await request(serverConfig.app)
 			.get(`${PATH}/sample.pageForm`)
 			.set('Content-Type', 'application/x-www-form-urlencoded')
 			.send('name=johndoe')
 			.expect(200, new RegExp('.*<html><body><p>static</p></body></html>.*'));
 	});
 
-	it('get application/x-www-form-urlencoded with file', () => {
+	it('get application/x-www-form-urlencoded with file', async () => {
 		sqlExecuteProxy({
 			proc: 'sample.pageForm(',
 			para: [{name: 'user_name', value: 'Tobi'}],
@@ -205,109 +196,35 @@ describe('server static', () => {
 		test.write('some text here');
 		test.write('\r\n--foo--');
 
-		return test.expect(200, new RegExp('.*<html><body><p>static</p></body></html>.*'));
+		await test.expect(200, new RegExp('.*<html><body><p>static</p></body></html>.*'));
 	});
 
-	it('set status', () => {
+	it('set status', async () => {
 		sqlExecuteProxy({
 			proc: 'sample.pageIndex();',
 			lines: ['Status: 302 status\n'],
 		});
 
-		return request(serverConfig.app).get(`${PATH}/${DEFAULT_PAGE}`).expect(302);
+		await request(serverConfig.app).get(`${PATH}/${DEFAULT_PAGE}`).expect(302);
 	});
 
-	it('set x-db-content-length header', () => {
+	it('set x-db-content-length header', async () => {
 		sqlExecuteProxy({
 			proc: 'sample.pageJson();',
 			lines: ['x-db-content-length: 0\n'],
 		});
 
-		return request(serverConfig.app).get(`${PATH}/sample.pageJson`).expect(200);
+		await request(serverConfig.app).get(`${PATH}/sample.pageJson`).expect(200);
 	});
 
-	it('use the pathAlias configuration setting', () => {
+	it('use the pathAlias configuration setting', async () => {
 		sqlExecuteProxy({
 			proc: 'pathAlias(p_path=>:p_path);',
 			lines: ['Content-type: text/html; charset=UTF-8\n', '\n', '<html><body><p>static</p></body></html>\n'],
 		});
 
-		return request(serverConfig.app).get(`${PATH}/alias`).expect(200, new RegExp('.*<html><body><p>static</p></body></html>.*'));
+		await request(serverConfig.app).get(`${PATH}/alias`).expect(200, new RegExp('.*<html><body><p>static</p></body></html>.*'));
 	});
-
-	*/
-
-	/*	EVEN BEFORE
-
-	it('GET /sampleRoute/cgi should validate the cgi', () => {
-		request(application.expressApplication).get('/sampleRoute/cgi')
-			.expect(200, 'cgi', done);
-	});
-
-	it('GET /basicRoute/basicPage should generate a 401 error', () => {
-		request(application.expressApplication)
-			.get('/basicRoute/basicPage')
-			.expect(401, 'Access denied', done);
-	});
-
-	it('GET /basicRoute/basicPage should authorize', () => {
-		request(application.expressApplication)
-			.get('/basicRoute/basicPage')
-			.auth('myusername', 'mypassword')
-			.expect(200, done);
-	});
-
-	it('should upload files', () => {
-		const FILENAME = 'temp/index.html';
-		const CONTENT = 'content of index.html';
-		let test;
-
-		// create a static file
-		mkdirp.sync('temp');
-		fs.writeFileSync(FILENAME, CONTENT);
-
-		// test the upload
-		test = request(application.expressApplication).post('/sampleRoute/fileUpload');
-		test.attach('file', FILENAME);
-		test.expect(200, done);
-	});
-
-	it('should respond with 404', () => {
-		let test = request(application.expressApplication).get('/invalidRoute');
-
-		test.expect(404, new RegExp('.*404 Not Found.*'), done);
-	});
-
-	it('should respond with 404', () => {
-		let test = request(application.expressApplication).get('/sampleRoute/errorInPLSQL');
-
-		test.expect(404, new RegExp('.*Failed to parse target procedure.*'), done);
-	});
-
-	it('should respond with 500', () => {
-		let test = request(application.expressApplication).get('/sampleRoute/internalError');
-
-		test.expect(500, done);
-	});
-
-	it('does stop', () => {
-		server.stop(application, () => {
-			application = null;
-			assert.ok(true);
-			done();
-		});
-	});
-
-
-	it('does not start', () => {
-		server.start().then(() => {
-		}, function (err) {
-			assert.strictEqual(err, 'Configuration object must be an object');
-			done();
-		});
-	});
-
-	*/
 });
 
 /**
@@ -321,11 +238,25 @@ async function serverStart() {
 		connectString: 'localhost:1521/TEST',
 	});
 
+	// create the upload middleware
+	const upload = multer({
+		storage: multer.diskStorage({
+			destination: '/tmp/uploads',
+			filename: (req, file, cb) => {
+				const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
+				cb(null, `${file.fieldname}-${uniqueSuffix}${path.extname(file.originalname)}`);
+			},
+		}),
+		limits: {
+			fileSize: 50 * 1024 * 1024, // 50MB limit
+		},
+	});
+
 	// create express app
 	const app = express();
 
 	// add middleware
-	app.use(multipart());
+	app.use(upload.any());
 	app.use(bodyParser.json());
 	app.use(bodyParser.urlencoded({extended: true}));
 	app.use(cookieParser());
@@ -378,10 +309,10 @@ function sqlExecuteProxy(config) {
 	/**
 	 *	Proxy for the next sql procedure to be executed
 	 *	@param {string} sql - The SQL statement.
-	 *	@param {BindParameterConfig} bind - The bind object.
-	 *	@returns {unknown} - The result of the proxy.
+	 *	@param {BindParameterConfig} bindParams - The bind object.
+	 *	@returns {unknown}
 	 */
-	const sqlExecuteProxyCallback = (sql, bind) => {
+	const sqlExecuteProxyCallback = (sql, bindParams) => {
 		if (sql.includes('dbms_utility.name_resolve')) {
 			/** @type {{outBinds: {names: string[], types: string[]}}} */
 			const noPara = {
@@ -402,8 +333,8 @@ function sqlExecuteProxy(config) {
 
 		if (sql.includes(config.proc)) {
 			if (typeof config.para !== 'undefined') {
-				if (!parameterEqual(sql, bind, config.para)) {
-					console.error(`===> Parameter mismatch\n${'-'.repeat(30)}\n${util.inspect(bind)}\n${'-'.repeat(30)}`);
+				if (!parameterEqual(sql, bindParams, config.para)) {
+					console.error(`===> Parameter mismatch\n${'-'.repeat(30)}\n${util.inspect(bindParams)}\n${'-'.repeat(30)}`);
 					return {};
 				}
 			}

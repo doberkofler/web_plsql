@@ -1,9 +1,8 @@
 import fs from 'fs';
 import path from 'path';
 import express from 'express';
+import multer from 'multer';
 import bodyParser from 'body-parser';
-//@ts-expect-error
-import multipart from 'connect-multiparty';
 import cookieParser from 'cookie-parser';
 import compression from 'compression';
 import morgan from 'morgan';
@@ -43,11 +42,25 @@ const main = async () => {
 	const STATIC_ROOT = '/q/p/lj_unittest/';
 	const STATIC_PATH = process.env.PERISCOPE_DEPLOY_DIR || '';
 
+	// create the upload middleware
+	const upload = multer({
+		storage: multer.diskStorage({
+			destination: '/tmp/uploads',
+			filename: (req, file, cb) => {
+				const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
+				cb(null, `${file.fieldname}-${uniqueSuffix}${path.extname(file.originalname)}`);
+			},
+		}),
+		limits: {
+			fileSize: 50 * 1024 * 1024, // 50MB limit
+		},
+	});
+
 	// create express app
 	const app = express();
 
 	// add middleware
-	app.use(multipart());
+	app.use(upload.any());
 	app.use(bodyParser.json());
 	app.use(bodyParser.urlencoded({extended: true}));
 	app.use(cookieParser());
