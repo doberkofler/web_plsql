@@ -3,11 +3,16 @@
  */
 
 import debugModule from 'debug';
-const debug = debugModule('webplsql:procedureArgumentsNamed');
+const debug = debugModule('webplsql:procedureNamed');
 
 import oracledb from 'oracledb';
 import z from 'zod';
 import {RequestError} from './requestError.js';
+
+/**
+ * @typedef {Record<string, string>} argsType
+ * @typedef {{hitCount: number, args: argsType}} cacheEntryType
+ */
 
 /**
  * @typedef {import('oracledb').Connection} Connection
@@ -34,15 +39,20 @@ const SQL_GET_ARGUMENT = [
 	'END;',
 ].join('\n');
 
+// NOTE: Conider using a separate cache for each database pool to avoid possible conflicts.
+/** @type {Map<string, cacheEntryType>} */
+const ARGS_CACHE = new Map();
+const ARGS_CACHE_MAX_COUNT = 10000;
+
 /**
  *	Retrieve the argument types for a given procedure to be executed.
  *	This is important because if the procedure is defined to take a PL/SQL indexed table,
  *	we must provise a table, even if there is only one argument to be submitted.
  *	@param {string} procedure - The procedure
  *	@param {Connection} databaseConnection - The database connection
- *	@returns {Promise<Record<string, string>>} - The argument types
+ *	@returns {Promise<argsType>} - The argument types
  */
-const loadNamedArguments = async (procedure, databaseConnection) => {
+const loadArguments = async (procedure, databaseConnection) => {
 	const MAX_PARAMETER_NUMBER = 1000;
 
 	/** @type {BindParameterConfig} */
@@ -53,10 +63,11 @@ const loadNamedArguments = async (procedure, databaseConnection) => {
 	};
 
 	/** @type {Result} */
-	let result;
+	let result = {};
 	try {
 		result = await databaseConnection.execute(SQL_GET_ARGUMENT, bind);
 	} catch (err) {
+		debug('result', result);
 		/* istanbul ignore next */
 		const message = `Error when retrieving arguments\n${SQL_GET_ARGUMENT}\n${err instanceof Error ? err.stack : ''}`;
 		/* istanbul ignore next */
@@ -73,6 +84,7 @@ const loadNamedArguments = async (procedure, databaseConnection) => {
 			})
 			.parse(result.outBinds);
 	} catch (err) {
+		debug('result.outBinds', result.outBinds);
 		/* istanbul ignore next */
 		const message = `Error when decoding arguments\n${SQL_GET_ARGUMENT}\n${err instanceof Error ? err.stack : ''}`;
 		/* istanbul ignore next */
@@ -90,7 +102,63 @@ const loadNamedArguments = async (procedure, databaseConnection) => {
 		argTypes[data.names[i].toLowerCase()] = data.types[i];
 	}
 
-	return Promise.resolve(argTypes);
+	return argTypes;
+};
+
+/**
+ *	Remove the cache entries with the lowest hitCount.
+ *	@param {number} count - Number of entries to remove
+ *	@returns {void}
+ */
+const removeLowestHitCountEntries = (count) => {
+	// Convert cache entries to an array
+	const entries = Array.from(ARGS_CACHE.entries());
+
+	// Sort entries by hitCount in ascending order
+	entries.sort((a, b) => a[1].hitCount - b[1].hitCount);
+
+	// Get the keys of the `count` entries with the lowest hitCount
+	const keysToRemove = entries.slice(0, count).map(([key]) => key);
+
+	// Remove these entries from the cache
+	for (const key of keysToRemove) {
+		ARGS_CACHE.delete(key);
+	}
+};
+
+/**
+ *	Find the argument types for a given procedure to be executed.
+ *	As the arguments are cached, we first look up the cache and only if not yet available we load them.
+ *	@param {string} procedure - The procedure
+ *	@param {Connection} databaseConnection - The database connection
+ *	@returns {Promise<argsType>} - The argument types
+ */
+const findArguments = async (procedure, databaseConnection) => {
+	// lookup in the cache
+	let cacheEntry = ARGS_CACHE.get(procedure.toUpperCase());
+
+	// if we fount the procedure in the cache, we increase the hit cound and return
+	if (cacheEntry) {
+		cacheEntry.hitCount++;
+		debug(`findArguments: procedure "${procedure}" found in cache with "${cacheEntry.hitCount}" hits`);
+		return cacheEntry.args;
+	}
+
+	// if the cache is full, we remove the 1000 least used cache entries
+	if (ARGS_CACHE.size > ARGS_CACHE_MAX_COUNT) {
+		debug(`findArguments: cache is full. size=${ARGS_CACHE.size} max=${ARGS_CACHE_MAX_COUNT}`);
+		removeLowestHitCountEntries(1000);
+		debug(`findArguments: cache resized. size=${ARGS_CACHE.size}`);
+	}
+
+	// load from database
+	debug(`findArguments: procedure "${procedure}" not found in cache and must be loaded`);
+	const args = await loadArguments(procedure, databaseConnection);
+
+	// add to the cache
+	ARGS_CACHE.set(procedure.toUpperCase(), {hitCount: 0, args});
+
+	return args;
 };
 
 /**
@@ -100,14 +168,14 @@ const loadNamedArguments = async (procedure, databaseConnection) => {
  * @param {Connection} databaseConnection - The database connection
  * @returns {Promise<{sql: string; bind: BindParameterConfig}>} - The SQL statement and bindings for the procedure to execute
  */
-export const getNamedArguments = async (procedure, argObj, databaseConnection) => {
-	debug(`getNamedArguments: "${procedure}" argObj=`, argObj);
+export const getProcedureNamed = async (procedure, argObj, databaseConnection) => {
+	debug(`getProcedureNamed: ${procedure} arguments=`, argObj);
 
 	/** @type {BindParameterConfig} */
 	const bind = {};
 	let index = 0;
 
-	const argTypes = await loadNamedArguments(procedure, databaseConnection);
+	const argTypes = await findArguments(procedure, databaseConnection);
 
 	// bindings for the statement
 	let sql = `${procedure}(`;

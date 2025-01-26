@@ -3,7 +3,7 @@
  */
 
 import debugModule from 'debug';
-const debug = debugModule('webplsql:procedureArgumentsVariable');
+const debug = debugModule('webplsql:procedureVariable');
 
 import oracledb from 'oracledb';
 
@@ -19,8 +19,8 @@ import oracledb from 'oracledb';
  * @param {argObjType} argObj - The arguments to pass to the procedure
  * @returns {{sql: string; bind: BindParameterConfig}} - The SQL statement and bindings for the procedure to execute
  */
-export const getVariableArguments = (procedure, argObj) => {
-	debug(`getVariableArguments: "${procedure}" argObj=`, argObj);
+export const getProcedureVariable = (procedure, argObj) => {
+	debug(`getProcedureVariable: ${procedure} arguments=`, argObj);
 
 	const names = [];
 	const values = [];
@@ -39,7 +39,7 @@ export const getVariableArguments = (procedure, argObj) => {
 	}
 
 	return {
-		sql: `${procedure.substring(1)}(:argnames, :argvalues);`,
+		sql: `${procedure}(:argnames, :argvalues);`,
 		bind: {
 			argnames: {dir: oracledb.BIND_IN, type: oracledb.STRING, val: names},
 			argvalues: {dir: oracledb.BIND_IN, type: oracledb.STRING, val: values},

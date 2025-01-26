@@ -37,7 +37,7 @@ const main = async () => {
 	 *	Start the server
 	 */
 
-	const PORT = 8888;
+	const PORT = 8080;
 	const ROOT = '/lj_unittest';
 	const STATIC_ROOT = '/q/p/lj_unittest/';
 	const STATIC_PATH = process.env.PERISCOPE_DEPLOY_DIR || '';
@@ -65,11 +65,17 @@ const main = async () => {
 	app.use(bodyParser.urlencoded({extended: true}));
 	app.use(cookieParser());
 	app.use(compression());
+
+	// access log
+	/*
 	app.use(morgan('combined', {stream: fs.createWriteStream(path.join(process.cwd(), 'access.log'), {flags: 'a'})}));
+	*/
 
 	// add express status monitor
+	/*
 	app.use(expressStatusMonitor());
 	console.log(`Express status monitor is listening on http://localhost:${PORT}/status`);
+	*/
 
 	// add the oracle pl/sql express middleware
 	app.use(

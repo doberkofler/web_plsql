@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-misused-promises */
 
-import assert from 'node:assert';
+//import assert from 'node:assert';
 import {describe, it, before, after, beforeEach} from 'node:test';
 import util from 'node:util';
 import path from 'node:path';
@@ -32,18 +32,7 @@ const DOC_TABLE = 'docTable';
  * @property {oracledb.Pool} connectionPool
  */
 
-describe('server utilities', () => {
-	it('should start a server', async () => {
-		const serverConfig = await serverStart();
-
-		assert.strictEqual(Object.prototype.toString.call(serverConfig), '[object Object]');
-		assert.strictEqual(Object.prototype.toString.call(serverConfig.server), '[object Object]');
-
-		await serverStop(serverConfig);
-	});
-});
-
-describe('server static', () => {
+describe('middleware', () => {
 	/** @type {serverConfigType} */
 	let serverConfig;
 

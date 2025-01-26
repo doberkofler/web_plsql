@@ -2,7 +2,8 @@
  *	Page the raw page content and return the content to the client
  */
 
-import {Trace} from './trace.js';
+import debugModule from 'debug';
+const debug = debugModule('webplsql:page');
 
 /**
  * @typedef {import('express').Request} Request
@@ -60,7 +61,7 @@ const tryDecodeDate = (value) => {
  * @param {string} text - The text returned from the PL/SQL procedure.
  * @returns {pageType} - The parsed page.
  */
-export function parse(text) {
+export const parse = (text) => {
 	/** @type {pageType} */
 	const page = {
 		body: '',
@@ -152,14 +153,14 @@ export function parse(text) {
 	});
 
 	return page;
-}
+};
 
 /**
  *	Get a header line
  *	@param {string} line - The line
  *	@returns {{name: string, value: string} | null} - The header.
  */
-function getHeader(line) {
+const getHeader = (line) => {
 	const index = line.indexOf(':');
 
 	if (index !== -1) {
@@ -170,82 +171,90 @@ function getHeader(line) {
 	}
 
 	return null;
-}
+};
 
 /**
  *	Send "default" response to the browser
  *	@param {Request} req - The req object represents the HTTP request.
  *	@param {Response} res - The res object represents the HTTP response that an Express app sends when it gets an HTTP request.
  *	@param {pageType} page - The page to send.
- *	@param {Trace} trace - Tracing object.
  *	@returns {void}
  */
-export function send(req, res, page, trace) {
-	trace.write('send: ENTER');
+export const sendResponse = (req, res, page) => {
+	const debugText = ['sendResponse'];
+	/** @param {string} text - The debug text */
+	const addDebugText = (text) => {
+		if (debug.enabled) {
+			debugText.push(text);
+		}
+	};
 
 	// Send the "cookies"
 	page.head.cookies.forEach((cookie) => {
-		const name = cookie.name;
-		const value = cookie.value;
+		const {name, value} = cookie;
 
 		/*
 		delete cookie.name;
 		delete cookie.value;
 		*/
 
+		addDebugText(`send: res.cookie("${name}", "${value}")`);
 		res.cookie(name, value);
-		trace.append(`send: res.cookie("${name}", "${value}")\n`);
 	});
 
 	// If there is a "redirectLocation" header, we immediately redirect and return
 	if (typeof page.head.redirectLocation === 'string' && page.head.redirectLocation.length > 0) {
+		addDebugText(`send: res.redirect(302, "${page.head.redirectLocation}")`);
+		debug(debugText.join('\n'));
 		res.redirect(302, page.head.redirectLocation);
-		trace.append(`send: res.redirect(302, "${page.head.redirectLocation}")\n`);
 		return;
 	}
 
 	// Send all the "otherHeaders"
 	for (const key in page.head.otherHeaders) {
+		addDebugText(`res.set("${key}", "${page.head.otherHeaders[key]}")`);
 		res.set(key, page.head.otherHeaders[key]);
-		trace.append(`send: res.set("${key}", "${page.head.otherHeaders[key]}")\n`);
 	}
 
 	// If this is a file download, we eventually set the "Content-Type" and the file content and then return.
 	if (page.file.fileType === 'B' || page.file.fileType === 'F') {
 		if (typeof page.head.contentType === 'string' && page.head.contentType.length > 0) {
+			addDebugText(`res.writeHead("Content-Type", "${page.head.contentType}")`);
 			res.writeHead(200, {'Content-Type': page.head.contentType});
-			trace.append(`sendFile: res.writeHead("Content-Type", "${page.head.contentType}")\n`);
 		}
+		addDebugText(`res.end("${page.file.fileType}")`);
+		debug(debugText.join('\n'));
 		res.end(page.file.fileBlob, 'binary');
-		trace.append('send: res.end()\n');
 		return;
 	}
 
 	// Is the a "contentType" header
 	if (typeof page.head.contentType === 'string' && page.head.contentType.length > 0) {
+		addDebugText(`res.set("Content-Type", "${page.head.contentType}")`);
 		res.set('Content-Type', page.head.contentType);
-		trace.append(`send: res.set("Content-Type", "${page.head.contentType}")\n`);
 	}
 
 	// If we have a "Status" header, we send the header and then return.
 	if (typeof page.head.statusCode === 'number') {
+		addDebugText(`res.status(page.head.statusCode).send("${page.head.statusDescription}")`);
+		debug(debugText.join('\n'));
 		res.status(page.head.statusCode).send(page.head.statusDescription);
 		return;
 	}
 
 	// Send the body
-	res.send(page.body);
-	trace.append(`send: res.send\n${'-'.repeat(30)}${page.body}\n${'-'.repeat(30)}\n`);
+	addDebugText(`res.send\n${'-'.repeat(30)}${page.body}\n${'-'.repeat(30)}`);
+	debug(debugText.join('\n'));
 
-	trace.write('send: EXIT');
-}
+	res.send(page.body);
+};
 
 /**
  *	Parses a cookie string
  *	@param {string} text - The cookie string.
  *	@returns {cookieType | null} - The parsed cookie.
  */
-function parseCookie(text) {
+const parseCookie = (text) => {
 	// validate
 	/* istanbul ignore next */
 	if (typeof text !== 'string' || text.trim().length === 0) {
@@ -295,4 +304,4 @@ function parseCookie(text) {
 	});
 
 	return cookie;
-}
+};

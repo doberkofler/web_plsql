@@ -59,14 +59,15 @@ export const getFiles = (req) => {
  * Upload the given file and return a promise.
  *
  * @param {fileUploadType} file - The file to upload.
- * @param {string} docTableName - The file to upload.
+ * @param {string} doctable - The file to upload.
  * @param {Connection} databaseConnection - The file to upload.
  * @returns {Promise<void>} - Promise that resolves when uploaded.
  */
-export const uploadFile = async (file, docTableName, databaseConnection) => {
+export const uploadFile = async (file, doctable, databaseConnection) => {
 	/* istanbul ignore next */
-	if (typeof docTableName !== 'string' || docTableName.length === 0) {
-		throw new Error('The option "docTableName" has not been defined or the name is empty');
+	if (typeof doctable !== 'string' || doctable.length === 0) {
+		console.warn(`Unable to upload file "${file.filename}" because the option ""doctable" has not been defined`);
+		return;
 	}
 
 	let blobContent;
@@ -77,7 +78,7 @@ export const uploadFile = async (file, docTableName, databaseConnection) => {
 		throw new Error(`Unable to read file "${file.path}"\n${err instanceof Error ? err.toString() : ''}`);
 	}
 
-	const sql = `INSERT INTO ${docTableName} (name, mime_type, doc_size, dad_charset, last_updated, content_type, blob_content) VALUES (:name, :mime_type, :doc_size, 'ascii', SYSDATE, 'BLOB', :blob_content)`;
+	const sql = `INSERT INTO ${doctable} (name, mime_type, doc_size, dad_charset, last_updated, content_type, blob_content) VALUES (:name, :mime_type, :doc_size, 'ascii', SYSDATE, 'BLOB', :blob_content)`;
 	const bind = {
 		name: file.fieldname,
 		mime_type: file.mimetype,
@@ -102,13 +103,3 @@ export const uploadFile = async (file, docTableName, databaseConnection) => {
 		throw new Error(`Unable to remove file "${file.path}"\n${err instanceof Error ? err.toString() : ''}`);
 	}
 };
-
-/**
- * Upload the given array of files and return a promise that resolves when all uploads have been finished.
- *
- * @param {fileUploadType[]} files - array of file path's.
- * @param {string} docTableName - name of the oracle table holding the uploaded files.
- * @param {Connection} databaseConnection - Database connection.
- * @returns {Promise<void[]>} - Promise that resolves when the request has been fullfilled.
- */
-export const uploadFiles = (files, docTableName, databaseConnection) => Promise.all(files.map((file) => uploadFile(file, docTableName, databaseConnection)));

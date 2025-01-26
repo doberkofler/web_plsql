@@ -16,6 +16,7 @@
 export const validate = (options) => {
 	/** @type {middlewareOptions} */
 	const validOptions = {
+		doctable: '',
 		errorStyle: 'basic',
 		trace: 'off',
 	};

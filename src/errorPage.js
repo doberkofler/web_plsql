@@ -6,7 +6,7 @@ import util from 'node:util';
 import escape from 'escape-html';
 import {ProcedureError} from './procedureError.js';
 import {RequestError} from './requestError.js';
-import {Trace} from './trace.js';
+import {inspectRequest, logToFile} from './trace.js';
 
 /**
  * @typedef {import('express').Request} Request
@@ -163,7 +163,7 @@ const getError = (req, error) => {
 	// request
 	header = 'REQUEST';
 	output.text += getHeaderText(header);
-	output.text += getText(Trace.inspectRequest(req));
+	output.text += getText(inspectRequest(req));
 
 	// parameters
 	if (typeof sql === 'string' && bind) {
@@ -255,10 +255,9 @@ ${body}
  * @param {Request} req - The req object represents the HTTP request.
  * @param {Response} res - The res object represents the HTTP response that an Express app sends when it gets an HTTP request.
  * @param {middlewareOptions} options - The configuration options.
- * @param {Trace} trace - Tracing object.
  * @param {unknown} error - The error.
  */
-export const errorPage = (req, res, options, trace, error) => {
+export const errorPage = (req, res, options, error) => {
 	let output = {
 		html: '',
 		text: '',
@@ -282,7 +281,7 @@ export const errorPage = (req, res, options, trace, error) => {
 	}
 
 	// trace to file
-	trace.write(output.text);
+	logToFile(output.text);
 
 	// console
 	console.error(output.text);

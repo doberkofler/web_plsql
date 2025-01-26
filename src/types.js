@@ -5,7 +5,7 @@
 /**
  * @typedef {object} middlewareOptions
  * @property {string} [defaultPage] - The default page.
- * @property {string} [doctable] - The document table.
+ * @property {string} doctable - The document table.
  * @property {environmentType} [cgi] - The CGI environment variables.
  * @property {{alias: string, procedure: string}} [pathAlias] - The path alias.
  * @property {'basic' | 'debug'} errorStyle - The error style.
