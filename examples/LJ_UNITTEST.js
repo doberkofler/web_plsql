@@ -1,5 +1,8 @@
-import fs from 'fs';
-import path from 'path';
+import debugModule from 'debug';
+const debug = debugModule('webplsql');
+
+import fs from 'node:fs';
+import path from 'node:path';
 import express from 'express';
 import multer from 'multer';
 import bodyParser from 'body-parser';
@@ -9,6 +12,10 @@ import morgan from 'morgan';
 import expressStatusMonitor from 'express-status-monitor';
 import oracledb from 'oracledb';
 import webplsql from '../src/index.js';
+
+/*
+	Start using: "NODE_ENV=production node examples/LJ_UNITTEST.js" 
+*/
 
 const main = async () => {
 	/*
@@ -59,7 +66,26 @@ const main = async () => {
 	// create express app
 	const app = express();
 
-	// add middleware
+	// serving static files
+	console.log(`Serving static files on http://localhost:${PORT}${STATIC_ROOT} from ${STATIC_PATH}`);
+	app.use(STATIC_ROOT, express.static(STATIC_PATH));
+
+	// Middleware to calculate request duration
+	if (debug.enabled) {
+		app.use((req, res, next) => {
+			const start = process.hrtime();
+
+			res.on('finish', () => {
+				const [seconds, nanoseconds] = process.hrtime(start);
+				const duration = seconds * 1000 + nanoseconds / 1_000_000;
+				console.log(`Request to ${req.method} ${req.params.name} ${req.url} took ${duration.toFixed(3)}ms`);
+			});
+
+			next();
+		});
+	}
+
+	// Default middleware
 	app.use(upload.any());
 	app.use(bodyParser.json());
 	app.use(bodyParser.urlencoded({extended: true}));
@@ -77,7 +103,7 @@ const main = async () => {
 	console.log(`Express status monitor is listening on http://localhost:${PORT}/status`);
 	*/
 
-	// add the oracle pl/sql express middleware
+	// Oracle pl/sql express middleware
 	app.use(
 		`${ROOT}/:name?`,
 		webplsql(connectionPool, {
@@ -87,10 +113,6 @@ const main = async () => {
 			errorStyle: 'debug',
 		}),
 	);
-
-	// serving static files
-	console.log(`Serving static files on http://localhost:${PORT}${STATIC_ROOT} from ${STATIC_PATH}`);
-	app.use(STATIC_ROOT, express.static(STATIC_PATH));
 
 	// listen on port
 	console.log(`Listening on http://localhost:${PORT}${ROOT}`);

@@ -144,9 +144,13 @@ export const invokeProcedure = async (req, res, argObj, cgiObj, filesToUpload, o
 	/** @type {Result | null} */
 	let result = null;
 	try {
-		debug(`execute:\n${'-'.repeat(30)}\n${sqlStatement}\n${'-'.repeat(30)}\nwith bindings:\n${inspect(bind)}`);
+		if (debug.enabled) {
+			debug(`execute:\n${'-'.repeat(30)}\n${sqlStatement}\n${'-'.repeat(30)}\nwith bindings:\n${inspect(bind)}`);
+		}
 		result = await databaseConnection.execute(sqlStatement, Object.assign(bind, para.bind));
-		debug(`results:\n${inspect(result)}`);
+		if (debug.enabled) {
+			debug(`results:\n${inspect(result)}`);
+		}
 	} catch (err) {
 		/* istanbul ignore next */
 		throw new ProcedureError(`Error when executing procedure\n${sqlStatement}\n${err instanceof Error ? err.toString() : ''}`, cgiObj, para.sql, para.bind);
@@ -155,14 +159,6 @@ export const invokeProcedure = async (req, res, argObj, cgiObj, filesToUpload, o
 	//
 	//	4) PROCESS RESULTS
 	//
-
-	// no results
-	if (result === null) {
-		/* istanbul ignore next */
-		throw new ProcedureError('Error when retrieving rows', cgiObj, para.sql, para.bind);
-	}
-
-	debug('result.outBinds', result.outBinds);
 
 	// validate results
 	const data = z
@@ -184,7 +180,9 @@ export const invokeProcedure = async (req, res, argObj, cgiObj, filesToUpload, o
 
 	// combine page
 	const pageContent = data.lines.join('');
-	debug(`PLAIN CONTENT:\n${'-'.repeat(30)}\n${pageContent}\n${'-'.repeat(30)}`);
+	if (debug.enabled) {
+		debug(`PLAIN CONTENT:\n${'-'.repeat(30)}\n${pageContent}\n${'-'.repeat(30)}`);
+	}
 
 	//
 	//	6) PARSE PAGE
@@ -205,7 +203,9 @@ export const invokeProcedure = async (req, res, argObj, cgiObj, filesToUpload, o
 		}
 	}
 
-	debug(`PARSED CONTENT:\n${'-'.repeat(30)}\n${inspect(pageComponents)}\n${'-'.repeat(30)}`);
+	if (debug.enabled) {
+		debug(`PARSED CONTENT:\n${'-'.repeat(30)}\n${inspect(pageComponents)}\n${'-'.repeat(30)}`);
+	}
 
 	//
 	//	5) SEND THE RESPONSE
@@ -231,8 +231,6 @@ export const invokeProcedure = async (req, res, argObj, cgiObj, filesToUpload, o
  *	@returns {Promise<{sql: string; bind: BindParameterConfig}>} - The SQL statement and bindings for the procedure to execute
  */
 const getProcedure = async (procedure, argObj, options, databaseConnection) => {
-	debug('getProcedure', procedure, argObj);
-
 	if (options.pathAlias && options.pathAlias.alias === procedure) {
 		debug(`getProcedure: path alias "${options.pathAlias.alias}" redirects to "${options.pathAlias.procedure}"`);
 		return {

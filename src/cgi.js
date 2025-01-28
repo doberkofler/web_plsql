@@ -11,6 +11,39 @@ import {URL} from 'node:url';
  * @typedef {import('./types.js').middlewareOptions} middlewareOptions
  */
 
+/** @type {environmentType} */
+const DEFAULT_CGI = {
+	PLSQL_GATEWAY: 'WebDb',
+	GATEWAY_IVERSION: '2',
+	SERVER_SOFTWARE: 'web_plsql',
+	GATEWAY_INTERFACE: 'CGI/1.1',
+	SERVER_PORT: '',
+	SERVER_NAME: os.hostname(),
+	REQUEST_METHOD: '',
+	PATH_INFO: '',
+	SCRIPT_NAME: '',
+	REMOTE_ADDR: '',
+	SERVER_PROTOCOL: '',
+	REQUEST_PROTOCOL: '',
+	REMOTE_USER: '',
+	HTTP_COOKIE: '',
+	HTTP_USER_AGENT: '',
+	HTTP_HOST: '',
+	HTTP_ACCEPT: '',
+	HTTP_ACCEPT_ENCODING: '',
+	HTTP_ACCEPT_LANGUAGE: '',
+	HTTP_REFERER: '',
+	HTTP_X_FORWARDED_FOR: '',
+	WEB_AUTHENT_PREFIX: '',
+	DAD_NAME: '',
+	DOC_ACCESS_PATH: 'doc',
+	DOCUMENT_TABLE: '',
+	PATH_ALIAS: '',
+	REQUEST_CHARSET: 'UTF8',
+	REQUEST_IANA_CHARSET: 'UTF-8',
+	SCRIPT_PREFIX: '',
+};
+
 /**
  * Create the HTTP_COOKIE string
  *
@@ -65,25 +98,17 @@ const trimPath = (value) => value.replace(/^\/+|\/+$/g, '');
  */
 export const getCGI = (req, options) => {
 	const PROTOCOL = req.protocol ? req.protocol.toUpperCase() : '';
-	const CHARSET = 'UTF8';
-	const IANA_CHARSET = 'UTF-8';
 	const PATH = getPath(req);
 
 	/** @type {environmentType} */
-	const DEFAULT_CGI = {
-		PLSQL_GATEWAY: 'WebDb',
-		GATEWAY_IVERSION: '2',
-		SERVER_SOFTWARE: 'web_plsql',
-		GATEWAY_INTERFACE: 'CGI/1.1',
+	const CGI = {
 		SERVER_PORT: typeof req.socket.localPort === 'number' ? req.socket.localPort.toString() : '',
-		SERVER_NAME: os.hostname(),
 		REQUEST_METHOD: req.method,
 		PATH_INFO: req.params.name,
 		SCRIPT_NAME: PATH.script,
 		REMOTE_ADDR: (req.ip ?? '').replace('::ffff:', ''),
 		SERVER_PROTOCOL: `${PROTOCOL}/${req.httpVersion}`,
 		REQUEST_PROTOCOL: PROTOCOL,
-		REMOTE_USER: '',
 		HTTP_COOKIE: getCookieString(req),
 		HTTP_USER_AGENT: req.get('user-agent') ?? '',
 		HTTP_HOST: req.get('host') ?? '',
@@ -92,15 +117,10 @@ export const getCGI = (req, options) => {
 		HTTP_ACCEPT_LANGUAGE: req.get('accept-language') ?? '',
 		HTTP_REFERER: req.get('referer') ?? '',
 		HTTP_X_FORWARDED_FOR: req.get('x-forwarded-for') ?? '',
-		WEB_AUTHENT_PREFIX: '',
 		DAD_NAME: PATH.dad,
-		DOC_ACCESS_PATH: 'doc',
 		DOCUMENT_TABLE: options.doctable ?? '',
-		PATH_ALIAS: '',
-		REQUEST_CHARSET: CHARSET,
-		REQUEST_IANA_CHARSET: IANA_CHARSET,
 		SCRIPT_PREFIX: PATH.prefix,
 	};
 
-	return Object.assign(DEFAULT_CGI, options.cgi);
+	return Object.assign({}, DEFAULT_CGI, options.cgi, CGI);
 };

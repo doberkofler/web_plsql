@@ -134,29 +134,38 @@ const removeLowestHitCountEntries = (count) => {
  *	@returns {Promise<argsType>} - The argument types
  */
 const findArguments = async (procedure, databaseConnection) => {
+	// calculate the key
+	//const key = `${databaseConnection.connectString}_${databaseConnection.user}_${procedure.toUpperCase()}`;
+	const key = procedure.toUpperCase();
+
 	// lookup in the cache
-	let cacheEntry = ARGS_CACHE.get(procedure.toUpperCase());
+	const cacheEntry = ARGS_CACHE.get(key);
 
 	// if we fount the procedure in the cache, we increase the hit cound and return
 	if (cacheEntry) {
 		cacheEntry.hitCount++;
-		debug(`findArguments: procedure "${procedure}" found in cache with "${cacheEntry.hitCount}" hits`);
+		if (debug.enabled) {
+			debug(`findArguments: procedure "${procedure}" found in cache with "${cacheEntry.hitCount}" hits`);
+		}
 		return cacheEntry.args;
 	}
 
 	// if the cache is full, we remove the 1000 least used cache entries
 	if (ARGS_CACHE.size > ARGS_CACHE_MAX_COUNT) {
-		debug(`findArguments: cache is full. size=${ARGS_CACHE.size} max=${ARGS_CACHE_MAX_COUNT}`);
+		if (debug.enabled) {
+			debug(`findArguments: cache is full. size=${ARGS_CACHE.size} max=${ARGS_CACHE_MAX_COUNT}`);
+		}
 		removeLowestHitCountEntries(1000);
-		debug(`findArguments: cache resized. size=${ARGS_CACHE.size}`);
 	}
 
 	// load from database
-	debug(`findArguments: procedure "${procedure}" not found in cache and must be loaded`);
+	if (debug.enabled) {
+		debug(`findArguments: procedure "${procedure}" not found in cache and must be loaded`);
+	}
 	const args = await loadArguments(procedure, databaseConnection);
 
 	// add to the cache
-	ARGS_CACHE.set(procedure.toUpperCase(), {hitCount: 0, args});
+	ARGS_CACHE.set(key, {hitCount: 0, args});
 
 	return args;
 };
@@ -169,7 +178,9 @@ const findArguments = async (procedure, databaseConnection) => {
  * @returns {Promise<{sql: string; bind: BindParameterConfig}>} - The SQL statement and bindings for the procedure to execute
  */
 export const getProcedureNamed = async (procedure, argObj, databaseConnection) => {
-	debug(`getProcedureNamed: ${procedure} arguments=`, argObj);
+	if (debug.enabled) {
+		debug(`getProcedureNamed: ${procedure} arguments=`, argObj);
+	}
 
 	/** @type {BindParameterConfig} */
 	const bind = {};

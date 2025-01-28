@@ -20,7 +20,9 @@ import oracledb from 'oracledb';
  * @returns {{sql: string; bind: BindParameterConfig}} - The SQL statement and bindings for the procedure to execute
  */
 export const getProcedureVariable = (procedure, argObj) => {
-	debug(`getProcedureVariable: ${procedure} arguments=`, argObj);
+	if (debug.enabled) {
+		debug(`getProcedureVariable: ${procedure} arguments=`, argObj);
+	}
 
 	const names = [];
 	const values = [];
