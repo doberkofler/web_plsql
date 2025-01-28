@@ -15,25 +15,49 @@ Please feel free to try and suggest any improvements. Your thoughts and ideas ar
 # Release History
 See the [changelog](https://github.com/doberkofler/web_plsql/blob/master/CHANGELOG.md).
 
-# Installation
+# Prerequisites
+The connection to the Oracle Database uses the node-oracledb Driver for Oracle Database. 
+Please visit the [node-oracledb](https://node-oracledb.readthedocs.io/en/latest/index.html) documentation for more information.
 
-## Prerequisites
-There are several prerequisites needed to both compile and run the Oracle database driver.
-Please visit the [node-oracledb INSTALL.md](https://oracle.github.io/node-oracledb/INSTALL.html) page for more information.
-On where Oracle is looking for the client consult: https://oracle.github.io/node-oracledb/doc/api.html#oracleclientloading
-
-## Installing
+# Installing
 * Create and move to a new directory
 * Create a new npm project (`npm init`)
-* Install package (`npm install web_plsql`)
-* Install the PL/SQL examples (`sqlplus node_modules/web_plsql/examples/sql/install.sql`)
-* Start the sample server (`node node_modules/web_plsql/examples/sample`)
-* Invoke a browser and open the page `http://localhost:8000/base`
+* Install package (`npm i --omit=dev web_plsql`)
 
-# Configuration
+# Example
+* Install the examples in the smaple schema (`sqlplus @examples/sql/install.sql`)
+* Start the sample server (`./run_sample.sh`)
+* Invoke a browser and open the page `http://localhost:8080/base`
 
-## How does a mod_plsql DAD configuration compare to the web_plsql app
+# Running
 
+There are 2 way to use the mod_plsql Express Middleware:
+- Run the predefined Express appplication in `src/server.js`
+- Create a custom Express Application and use the  mod_plsql Express Middleware
+
+The Express appplication in `src/server.js` can be configured using command line arguments and has the following options:
+```
+Options:
+  --port [integer]              Port to use. If 0, look for open port. (default: "0")
+  --route-app [string]          Application route. (default: "/")
+  --route-static [string]       Static files route. (default: "/static")
+  --route-static-path [string]  Static files path. (default: "/static")
+  --user [string]               Oracle database user (default: "LJ_UNITTEST")
+  --password [string]           Oracle database password (default: "DTRELKMARPAT")
+  --server [string]             Oracle database connect string (default: "127.0.0.1:1521/TEST")
+  --default-page [string]       Default page (default: "")
+  --path-alias [string]         Path alias (default: "")
+  --document-table [string]     Oracle document table (default: "")
+  --error-style [string]        Error style (basic or debug) (default: "basic")
+  --logger                      Enable access log file (default: false)
+  --monitor-console             Enable console status monitor (default: false)
+  --monitor-remote              Enable remote status monitor (default: false)
+  -h, --help                    display help for command
+  ```
+
+# The following mod_plsql DAD configuration translates to the web_plsql options as follows:
+
+## DAD
 ```
 <Location /pls/sample>
   SetHandler                    pls_handler
@@ -41,80 +65,27 @@ On where Oracle is looking for the client consult: https://oracle.github.io/node
   Allow                         from all
   PlsqlDatabaseUsername         sample
   PlsqlDatabasePassword         sample
-  PlsqlDatabaseConnectString    ORCL
-  PlsqlAuthenticationMode       Basic
-  PlsqlDefaultPage              sample.pageindex
+  PlsqlDatabaseConnectString    localhost:1521/ORCL
+  PlsqlDefaultPage              sample.pageIndex
   PlsqlDocumentTablename        doctable
   PlsqlErrorStyle               DebugStyle
   PlsqlNlsLanguage              AMERICAN_AMERICA.UTF8
 </Location>
 ```
 
-```javascript
-const fs = require('fs');
-const path = require('path');
-const express = require('express');
-const bodyParser = require('body-parser');
-const multipart = require('connect-multiparty');
-const cookieParser = require('cookie-parser');
-const compression = require('compression');
-const morgan = require('morgan');
-
-const oracledb = require('oracledb');
-const webplsql = require('../lib');
-
-/*
-*	Allocate the Oracle database pool
-*/
-
-const databasePool = oracledb.createPool({
-	user: 'sample',
-	password: 'sample',
-	connectString: 'ORCL',
-	poolMin: 10,
-	poolMax: 1000,
-	poolIncrement: 10,
-	queueRequests: false,
-	queueTimeout: 1000
-});
-
-databasePool.catch(e => {
-	console.error(`Unable to create database pool.\n${e.message}`);
-	process.exit(1);
-});
-
-/*
-*	Start the server
-*/
-
-const PORT = 8000;
-const PATH = '/pls/sample';
-const OPTIONS = {
-	defaultPage: 'sample.pageIndex',
-  doctable: 'docTable',
-  errorStyle: 'debug'
-};
-
-// create express app
-const app = express();
-
-// add middleware
-app.use(multipart());
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({extended: true}));
-app.use(cookieParser());
-app.use(compression());
-app.use(morgan('combined', {stream: fs.createWriteStream(path.join(process.cwd(), 'access.log'), {flags: 'a'})}));
-
-// add the oracle pl/sql express middleware
-app.use(PATH + '/:name?', webplsql(databasePool, OPTIONS));
-
-// serving static files
-app.use('/static', express.static(path.join(process.cwd(), 'examples/static')));
-
-// listen on port
-console.log(`Waiting on http://localhost:${PORT}${PATH}`);
-app.listen(PORT);
+## web_plsql
+```
+node src/server.js \
+	--port=8080 \
+	--route-app=/sample \
+	--route-static=/static \
+	--route-static-path=examples/static \
+	--user=sample \
+	--password=sample \
+	--server=localhost:1521/ORCL \
+	--default-page=sample.pageIndex \
+	--document-table=doctable \
+	--error-style=debug
 ```
 
 # Configuration options

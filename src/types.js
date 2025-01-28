@@ -3,13 +3,20 @@
  */
 
 /**
+ * @typedef {'basic' | 'debug'} errorStyleType
+ */
+
+/**
+ * @typedef {{alias: string, procedure: string}} pathAliasType
+ */
+
+/**
  * @typedef {object} middlewareOptions
  * @property {string} [defaultPage] - The default page.
  * @property {string} doctable - The document table.
  * @property {environmentType} [cgi] - The CGI environment variables.
- * @property {{alias: string, procedure: string}} [pathAlias] - The path alias.
- * @property {'basic' | 'debug'} errorStyle - The error style.
- * @property {'on' | 'off'} trace - The trace level.
+ * @property {pathAliasType} [pathAlias] - The path alias.
+ * @property {errorStyleType} errorStyle - The error style.
  */
 
 /**
