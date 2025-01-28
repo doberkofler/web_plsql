@@ -18,7 +18,6 @@ export const validate = (options) => {
 	const validOptions = {
 		doctable: '',
 		errorStyle: 'basic',
-		trace: 'off',
 	};
 
 	if (typeof options !== 'undefined') {
@@ -89,15 +88,6 @@ export const validate = (options) => {
 			throw new TypeError('The optional option "errorStyle" must be "basic" or "debug"');
 		} else {
 			validOptions.errorStyle = options.errorStyle;
-		}
-	}
-
-	if (typeof options.trace !== 'undefined') {
-		const trace = typeof options.trace === 'string' ? options.trace.toLowerCase() : '';
-		if (trace === 'on' || trace === 'off') {
-			validOptions.trace = trace;
-		} else {
-			throw new TypeError('The optional option "trace" must be "on" or "off"');
 		}
 	}
 

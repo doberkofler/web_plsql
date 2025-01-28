@@ -68,7 +68,6 @@ describe('cgi', () => {
 		const options = {
 			doctable: DOCUMENT_TABLE_NAME,
 			errorStyle: 'basic',
-			trace: 'off',
 		};
 
 		const cgi = getCGI(req, options);

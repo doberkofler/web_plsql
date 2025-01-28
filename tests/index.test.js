@@ -254,7 +254,6 @@ async function serverStart() {
 	// add the oracle pl/sql express middleware
 	/** @type {Partial<middlewareOptions>} */
 	const options = {
-		trace: 'off',
 		defaultPage: DEFAULT_PAGE,
 		doctable: DOC_TABLE,
 		pathAlias: {

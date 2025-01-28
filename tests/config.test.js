@@ -30,9 +30,6 @@ describe('configuration errors', () => {
 		},
 		{config: {errorStyle: ''}, error: 'The optional option "errorStyle" must be "basic" or "debug"'},
 		{config: {errorStyle: 'on'}, error: 'The optional option "errorStyle" must be "basic" or "debug"'},
-		{config: {trace: true}, error: 'The optional option "trace" must be "on" or "off"'},
-		{config: {trace: ''}, error: 'The optional option "trace" must be "on" or "off"'},
-		{config: {trace: 'enabled'}, error: 'The optional option "trace" must be "on" or "off"'},
 	].forEach((test) => {
 		it(`should throw the exception "${test.error}"`, () => {
 			assert.throws(() => {
