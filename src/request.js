@@ -8,7 +8,7 @@ const debug = debugModule('webplsql:request');
 import util from 'node:util';
 import {invokeProcedure} from './procedure.js';
 import {getCGI} from './cgi.js';
-import {getFiles} from './fileUpload.js';
+import {getFiles} from './upload.js';
 import {RequestError} from './requestError.js';
 
 /**

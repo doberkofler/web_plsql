@@ -7,7 +7,7 @@ const debug = debugModule('webplsql:middleware');
 
 import url from 'node:url';
 import {processRequest} from './request.js';
-import {validate} from './config.js';
+import {validate} from './middlewareOptions.js';
 import {RequestError} from './requestError.js';
 import {errorPage} from './errorPage.js';
 

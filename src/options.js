@@ -5,24 +5,7 @@ import {Command} from 'commander';
 /**
  * @typedef {import('./types.js').errorStyleType} errorStyleType
  * @typedef {import('./types.js').pathAliasType} pathAliasType
- */
-
-/**
- * @typedef {object} configType
- * @property {number} port - The server port number.
- * @property {string} routeApp - The application route path.
- * @property {string} routeStatic - The Static route path.
- * @property {string} routeStaticPath - The Static directory.
- * @property {string} user - The Oracle username.
- * @property {string} password - The Oracle password.
- * @property {string} connectString - The Oracle connect string.
- * @property {string} defaultPage - The default page.
- * @property {pathAliasType} [pathAlias] - The path alias.
- * @property {string} documentTable - The document table.
- * @property {errorStyleType} errorStyle - The error style.
- * @property {boolean} logger - Enable access log file.
- * @property {boolean} monitorConsole - Enable console status monitor.
- * @property {boolean} monitorRemote - Enable remote status monitor.
+ * @typedef {import('./types.js').configType} configType
  */
 
 /**

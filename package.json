@@ -59,7 +59,6 @@
 		"morgan": "1.10.0",
 		"multer": "^1.4.5-lts.1",
 		"oracledb": "6.7.1",
-		"portfinder": "^1.0.32",
 		"rotating-file-stream": "3.2.5",
 		"zod": "3.24.1"
 	},

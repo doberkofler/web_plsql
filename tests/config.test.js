@@ -1,6 +1,6 @@
 import assert from 'node:assert';
 import {describe, it} from 'node:test';
-import {validate} from '../src/config.js';
+import {validate} from '../src/middlewareOptions.js';
 
 /**
  * @typedef {import('../src/types.js').middlewareOptions} middlewareOptions

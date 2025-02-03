@@ -10,7 +10,7 @@ import stream from 'node:stream';
 import z from 'zod';
 
 import {streamToBuffer} from './stream.js';
-import {uploadFile} from './fileUpload.js';
+import {uploadFile} from './upload.js';
 import {getProcedureVariable} from './procedureVariable.js';
 import {getProcedureNamed} from './procedureNamed.js';
 import {parsePage} from './parsePage.js';
