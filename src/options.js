@@ -71,12 +71,12 @@ const getOptionInteger = (command, name) => {
  * Get option "dir".
  * @param {Command} command - Command instance.
  * @param {string} name - Option name.
- * @returns {string} - Value.
+ * @returns {Promise<string>} - Value.
  */
-const getOptionDir = (command, name) => {
+const getOptionDir = async (command, name) => {
 	const value = /** @type {unknown} */ (command.opts()[name]);
 
-	if (isDirectory(value)) {
+	if (await isDirectory(value)) {
 		return path.resolve(/** @type {string} */ (value));
 	}
 
@@ -126,9 +126,9 @@ const getOptionPathAlias = (command, name) => {
 
 /**
  * Validates and parses command line arguments.
- * @returns {configType} - Configuration.
+ * @returns {Promise<configType>} - Configuration.
  */
-export const getOptions = () => {
+export const getOptions = async () => {
 	const command = new Command();
 	command.name('server');
 	command.description('Oracle PL/SQL server');
@@ -154,7 +154,7 @@ export const getOptions = () => {
 		port: getOptionInteger(command, 'port'),
 		routeApp: getOptionString(command, 'routeApp'),
 		routeStatic: getOptionString(command, 'routeStatic'),
-		routeStaticPath: getOptionDir(command, 'routeStaticPath'),
+		routeStaticPath: await getOptionDir(command, 'routeStaticPath'),
 		user: getOptionString(command, 'user'),
 		password: getOptionString(command, 'password'),
 		connectString: getOptionString(command, 'server'),

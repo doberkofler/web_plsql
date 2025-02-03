@@ -28,9 +28,10 @@ export const logToFile = (text) => {
  * Return a string representation of the value.
  *
  * @param {unknown} value - Any value.
+ * @param {number | null} depth - Specifies the number of times to recurse while formatting object..
  * @returns {string} - The string representation.
  */
-export const inspect = (value) => util.inspect(value, {showHidden: false, depth: null, colors: false});
+export const inspect = (value, depth = null) => util.inspect(value, {showHidden: false, depth, colors: false});
 
 /**
  * Return a string representation of the request.
@@ -55,18 +56,16 @@ export const inspectRequest = (req, simple = true) => {
 };
 
 /**
- *	Get a separator line.
- *	@param {number} [size] - The size.
- *	@returns {string} - The separator.
+ *	Get a block.
+ *	@param {string} title - The name.
+ *	@param {string} body - The name.
+ *	@returns {string} - The text.
  */
-export const getSeparator = (size = 30) => '*'.repeat(size);
+export const getBlock = (title, body) => {
+	const SEPARATOR = '-'.repeat(30);
 
-/**
- *	Get a section.
- *	@param {string} name - The name.
- *	@returns {string} - The section.
- */
-export const getSection = (name) => `${name}\n${'='.repeat(name.length)}`;
+	return `\n${SEPARATOR}${title.toUpperCase()}${SEPARATOR}\n${body}`;
+};
 
 /**
  *	Get a timestamp

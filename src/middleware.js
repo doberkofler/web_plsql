@@ -3,7 +3,7 @@
  */
 
 import debugModule from 'debug';
-const debug = debugModule('webplsql:index');
+const debug = debugModule('webplsql:middleware');
 
 import url from 'node:url';
 import {processRequest} from './request.js';
@@ -61,6 +61,7 @@ const requestHandler = async (req, res, next, connectionPool, options) => {
 const webplsqlMiddleware = (connectionPool, options) => {
 	// validate the configuration options
 	const validOptions = validate(options);
+	debug('validOptions', validOptions);
 
 	/**
 	 * @param {Request} req - The req object represents the HTTP request.

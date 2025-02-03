@@ -5,7 +5,7 @@ if [ -z "${ORACLE_SERVER}" ]; then
 fi
 
 node src/server.js \
-	--port=8080 \
+	--port=80 \
 	--route-app=/base \
 	--route-static=/static \
 	--route-static-path=examples/static \

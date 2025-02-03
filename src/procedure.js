@@ -13,9 +13,10 @@ import {streamToBuffer} from './stream.js';
 import {uploadFile} from './fileUpload.js';
 import {getProcedureVariable} from './procedureVariable.js';
 import {getProcedureNamed} from './procedureNamed.js';
-import {parse, sendResponse} from './page.js';
+import {parsePage} from './parsePage.js';
+import {sendResponse} from './sendResponse.js';
 import {ProcedureError} from './procedureError.js';
-import {inspect} from './trace.js';
+import {inspect, getBlock} from './trace.js';
 
 /**
  * @typedef {import('express').Request} Request
@@ -34,8 +35,7 @@ import {inspect} from './trace.js';
  * @param {string} procedure - The procedure
  * @returns {string} - The SQL statement to execute
  */
-const getProcedureSQL = (procedure) => `
-DECLARE
+const getProcedureSQL = (procedure) => `DECLARE
 	fileType VARCHAR2(32767);
 	fileSize INTEGER;
 	fileBlob BLOB;
@@ -76,8 +76,7 @@ BEGIN
 
 	-- retrieve the page
 	owa.get_page(thepage=>:lines, irows=>:irows);
-END;
-`;
+END;`;
 
 /**
  * Invoke the Oracle procedure and return the page content
@@ -143,16 +142,23 @@ export const invokeProcedure = async (req, res, argObj, cgiObj, filesToUpload, o
 	const sqlStatement = getProcedureSQL(para.sql);
 	/** @type {Result | null} */
 	let result = null;
+	const bindParams = Object.assign({}, bind, para.bind);
 	try {
 		if (debug.enabled) {
-			debug(`execute:\n${'-'.repeat(30)}\n${sqlStatement}\n${'-'.repeat(30)}\nwith bindings:\n${inspect(bind)}`);
+			if (debug.enabled) {
+				debug(getBlock('execute', sqlStatement));
+				// NOTE: Because inspecting a BLOB value generates a craxy amount of text, we somply remove it.
+				const temp = Object.assign({}, bindParams);
+				delete temp.fileBlob.val;
+				debug(getBlock('bindParams', inspect(temp)));
+			}
 		}
-		result = await databaseConnection.execute(sqlStatement, Object.assign(bind, para.bind));
-		if (debug.enabled) {
-			debug(`results:\n${inspect(result)}`);
-		}
+		result = await databaseConnection.execute(sqlStatement, bindParams);
 	} catch (err) {
-		/* istanbul ignore next */
+		if (debug.enabled) {
+			debug(getBlock('results', inspect(result)));
+		}
+
 		throw new ProcedureError(`Error when executing procedure\n${sqlStatement}\n${err instanceof Error ? err.toString() : ''}`, cgiObj, para.sql, para.bind);
 	}
 
@@ -172,6 +178,10 @@ export const invokeProcedure = async (req, res, argObj, cgiObj, filesToUpload, o
 		})
 		.parse(result.outBinds);
 
+	if (debug.enabled) {
+		debug(getBlock('data', inspect(data)));
+	}
+
 	// Make sure that we have retrieved all the rows
 	if (data.irows > MAX_IROWS) {
 		/* istanbul ignore next */
@@ -180,8 +190,8 @@ export const invokeProcedure = async (req, res, argObj, cgiObj, filesToUpload, o
 
 	// combine page
 	const pageContent = data.lines.join('');
-	if (debug.enabled) {
-		debug(`PLAIN CONTENT:\n${'-'.repeat(30)}\n${pageContent}\n${'-'.repeat(30)}`);
+	if (debug.enabled && pageContent.length > 0) {
+		debug(getBlock('PLAIN CONTENT', pageContent));
 	}
 
 	//
@@ -189,7 +199,7 @@ export const invokeProcedure = async (req, res, argObj, cgiObj, filesToUpload, o
 	//
 
 	// parse what we received from PL/SQL
-	const pageComponents = parse(pageContent);
+	const pageComponents = parsePage(pageContent);
 
 	// add "Server" header
 	pageComponents.head.server = cgiObj.SERVER_SOFTWARE;
@@ -201,10 +211,6 @@ export const invokeProcedure = async (req, res, argObj, cgiObj, filesToUpload, o
 		if (data.fileBlob) {
 			pageComponents.file.fileBlob = await streamToBuffer(data.fileBlob);
 		}
-	}
-
-	if (debug.enabled) {
-		debug(`PARSED CONTENT:\n${'-'.repeat(30)}\n${inspect(pageComponents)}\n${'-'.repeat(30)}`);
 	}
 
 	//
@@ -231,7 +237,7 @@ export const invokeProcedure = async (req, res, argObj, cgiObj, filesToUpload, o
  *	@returns {Promise<{sql: string; bind: BindParameterConfig}>} - The SQL statement and bindings for the procedure to execute
  */
 const getProcedure = async (procedure, argObj, options, databaseConnection) => {
-	if (options.pathAlias && options.pathAlias.alias === procedure) {
+	if (options.pathAlias && options.pathAlias.alias.toLocaleLowerCase() === procedure.toLocaleLowerCase()) {
 		debug(`getProcedure: path alias "${options.pathAlias.alias}" redirects to "${options.pathAlias.procedure}"`);
 		return {
 			sql: `${options.pathAlias.procedure}(p_path=>:p_path);`,

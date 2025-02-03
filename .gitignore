@@ -1,12 +1,14 @@
 **/.DS_Store
+ package-lock.json
+private
+run_apex.sh
 run_lj.sh
 .vscode/
 .nyc_output/
 coverage/
-lib/
+apex/
 temp/
 node_modules/
-trace/
 *.log
 *.tgz
 .eslintcache

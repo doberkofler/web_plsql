@@ -1,18 +1,33 @@
-import fs from 'node:fs';
+import {promises as fs} from 'node:fs';
 
 /**
  * Is this a directory.
  * @param {unknown} directoryPath - Directory name.
- * @returns {boolean} - Return true if it is a directory.
+ * @returns {Promise<boolean>} - Return true if it is a directory.
  */
-export const isDirectory = (directoryPath) => {
+export const isDirectory = async (directoryPath) => {
 	if (typeof directoryPath !== 'string') {
 		return false;
 	}
 
-	const stats = fs.statSync(directoryPath);
+	const stats = await fs.stat(directoryPath);
 
 	return stats.isDirectory();
+};
+
+/**
+ * Is this a file.
+ * @param {unknown} filePath - File name.
+ * @returns {Promise<boolean>} - Return true if it is a file.
+ */
+export const isFile = async (filePath) => {
+	if (typeof filePath !== 'string') {
+		return false;
+	}
+
+	const stats = await fs.stat(filePath);
+
+	return stats.isFile();
 };
 
 /**

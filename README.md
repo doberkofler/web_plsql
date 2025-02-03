@@ -25,9 +25,9 @@ Please visit the [node-oracledb](https://node-oracledb.readthedocs.io/en/latest/
 * Install package (`npm i --omit=dev web_plsql`)
 
 # Example
-* Install the examples in the smaple schema (`sqlplus @examples/sql/install.sql`)
-* Start the sample server (`./run_sample.sh`)
-* Invoke a browser and open the page `http://localhost:8080/base`
+* Start SQLPLus or SQLcl and connect to the database as SYS specifying the SYSDBA roleInstall and install the sample schema `@examples/sql/install.sql`.
+* Start the sample server using `./run_sample.sh` after having set the ORACLE_SERVER environment variable to the database where you just installed the sample schema.
+* Invoke a browser and open the page `http://localhost/base`
 
 # Running
 

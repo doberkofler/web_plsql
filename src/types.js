@@ -46,4 +46,33 @@
  * @property {number} size - The size.
  */
 
+/**
+ * @typedef {object} cookieType
+ * @property {string} name - The name of the cookie.
+ * @property {string} value - The value of the cookie.
+ * @property {string} [path] - The path of the cookie.
+ * @property {string} [domain] - The domain of the cookie.
+ * @property {string} [secure] - The secure flag.
+ * @property {Date} [expires] - The expiration date.
+ * @property {boolean} [httpOnly] - The httpOnly flag.
+ */
+
+/**
+ * @typedef {object} pageType - The page.
+ * @property {string} body - The body of the page.
+ * @property {object} head - The head of the page.
+ * @property {cookieType[]} head.cookies - The cookies.
+ * @property {string} [head.contentType] - The content type.
+ * @property {number} [head.contentLength] - The content length.
+ * @property {number} [head.statusCode] - The status code.
+ * @property {string} [head.statusDescription] - The status description.
+ * @property {string} [head.redirectLocation] - The redirect location.
+ * @property {Record<string, string>} head.otherHeaders - The other headers.
+ * @property {string} [head.server] - The server.
+ * @property {object} file - The file.
+ * @property {string | null} file.fileType - The file type.
+ * @property {number | null} file.fileSize - The file size.
+ * @property {Buffer | null} file.fileBlob - The file blob.
+ */
+
 export const dummy = 0;

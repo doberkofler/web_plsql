@@ -23,7 +23,7 @@ const ACCESS_LOG_FILENAME = 'access.log';
 
 const main = async () => {
 	// Get command line options
-	const config = getOptions();
+	const config = await getOptions();
 	debug('config', config);
 
 	// Find port
@@ -92,7 +92,7 @@ const main = async () => {
 		res.on('finish', () => {
 			const [seconds, nanoseconds] = process.hrtime(start);
 			const duration = seconds * 1000 + nanoseconds / 1_000_000;
-			debug(`Request to ${req.method} ${req.params.name} ${req.url} took ${duration.toFixed(3)}ms`);
+			debug(`Request to ${req.params?.name} ${req.url} took ${duration.toFixed(3)}ms`);
 		});
 
 		next();
@@ -122,6 +122,7 @@ const main = async () => {
 		`${config.routeApp}/:name?`,
 		webplsql(connectionPool, {
 			defaultPage: config.defaultPage,
+			pathAlias: config.pathAlias,
 			doctable: config.documentTable,
 			errorStyle: config.errorStyle,
 		}),
