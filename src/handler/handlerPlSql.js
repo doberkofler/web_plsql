@@ -6,20 +6,18 @@ import debugModule from 'debug';
 const debug = debugModule('webplsql:handlerPlSql');
 
 import url from 'node:url';
-import {processRequest} from './request.js';
-import {validate} from './middlewareOptions.js';
-import {RequestError} from './requestError.js';
-import {errorPage} from './errorPage.js';
+import {processRequest} from '../request.js';
+import {RequestError} from '../requestError.js';
+import {errorPage} from '../errorPage.js';
 
 /**
+ * @typedef {import('express').RequestHandler} RequestHandler
  * @typedef {import('express').Request} Request
  * @typedef {import('express').Response} Response
  * @typedef {import('express').NextFunction} NextFunction
  * @typedef {import('oracledb').Pool} Pool
- * @typedef {import('./types.js').environmentType} environmentType
- * @typedef {import('./types.js').middlewareOptions} middlewareOptions
- *
- * @typedef {(req: Request, res: Response, next: NextFunction) => void} middlewareFunctionType
+ * @typedef {import('../types.js').environmentType} environmentType
+ * @typedef {import('../types.js').middlewareOptions} middlewareOptions
  */
 
 /**
@@ -56,12 +54,10 @@ const requestHandler = async (req, res, next, connectionPool, options) => {
  *
  * @param {Pool} connectionPool - The connection pool.
  * @param {Partial<middlewareOptions>} options - The configuration options.
- * @returns {middlewareFunctionType} - The handler.
+ * @returns {RequestHandler} - The handler.
  */
 const webplsqlMiddleware = (connectionPool, options) => {
-	// validate the configuration options
-	const validOptions = validate(options);
-	debug('validOptions', validOptions);
+	debug('options', options);
 
 	/**
 	 * @param {Request} req - The req object represents the HTTP request.
@@ -69,7 +65,7 @@ const webplsqlMiddleware = (connectionPool, options) => {
 	 * @param {NextFunction} next - The next function.
 	 */
 	const handler = (req, res, next) => {
-		void requestHandler(req, res, next, connectionPool, validOptions);
+		void requestHandler(req, res, next, connectionPool, options);
 	};
 
 	return handler;

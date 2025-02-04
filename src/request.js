@@ -36,7 +36,7 @@ export const processRequest = async (req, res, options, connectionPool) => {
 	const connection = await connectionPool.getConnection();
 
 	// Get the CGI
-	const cgiObj = getCGI(req, options);
+	const cgiObj = getCGI(req, options.doctable ?? '', options.cgi ?? {});
 	debug('executeRequest: cgiObj=', cgiObj);
 
 	// Does the request contain any files

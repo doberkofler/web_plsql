@@ -7,11 +7,12 @@ import cookieParser from 'cookie-parser';
 import compression from 'compression';
 import {installShutdown} from './shutdown.js';
 import {writeAfterEraseLine} from './util.js';
-import {poolCreate, poolClose} from '../src/oracle.js';
-import {getUploadMiddleware} from './handlerUpload.js';
-import {handlerLogger} from './handlerLogger.js';
-import {initMetrics, handlerMetrics} from './handlerMetrics.js';
-import webplsql from './handlerPlSql.js';
+import {poolCreate, poolsClose} from '../src/oracle.js';
+import {getUploadMiddleware} from './handler/handlerUpload.js';
+import {handlerLogger} from './handler/handlerLogger.js';
+import {initMetrics, handlerMetrics} from './handler/handlerMetrics.js';
+import webplsql from './handler/handlerPlSql.js';
+import {getPackageVersion} from './version.js';
 
 /**
  * @typedef {import('express').Request} Request
@@ -24,19 +25,22 @@ import webplsql from './handlerPlSql.js';
 
 /**
  * Start generic server.
- * @param {configType} options - The server options.
+ * @param {configType} config - The config.
  * @returns {Promise<void>} - Promise.
  */
-export const server = async (options) => {
-	debug('options', options);
+export const startServer = async (config) => {
+	debug('config', config);
 
-	// Allocate the Oracle database pool
-	const connectionPool = await poolCreate(options.user, options.password, options.connectString);
+	console.log(`WEB_PL/SQL ${getPackageVersion()}`);
+
+	/** @type {Pool[]} */
+	const pools = [];
 
 	// Install shutdown handler
 	installShutdown(async () => {
-		// Close database pool.
-		await poolClose(connectionPool);
+		// Close database pools.
+		await poolsClose(pools);
+		pools.length = 0;
 
 		// Close server
 		return new Promise((resolve) => server.close(() => resolve()));
@@ -50,7 +54,10 @@ export const server = async (options) => {
 	app.use(handlerMetrics(metrics));
 
 	// Serving static files
-	app.use(options.routeStatic, express.static(options.routeStaticPath));
+	for (const i of config.routeStatic) {
+		app.use(i.route, express.static(i.directoryPath));
+		console.log(`Static resources on "${i.route}" from directory ${i.directoryPath}`);
+	}
 
 	// Default middleware
 	app.use(getUploadMiddleware());
@@ -60,33 +67,45 @@ export const server = async (options) => {
 	app.use(compression());
 
 	// Access log
-	if (options.loggerFilename.length > 0) {
-		app.use(handlerLogger(options.loggerFilename));
+	if (config.loggerFilename.length > 0) {
+		console.log(`Access log in "${config.loggerFilename}"`);
+		app.use(handlerLogger(config.loggerFilename));
 	}
 
 	// Oracle pl/sql express middleware
-	app.use(
-		`${options.routeApp}/:name?`,
-		webplsql(connectionPool, {
-			defaultPage: options.defaultPage,
-			pathAlias: options.pathAlias,
-			doctable: options.documentTable,
-			errorStyle: options.errorStyle,
-		}),
-	);
+	for (const i of config.routePlSql) {
+		// Allocate the Oracle database pool
+		const pool = await poolCreate(i.user, i.password, i.connectString);
+		pools.push(pool);
+
+		app.use(
+			`${i.route}/:name?`,
+			webplsql(pool, {
+				defaultPage: i.defaultPage,
+				pathAlias: i.pathAlias,
+				doctable: i.documentTable,
+				errorStyle: config.errorStyle,
+			}),
+		);
+
+		console.log(`Application route "http://localhost:${config.port}${i.route}"`);
+		console.log(`   Oracle user:           ${i.user}`);
+		console.log(`   Oracle server:         ${i.connectString}`);
+		console.log(`   Oracle document table: ${i.documentTable}`);
+	}
 
 	// Update metrics every second
-	if (options.monitorConsole) {
+	if (config.monitorConsole) {
 		setInterval(() => {
 			// Update requests per second
 			const requestsLastSecond = metrics.requestsInCurrentSecond;
 			metrics.requestsInCurrentSecond = 0;
 
 			// Clear console and display metrics
-			writeAfterEraseLine(`Total requests: ${metrics.totalRequests}, requests in last second: ${requestsLastSecond}`);
+			writeAfterEraseLine(`Total requests: ${metrics.totalRequests}, requests per second: ${requestsLastSecond}`);
 		}, 1000);
 	}
 
 	// listen on port
-	const server = app.listen(options.port);
+	const server = app.listen(config.port);
 };

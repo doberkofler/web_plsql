@@ -6,8 +6,8 @@ import multer from 'multer';
  * @typedef {import('express').Response} Response
  * @typedef {import('express').NextFunction} NextFunction
  * @typedef {import('oracledb').Pool} Pool
- * @typedef {import('./types.js').environmentType} environmentType
- * @typedef {import('./types.js').configType} configType
+ * @typedef {import('../types.js').environmentType} environmentType
+ * @typedef {import('../types.js').configType} configType
  */
 
 /**

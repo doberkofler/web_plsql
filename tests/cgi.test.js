@@ -70,7 +70,7 @@ describe('cgi', () => {
 			errorStyle: 'basic',
 		};
 
-		const cgi = getCGI(req, options);
+		const cgi = getCGI(req, options.doctable ?? '', options.cgi ?? {});
 
 		assert.strictEqual(Object.keys(cgi).length, 29);
 

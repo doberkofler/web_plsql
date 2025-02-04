@@ -1,4 +1,20 @@
-import {promises as fs} from 'node:fs';
+import {promises as fs, readFileSync} from 'node:fs';
+
+/**
+ * Load a json file.
+ *
+ * @param {string} filePath - File name.
+ * @returns {unknown} The json object.
+ */
+export const getJsonFile = (filePath) => {
+	const fileContent = readFileSync(filePath, 'utf8');
+
+	try {
+		return JSON.parse(fileContent);
+	} catch (err) {
+		throw new Error(`Unable to load file "${filePath}"`);
+	}
+};
 
 /**
  * Is this a directory.

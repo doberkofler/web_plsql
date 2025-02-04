@@ -1,5 +1,3 @@
-#!/usr/bin/env node
-
 import debugModule from 'debug';
 const debug = debugModule('webplsql:oracle');
 
@@ -53,7 +51,7 @@ export const poolCreate = async (user, password, connectString, poolMin = 10, po
 	const valid = await connectionValid(pool);
 	if (!valid) {
 		await poolClose(pool);
-		throw new Error('Unable to connect with Oracle Database');
+		throw new Error(`Unable to connect with Oracle Database as ${user}@${connectString}`);
 	}
 
 	return pool;
@@ -62,7 +60,7 @@ export const poolCreate = async (user, password, connectString, poolMin = 10, po
 /**
  * Close the Oracle database pool.
  * @param {Pool} pool - The connection pool.
- * @returns {Promise<void>} - The connection pool.
+ * @returns {Promise<void>}
  */
 export const poolClose = async (pool) => {
 	try {
@@ -70,4 +68,13 @@ export const poolClose = async (pool) => {
 	} catch (err) {
 		debug('Cannot close pool', err);
 	}
+};
+
+/**
+ * Close the Oracle database pools.
+ * @param {Pool[]} pools - The connection pools.
+ * @returns {Promise<void>}
+ */
+export const poolsClose = async (pools) => {
+	await Promise.all(pools.map(poolClose));
 };

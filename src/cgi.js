@@ -93,10 +93,11 @@ const trimPath = (value) => value.replace(/^\/+|\/+$/g, '');
  * Create a CGI object
  *
  * @param {Request} req - The req object represents the HTTP request.
- * @param {middlewareOptions} options - the options for the middleware.
+ * @param {string} doctable - The document table.
+ * @param {environmentType} cgi - The additional cgi.
  * @returns {environmentType} CGI object
  */
-export const getCGI = (req, options) => {
+export const getCGI = (req, doctable, cgi) => {
 	const PROTOCOL = req.protocol ? req.protocol.toUpperCase() : '';
 	const PATH = getPath(req);
 
@@ -118,9 +119,9 @@ export const getCGI = (req, options) => {
 		HTTP_REFERER: req.get('referer') ?? '',
 		HTTP_X_FORWARDED_FOR: req.get('x-forwarded-for') ?? '',
 		DAD_NAME: PATH.dad,
-		DOCUMENT_TABLE: options.doctable ?? '',
+		DOCUMENT_TABLE: doctable,
 		SCRIPT_PREFIX: PATH.prefix,
 	};
 
-	return Object.assign({}, DEFAULT_CGI, options.cgi, CGI);
+	return Object.assign({}, DEFAULT_CGI, CGI, cgi);
 };

@@ -101,7 +101,13 @@ export const invokeProcedure = async (req, res, argObj, cgiObj, filesToUpload, o
 
 	debug(`invokeProcedure: upload "${filesToUpload.length}" files`);
 	if (filesToUpload.length > 0) {
-		await Promise.all(filesToUpload.map((file) => uploadFile(file, options.doctable, databaseConnection)));
+		if (typeof options.doctable === 'string' && options.doctable.length > 0) {
+			const {doctable} = options;
+
+			await Promise.all(filesToUpload.map((file) => uploadFile(file, doctable, databaseConnection)));
+		} else {
+			console.warn(`Unable to upload "${filesToUpload.length}" files because the option ""doctable" has not been defined`);
+		}
 	}
 
 	//
