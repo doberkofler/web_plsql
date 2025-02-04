@@ -3,7 +3,7 @@
  */
 
 import debugModule from 'debug';
-const debug = debugModule('webplsql:middleware');
+const debug = debugModule('webplsql:handlerPlSql');
 
 import url from 'node:url';
 import {processRequest} from './request.js';

@@ -11,7 +11,7 @@ import cookieParser from 'cookie-parser';
 import compression from 'compression';
 import request from 'supertest';
 import * as oracledb from './mock/oracledb.js';
-import webplsql from '../src/middleware.js';
+import webplsql from '../src/handlerPlSql.js';
 
 const PORT = 8765;
 const PATH = '/base';

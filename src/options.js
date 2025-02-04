@@ -1,5 +1,6 @@
 import path from 'node:path';
 import {isDirectory} from './util.js';
+import {getPackageVersion} from './version.js';
 import {Command} from 'commander';
 
 /**
@@ -115,7 +116,7 @@ export const getOptions = async () => {
 	const command = new Command();
 	command.name('server');
 	command.description('Oracle PL/SQL server');
-	//addOptionVersion(command);
+	command.version(getPackageVersion());
 	command.option('--port [integer]', 'Port to use. If 0, look for open port.', '0');
 	command.option('--route-app [string]', 'Application route.', '/');
 	command.option('--route-static [string]', 'Static files route.', '/static');
@@ -127,9 +128,8 @@ export const getOptions = async () => {
 	command.option('--path-alias [string]', 'Path alias', '');
 	command.option('--document-table [string]', 'Oracle document table', '');
 	command.option('--error-style [string]', 'Error style (basic or debug)', 'basic');
-	command.option('--logger', 'Enable access log file', false);
+	command.option('--logger-filename', 'Filename of the request logger or empty for no logging', 'access.log');
 	command.option('--monitor-console', 'Enable console status monitor', false);
-	command.option('--monitor-remote', 'Enable remote status monitor', false);
 	command.parse();
 
 	/** @type {configType} */
@@ -145,9 +145,8 @@ export const getOptions = async () => {
 		pathAlias: getOptionPathAlias(command, 'pathAlias'),
 		documentTable: getOptionString(command, 'documentTable'),
 		errorStyle: getOptionErrorStyle(command, 'errorStyle'),
-		logger: getOptionBoolean(command, 'logger'),
+		loggerFilename: getOptionString(command, 'loggerFilename'),
 		monitorConsole: getOptionBoolean(command, 'monitorConsole'),
-		monitorRemote: getOptionBoolean(command, 'monitorRemote'),
 	};
 
 	return config;

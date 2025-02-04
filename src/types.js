@@ -32,9 +32,8 @@
  * @property {pathAliasType} [pathAlias] - The path alias.
  * @property {string} documentTable - The document table.
  * @property {errorStyleType} errorStyle - The error style.
- * @property {boolean} logger - Enable access log file.
+ * @property {string} loggerFilename - name of the request logger filename or '' if not required.
  * @property {boolean} monitorConsole - Enable console status monitor.
- * @property {boolean} monitorRemote - Enable remote status monitor.
  */
 
 /**
@@ -91,6 +90,12 @@
  * @property {string | null} file.fileType - The file type.
  * @property {number | null} file.fileSize - The file size.
  * @property {Buffer | null} file.fileBlob - The file blob.
+ */
+
+/**
+ * @typedef {object} metricsType - The metrics.
+ * @property {number} totalRequests - The total number of requests.
+ * @property {number} requestsInCurrentSecond - The number of requests in the last second.
  */
 
 export const dummy = 0;
