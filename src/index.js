@@ -9,8 +9,8 @@ export {initMetrics, handlerMetrics} from './handlerMetrics.js';
 export {handlerUpload} from './handlerUpload.js';
 
 // oracle
-export * from './oracle';
+export * from './oracle.js';
 
 // util
-export * from './util';
-export * from './version';
+export * from './util.js';
+export * from './version.js';
