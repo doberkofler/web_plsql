@@ -1,0 +1,7 @@
+export function startServer(config: configType): Promise<void>;
+export type Request = import("express").Request;
+export type Response = import("express").Response;
+export type NextFunction = import("express").NextFunction;
+export type Pool = import("oracledb").Pool;
+export type environmentType = import("./types.js").environmentType;
+export type configType = import("./types.js").configType;

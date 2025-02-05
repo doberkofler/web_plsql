@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import {startServer} from './src/server.js';
+import {startServer} from './src/index.js';
 
 void startServer({
 	port: 8080,

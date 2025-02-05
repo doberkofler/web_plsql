@@ -1,13 +1,7 @@
 **/.DS_Store
- package-lock.json
-private
-run_apex.sh
-run_lj.sh
 .vscode/
 .nyc_output/
 coverage/
-apex/
-temp/
 node_modules/
 *.log
 *.tgz

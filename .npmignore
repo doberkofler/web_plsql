@@ -1,5 +1,5 @@
 .github
- package-lock.json
+package-lock.json
 private
 .vscode/
 .nyc_output/
@@ -12,4 +12,3 @@ trace/
 *.tgz
 .eslintcache
 PUBLISH.md
-examples/LJ_UNITTEST.js

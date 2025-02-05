@@ -3,7 +3,7 @@ const debug = debugModule('webplsql:handlerMetrics');
 
 /**
  * @typedef {import('express').RequestHandler} RequestHandler
- * @typedef {import('../types.js').metricsType} metricsType
+ * @typedef {import('./types.js').metricsType} metricsType
  */
 
 /**

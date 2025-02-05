@@ -8,10 +8,10 @@ import compression from 'compression';
 import {installShutdown} from './shutdown.js';
 import {writeAfterEraseLine} from './util.js';
 import {poolCreate, poolsClose} from '../src/oracle.js';
-import {getUploadMiddleware} from './handler/handlerUpload.js';
-import {handlerLogger} from './handler/handlerLogger.js';
-import {initMetrics, handlerMetrics} from './handler/handlerMetrics.js';
-import webplsql from './handler/handlerPlSql.js';
+import {handlerUpload} from './handlerUpload.js';
+import {handlerLogger} from './handlerLogger.js';
+import {initMetrics, handlerMetrics} from './handlerMetrics.js';
+import {handlerWebPlSql} from './handlerPlSql.js';
 import {getPackageVersion} from './version.js';
 
 /**
@@ -60,7 +60,7 @@ export const startServer = async (config) => {
 	}
 
 	// Default middleware
-	app.use(getUploadMiddleware());
+	app.use(handlerUpload());
 	app.use(bodyParser.json());
 	app.use(bodyParser.urlencoded({extended: true}));
 	app.use(cookieParser());
@@ -80,7 +80,7 @@ export const startServer = async (config) => {
 
 		app.use(
 			`${i.route}/:name?`,
-			webplsql(pool, {
+			handlerWebPlSql(pool, {
 				defaultPage: i.defaultPage,
 				pathAlias: i.pathAlias,
 				doctable: i.documentTable,

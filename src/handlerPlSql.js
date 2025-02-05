@@ -6,9 +6,9 @@ import debugModule from 'debug';
 const debug = debugModule('webplsql:handlerPlSql');
 
 import url from 'node:url';
-import {processRequest} from '../request.js';
-import {RequestError} from '../requestError.js';
-import {errorPage} from '../errorPage.js';
+import {processRequest} from './request.js';
+import {RequestError} from './requestError.js';
+import {errorPage} from './errorPage.js';
 
 /**
  * @typedef {import('express').RequestHandler} RequestHandler
@@ -16,8 +16,8 @@ import {errorPage} from '../errorPage.js';
  * @typedef {import('express').Response} Response
  * @typedef {import('express').NextFunction} NextFunction
  * @typedef {import('oracledb').Pool} Pool
- * @typedef {import('../types.js').environmentType} environmentType
- * @typedef {import('../types.js').middlewareOptions} middlewareOptions
+ * @typedef {import('./types.js').environmentType} environmentType
+ * @typedef {import('./types.js').middlewareOptions} middlewareOptions
  */
 
 /**
@@ -56,7 +56,7 @@ const requestHandler = async (req, res, next, connectionPool, options) => {
  * @param {Partial<middlewareOptions>} options - The configuration options.
  * @returns {RequestHandler} - The handler.
  */
-const webplsqlMiddleware = (connectionPool, options) => {
+export const handlerWebPlSql = (connectionPool, options) => {
 	debug('options', options);
 
 	/**
@@ -70,5 +70,3 @@ const webplsqlMiddleware = (connectionPool, options) => {
 
 	return handler;
 };
-
-export default webplsqlMiddleware;

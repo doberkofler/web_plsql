@@ -11,7 +11,7 @@ import cookieParser from 'cookie-parser';
 import compression from 'compression';
 import request from 'supertest';
 import * as oracledb from './mock/oracledb.js';
-import webplsql from '../src/handler/handlerPlSql.js';
+import {handlerWebPlSql} from '../src/handlerPlSql.js';
 
 const PORT = 8765;
 const PATH = '/base';
@@ -262,7 +262,7 @@ async function serverStart() {
 		},
 	};
 	//@ts-expect-error NOTE: the connection pool is mocked and cannot have the proper type
-	app.use(`${PATH}/:name?`, webplsql(connectionPool, options));
+	app.use(`${PATH}/:name?`, handlerWebPlSql(connectionPool, options));
 
 	// serving static files
 	const staticResourcesPath = path.join(process.cwd(), 'tests', 'static');

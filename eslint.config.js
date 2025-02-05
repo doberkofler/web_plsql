@@ -12,12 +12,7 @@ const DEBUG = false;
 
 /** @type {ConfigWithExtends} */
 const config_ignore = {
-	ignores: [
-		'**/.*', // ignore all dotfiles
-		'examples/**', // TODO: temporary
-		'node_modules/**',
-		'lib/**',
-	],
+	ignores: ['**/.*', 'examples/**', 'types/**', 'node_modules/**'],
 };
 
 /** @type {ConfigWithExtends} */
