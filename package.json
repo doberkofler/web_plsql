@@ -43,11 +43,10 @@
 	"types": "./types/index.d.ts",
 	"type": "module",
 	"scripts": {
-		"prettier": "prettier --check .",
-		"lint": "eslint . && tsc --noEmit",
+		"lint": "prettier --check . && eslint . && tsc --noEmit",
 		"test": "node --test --test-concurrency=1 \"./tests/**/*.test.js\"",
 		"types": "rm -rf types && tsc  --noEmit false --declaration true --declarationDir types --emitDeclarationOnly true --allowJs true --target es2020 --module es2020 --moduleResolution node src/*.js",
-		"sample": "node examples/sample.js",
+		"clean": "shx rm -f *.tgz && shx rm -f *.log",
 		"ci": "npm run clean && npm run lint && npm run test",
 		"create-package": "shx rm -f *.tgz && npm pack"
 	},

@@ -1,3 +1,4 @@
 # Ignore artifacts:
 *.md
 node_modules
+types
