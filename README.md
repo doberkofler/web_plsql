@@ -21,43 +21,61 @@ Please visit the [node-oracledb](https://node-oracledb.readthedocs.io/en/latest/
 
 # Installing
 * Create and move to a new directory
-* Create a new npm project (`npm init`)
+* Create a new npm project (`npm i`)
 * Install package (`npm i --omit=dev web_plsql`)
 
 # Example
-* Start SQLPLus or SQLcl and connect to the database as SYS specifying the SYSDBA roleInstall and install the sample schema `@examples/sql/install.sql`.
-* Start the sample server using `./run_sample.sh` after having set the ORACLE_SERVER environment variable to the database where you just installed the sample schema.
-* Invoke a browser and open the page `http://localhost/base`
+* Change to the `examples/sql` directory, start SQLPLus, connect to the database as SYS specifying the SYSDBA roleInstall and install the sample schema `@examples/sql/install.sql`.
+* Start the sample server using `node server_sample.js` after having set the ORACLE_SERVER environment variable to the database where you just installed the sample schema.
+* Invoke a browser and open the page `http://localhost/base`.
 
 # Running
+There are 2 main options on how to use the mod_plsql Express middleware:
 
-There are 2 way to use the mod_plsql Express Middleware:
-- Run the predefined Express appplication in `src/server.js`
-- Create a custom Express Application and use the  mod_plsql Express Middleware
+## Make a copy of the `server_sample.js` sample script and configure it accordingly to your needs.
 
-The Express appplication in `src/server.js` can be configured using command line arguments and has the following options:
+The the default server implemented in `src/server.js` and has the following configuration options:
 ```
-Options:
-  --port [integer]              Port to use. If 0, look for open port. (default: "0")
-  --route-app [string]          Application route. (default: "/")
-  --route-static [string]       Static files route. (default: "/static")
-  --route-static-path [string]  Static files path. (default: "/static")
-  --user [string]               Oracle database user (default: "LJ_UNITTEST")
-  --password [string]           Oracle database password (default: "DTRELKMARPAT")
-  --server [string]             Oracle database connect string (default: "127.0.0.1:1521/TEST")
-  --default-page [string]       Default page (default: "")
-  --path-alias [string]         Path alias (default: "")
-  --document-table [string]     Oracle document table (default: "")
-  --error-style [string]        Error style (basic or debug) (default: "basic")
-  --logger                      Enable access log file (default: false)
-  --monitor-console             Enable console status monitor (default: false)
-  --monitor-remote              Enable remote status monitor (default: false)
-  -h, --help                    display help for command
-  ```
+/**
+ * @typedef {'basic' | 'debug'} errorStyleType
+ */
+export const z$errorStyleType = z.enum(['basic', 'debug']);
 
-# The following mod_plsql DAD configuration translates to the web_plsql options as follows:
+/**
+ * @typedef {{alias: string, procedure: string}} pathAliasType
+ */
 
-## DAD
+/**
+ * @typedef {object} configStaticType
+ * @property {string} route - The Static route path.
+ * @property {string} directoryPath - The Static directory.
+ */
+
+/**
+ * @typedef {object} configPlSqlType
+ * @property {string} route - The PL/SQL route path.
+ * @property {string} user - The Oracle username.
+ * @property {string} password - The Oracle password.
+ * @property {string} connectString - The Oracle connect string.
+ * @property {string} defaultPage - The default page.
+ * @property {pathAliasType} [pathAlias] - The path alias.
+ * @property {string} documentTable - The document table.
+ */
+
+/**
+ * @typedef {object} configType
+ * @property {number} port - The server port number.
+ * @property {configStaticType[]} routeStatic - The static routes.
+ * @property {configPlSqlType[]} routePlSql - The PL/SQL routes.
+ * @property {errorStyleType} errorStyle - The error style.
+ * @property {string} loggerFilename - name of the request logger filename or '' if not required.
+ * @property {boolean} monitorConsole - Enable console status monitor.
+ */
+```
+
+The following mod_plsql DAD configuration translates to the configuration options as follows:
+
+**DAD**
 ```
 <Location /pls/sample>
   SetHandler                    pls_handler
@@ -73,20 +91,35 @@ Options:
 </Location>
 ```
 
-## web_plsql
+**mod_plsql**
 ```
-node src/server.js \
-	--port=8080 \
-	--route-app=/sample \
-	--route-static=/static \
-	--route-static-path=examples/static \
-	--user=sample \
-	--password=sample \
-	--server=localhost:1521/ORCL \
-	--default-page=sample.pageIndex \
-	--document-table=doctable \
-	--error-style=debug
+{
+	port: 80,
+	routeStatic: [
+		{
+			route: '/static',
+			directoryPath: 'examples/static',
+		},
+	],
+	routePlSql: [
+		{
+			route: '/sample',
+			user: 'sample',
+			password: 'sample',
+			connectString: 'localhost:1521/ORCL',
+			defaultPage: 'sample.pageIndex',
+			documentTable: 'doctable',
+		},
+	],
+	errorStyle: 'debug',
+	loggerFilename: 'access.log',
+	monitorConsole: false,
+}
 ```
+
+## Create a custom Express application based on the default server implemented in `src/server.js`.
+
+...
 
 # Configuration options
 

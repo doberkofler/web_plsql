@@ -26,6 +26,3 @@ ALTER SESSION SET CURRENT_SCHEMA=&&SAMPLE_USER;
 show errors
 @sample.pkb
 show errors
-
--- show errors
-select * from user_errors;
