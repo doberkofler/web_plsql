@@ -52,7 +52,9 @@ export const isFile = async (filePath) => {
  * @returns {void}
  */
 export const write = (text) => {
-	process.stdout.write(text);
+	if (process.stdout.isTTY) {
+		process.stdout.write(text);
+	}
 };
 
 /**
@@ -61,7 +63,9 @@ export const write = (text) => {
  * @returns {void}
  */
 export const writeNewLine = (text = '') => {
-	process.stdout.write(`${text}\n`);
+	if (process.stdout.isTTY) {
+		process.stdout.write(`${text}\n`);
+	}
 };
 
 /**
@@ -70,9 +74,11 @@ export const writeNewLine = (text = '') => {
  * @returns {void}
  */
 export const writeAfterEraseLine = (text) => {
-	process.stdout.clearLine(0);
-	process.stdout.cursorTo(0);
-	process.stdout.write(text);
+	if (process.stdout.isTTY) {
+		process.stdout.clearLine(0);
+		process.stdout.cursorTo(0);
+		process.stdout.write(text);
+	}
 };
 
 /**
@@ -82,7 +88,9 @@ export const writeAfterEraseLine = (text) => {
  * @returns {void}
  */
 export const writeStartingOnColumn = (text, column) => {
-	process.stdout.cursorTo(column);
-	process.stdout.clearLine(1);
-	process.stdout.write(text);
+	if (process.stdout.isTTY) {
+		process.stdout.cursorTo(column);
+		process.stdout.clearLine(1);
+		process.stdout.write(text);
+	}
 };
