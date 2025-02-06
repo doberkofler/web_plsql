@@ -246,5 +246,5 @@ export type metricsType = {
     /**
      * - The number of requests in the last second.
      */
-    requestsInCurrentSecond: number;
+    requestsInLastInterval: number;
 };
