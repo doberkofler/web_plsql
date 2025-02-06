@@ -13,7 +13,7 @@ const debug = debugModule('webplsql:handlerMetrics');
 export const initMetrics = () => {
 	return {
 		totalRequests: 0,
-		requestsInCurrentSecond: 0,
+		requestsInLastInterval: 0,
 	};
 };
 
@@ -26,11 +26,11 @@ export const handlerMetrics = (metrics) => {
 	debug('register');
 
 	metrics.totalRequests = 0;
-	metrics.requestsInCurrentSecond = 0;
+	metrics.requestsInLastInterval = 0;
 
 	return (req, res, next) => {
 		metrics.totalRequests++;
-		metrics.requestsInCurrentSecond++;
+		metrics.requestsInLastInterval++;
 
 		if (debug.enabled) {
 			const start = process.hrtime();

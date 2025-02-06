@@ -98,11 +98,11 @@ export const startServer = async (config) => {
 	if (config.monitorConsole) {
 		setInterval(() => {
 			// Update requests per second
-			const requestsLastSecond = metrics.requestsInCurrentSecond;
-			metrics.requestsInCurrentSecond = 0;
+			const requestsLastInterval = metrics.requestsInLastInterval;
+			metrics.requestsInLastInterval = 0;
 
 			// Clear console and display metrics
-			writeAfterEraseLine(`Total requests: ${metrics.totalRequests}, requests per second: ${requestsLastSecond}`);
+			writeAfterEraseLine(`Total requests: ${metrics.totalRequests}, requests per second: ${requestsLastInterval}`);
 		}, 1000);
 	}
 

@@ -141,5 +141,5 @@ export const z$configType = z
 /**
  * @typedef {object} metricsType - The metrics.
  * @property {number} totalRequests - The total number of requests.
- * @property {number} requestsInCurrentSecond - The number of requests in the last second.
+ * @property {number} requestsInLastInterval - The number of requests in the last second.
  */
