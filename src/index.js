@@ -12,5 +12,5 @@ export {handlerUpload} from './handlerUpload.js';
 export * from './oracle.js';
 
 // util
-export * from './util.js';
+export * from './tty.js';
 export * from './version.js';

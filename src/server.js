@@ -7,7 +7,7 @@ import cookieParser from 'cookie-parser';
 import compression from 'compression';
 import {z$configType} from './types.js';
 import {installShutdown} from './shutdown.js';
-import {writeAfterEraseLine} from './util.js';
+import {writeAfterEraseLine} from './tty.js';
 import {poolCreate, poolsClose} from '../src/oracle.js';
 import {handlerUpload} from './handlerUpload.js';
 import {handlerLogger} from './handlerLogger.js';

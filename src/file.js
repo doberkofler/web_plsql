@@ -1,6 +1,36 @@
 import {promises as fs, readFileSync} from 'node:fs';
 
 /**
+ * Read file.
+ *
+ * @param {string} filePath - File name.
+ * @returns {Promise<Buffer>} The buffer.
+ */
+export const readFile = (filePath) => {
+	try {
+		return fs.readFile(filePath);
+	} catch (err) {
+		/* istanbul ignore next */
+		throw new Error(`Unable to read file "${filePath}"`);
+	}
+};
+
+/**
+ * Remove file.
+ *
+ * @param {string} filePath - File name.
+ * @returns {Promise<void>}.
+ */
+export const removeFile = (filePath) => {
+	try {
+		return fs.unlink(filePath);
+	} catch (err) {
+		/* istanbul ignore next */
+		throw new Error(`Unable to remove file "${filePath}"`);
+	}
+};
+
+/**
  * Load a json file.
  *
  * @param {string} filePath - File name.
@@ -44,53 +74,4 @@ export const isFile = async (filePath) => {
 	const stats = await fs.stat(filePath);
 
 	return stats.isFile();
-};
-
-/**
- * Write to stdout.
- * @param {string} text - text to write.
- * @returns {void}
- */
-export const write = (text) => {
-	if (process.stdout.isTTY) {
-		process.stdout.write(text);
-	}
-};
-
-/**
- * Write to stdout with new line.
- * @param {string} text - text to write.
- * @returns {void}
- */
-export const writeNewLine = (text = '') => {
-	if (process.stdout.isTTY) {
-		process.stdout.write(`${text}\n`);
-	}
-};
-
-/**
- * Write to stdout after erasing line.
- * @param {string} text - text to write.
- * @returns {void}
- */
-export const writeAfterEraseLine = (text) => {
-	if (process.stdout.isTTY) {
-		process.stdout.clearLine(0);
-		process.stdout.cursorTo(0);
-		process.stdout.write(text);
-	}
-};
-
-/**
- * Write to stdout starting a column.
- * @param {string} text - text to write.
- * @param {number} column - column.
- * @returns {void}
- */
-export const writeStartingOnColumn = (text, column) => {
-	if (process.stdout.isTTY) {
-		process.stdout.cursorTo(column);
-		process.stdout.clearLine(1);
-		process.stdout.write(text);
-	}
 };

@@ -7,6 +7,7 @@ import escape from 'escape-html';
 import {ProcedureError} from './procedureError.js';
 import {RequestError} from './requestError.js';
 import {inspectRequest, logToFile} from './trace.js';
+import {errorToString} from './error.js';
 
 /**
  * @typedef {import('express').Request} Request
@@ -82,10 +83,10 @@ const getEnvironment = (output, environment) => {
 		}
 	} catch (err) {
 		/* istanbul ignore next */
-		output.html += err instanceof Error ? err.toString() : 'ERROR';
+		output.html += errorToString(err);
 
 		/* istanbul ignore next */
-		output.text += err instanceof Error ? err.toString() : 'ERROR';
+		output.text += errorToString(err);
 
 		/* istanbul ignore next */
 		return;
@@ -127,7 +128,7 @@ const getError = (req, error) => {
 		message = error.stack ?? '';
 	} else if (error instanceof Error) {
 		/* istanbul ignore next */
-		message = error.stack ?? '';
+		message = errorToString(error);
 	} else {
 		if (typeof error === 'string') {
 			/* istanbul ignore next */
@@ -138,7 +139,7 @@ const getError = (req, error) => {
 			new Error();
 		} catch (err) {
 			/* istanbul ignore next */
-			message += err instanceof Error ? (err.stack ?? '') : '';
+			message += errorToString(err);
 		}
 	}
 
@@ -271,7 +272,7 @@ export const errorPage = (req, res, options, error) => {
 		const header = 'ERROR';
 
 		/* istanbul ignore next */
-		const message = err instanceof Error ? `${err.message}\n${err.stack}` : JSON.stringify(err);
+		const message = errorToString(err);
 
 		/* istanbul ignore next */
 		output.html += getHeaderHtml(header) + getHtml(message);

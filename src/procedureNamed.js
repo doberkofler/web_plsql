@@ -9,6 +9,7 @@ import oracledb from 'oracledb';
 import z from 'zod';
 import {sanitizeProcName} from './procedureSanitize.js';
 import {RequestError} from './requestError.js';
+import {errorToString} from './error.js';
 
 /**
  * @typedef {Record<string, string>} argsType
@@ -71,7 +72,7 @@ const loadArguments = async (procedure, databaseConnection) => {
 	} catch (err) {
 		debug('result', result);
 		/* istanbul ignore next */
-		const message = `Error when retrieving arguments\n${SQL_GET_ARGUMENT}\n${err instanceof Error ? err.stack : ''}`;
+		const message = `Error when retrieving arguments\n${SQL_GET_ARGUMENT}\n${errorToString(err)}`;
 		/* istanbul ignore next */
 		throw new RequestError(message);
 	}
@@ -88,7 +89,7 @@ const loadArguments = async (procedure, databaseConnection) => {
 	} catch (err) {
 		debug('result.outBinds', result.outBinds);
 		/* istanbul ignore next */
-		const message = `Error when decoding arguments\n${SQL_GET_ARGUMENT}\n${err instanceof Error ? err.stack : ''}`;
+		const message = `Error when decoding arguments\n${SQL_GET_ARGUMENT}\n${errorToString(err)}`;
 		/* istanbul ignore next */
 		throw new RequestError(message);
 	}

@@ -17,6 +17,7 @@ import {parsePage} from './parsePage.js';
 import {sendResponse} from './sendResponse.js';
 import {ProcedureError} from './procedureError.js';
 import {inspect, getBlock} from './trace.js';
+import {errorToString} from './error.js';
 
 /**
  * @typedef {import('express').Request} Request
@@ -165,7 +166,7 @@ export const invokeProcedure = async (req, res, argObj, cgiObj, filesToUpload, o
 			debug(getBlock('results', inspect(result)));
 		}
 
-		throw new ProcedureError(`Error when executing procedure\n${sqlStatement}\n${err instanceof Error ? err.toString() : ''}`, cgiObj, para.sql, para.bind);
+		throw new ProcedureError(`Error when executing procedure\n${sqlStatement}\n${errorToString(err)}`, cgiObj, para.sql, para.bind);
 	}
 
 	//

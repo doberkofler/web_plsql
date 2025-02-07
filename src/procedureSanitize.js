@@ -4,6 +4,7 @@ const debug = debugModule('webplsql:procedureSanitize');
 import oracledb from 'oracledb';
 import z from 'zod';
 import {RequestError} from './requestError.js';
+import {errorToString} from './error.js';
 
 /**
  * @typedef {import('express').Request} Request
@@ -128,7 +129,7 @@ const loadRequestValid = async (procName, requestValidationFunction, databaseCon
 	} catch (err) {
 		debug('result', result);
 		/* istanbul ignore next */
-		const message = `Error when validating procedure name "${procName}"\n${SQL}\n${err instanceof Error ? err.stack : ''}`;
+		const message = `Error when validating procedure name "${procName}"\n${SQL}\n${errorToString(err)}`;
 		/* istanbul ignore next */
 		throw new RequestError(message);
 	}
@@ -139,7 +140,7 @@ const loadRequestValid = async (procName, requestValidationFunction, databaseCon
 	} catch (err) {
 		debug('result', result.outBinds);
 		/* istanbul ignore next */
-		const message = `Internal error when parsing ${result.outBinds}\n${err instanceof Error ? err.stack : ''}`;
+		const message = `Internal error when parsing ${result.outBinds}\n${errorToString(err)}`;
 		/* istanbul ignore next */
 		throw new Error(message);
 	}

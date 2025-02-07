@@ -21,7 +21,7 @@ GRANT execute on dbms_lock TO &&SAMPLE_USER;
 ALTER SESSION SET CURRENT_SCHEMA=&&SAMPLE_USER;
 
 -- install document table
-@doc_table.sql
+@doctable.sql
 
 -- install package
 @sample_package.sql

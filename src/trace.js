@@ -2,9 +2,18 @@
  *	Trace utilities
  */
 
-import util from 'node:util';
 import * as rotatingFileStream from 'rotating-file-stream';
 import express from 'express';
+import util from 'node:util';
+
+/**
+ * Return a string representation of the value.
+ *
+ * @param {unknown} value - Any value.
+ * @param {number | null} depth - Specifies the number of times to recurse while formatting object..
+ * @returns {string} - The string representation.
+ */
+export const inspect = (value, depth = null) => util.inspect(value, {showHidden: false, depth, colors: false});
 
 /**
  * Log text to the console and to a file.
@@ -23,15 +32,6 @@ export const logToFile = (text) => {
 	fs.write(text);
 	fs.end();
 };
-
-/**
- * Return a string representation of the value.
- *
- * @param {unknown} value - Any value.
- * @param {number | null} depth - Specifies the number of times to recurse while formatting object..
- * @returns {string} - The string representation.
- */
-export const inspect = (value, depth = null) => util.inspect(value, {showHidden: false, depth, colors: false});
 
 /**
  * Return a string representation of the request.

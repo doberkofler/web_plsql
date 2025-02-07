@@ -7,7 +7,7 @@
 import debugModule from 'debug';
 const debug = debugModule('webplsql:fileUpload');
 
-import {readFile, unlink} from 'fs/promises';
+import {readFile, removeFile} from './file.js';
 import oracledb from 'oracledb';
 import z from 'zod';
 
@@ -66,21 +66,13 @@ export const getFiles = (req) => {
 export const uploadFile = async (file, doctable, databaseConnection) => {
 	/* istanbul ignore next */
 	if (typeof doctable !== 'string' || doctable.length === 0) {
-		console.warn(`Unable to upload file "${file.filename}" because the option ""doctable" has not been defined`);
-		return;
+		throw new Error(`Unable to upload file "${file.filename}" because the option ""doctable" has not been defined`);
 	}
 
-	let blobContent;
-	try {
-		blobContent = await readFile(file.path);
-	} catch (err) {
-		/* istanbul ignore next */
-		throw new Error(`Unable to read file "${file.path}"\n${err instanceof Error ? err.toString() : ''}`);
-	}
-
+	const blobContent = await readFile(file.path);
 	const sql = `INSERT INTO ${doctable} (name, mime_type, doc_size, dad_charset, last_updated, content_type, blob_content) VALUES (:name, :mime_type, :doc_size, 'ascii', SYSDATE, 'BLOB', :blob_content)`;
 	const bind = {
-		name: file.fieldname,
+		name: file.filename,
 		mime_type: file.mimetype,
 		doc_size: file.size,
 		blob_content: {
@@ -92,14 +84,9 @@ export const uploadFile = async (file, doctable, databaseConnection) => {
 	try {
 		await databaseConnection.execute(sql, bind, {autoCommit: true});
 	} catch (err) {
-		throw new Error(`Unable to insert file "${file.filename}"\n${err instanceof Error ? err.toString() : ''}`);
+		throw new Error(`Unable to insert file "${file.filename}"}`);
 	}
 
 	// remove the file
-	try {
-		await unlink(file.path);
-	} catch (err) {
-		/* istanbul ignore next */
-		throw new Error(`Unable to remove file "${file.path}"\n${err instanceof Error ? err.toString() : ''}`);
-	}
+	await removeFile(file.path);
 };

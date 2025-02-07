@@ -1,6 +1,6 @@
 import {fileURLToPath} from 'node:url';
 import {dirname, join} from 'node:path';
-import {getJsonFile} from './util.js';
+import {getJsonFile} from './file.js';
 
 /**
  * @typedef {object} PackageJSON

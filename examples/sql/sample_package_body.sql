@@ -145,7 +145,7 @@ PROCEDURE page_file_upload
 IS
 BEGIN
 	open_page('web_plsql - File upload');
-	htp.p('<form enctype="multipart/form-data" method="POST" action="sample_pkg.page_file_uploaded">');
+	htp.p('<form enctype="multipart/form-data" method="POST" action="!sample_pkg.page_file_uploaded">');
 	htp.p('<p>File 1: <input type="file" name="file1" /></p>');
 	htp.p('<p>File 2: <input type="file" name="file2" /></p>');
 	htp.p('<p>File 3: <input type="file" name="file3" /></p>');
