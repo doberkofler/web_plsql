@@ -6,10 +6,6 @@
  */
 export const z$errorStyleType: any;
 /**
- * @typedef {{alias: string, procedure: string}} pathAliasType
- */
-export const z$pathAliasType: any;
-/**
  * @typedef {object} configStaticType
  * @property {string} route - The Static route path.
  * @property {string} directoryPath - The Static directory.
@@ -22,8 +18,13 @@ export const z$configStaticType: any;
  * @property {string} password - The Oracle password.
  * @property {string} connectString - The Oracle connect string.
  * @property {string} defaultPage - The default page.
- * @property {pathAliasType} [pathAlias] - The path alias.
+ * @property {string} [pathAlias] - The path alias.
+ * @property {string} [pathAliasProcedure] - The path alias.
  * @property {string} documentTable - The document table.
+ * @property {string[]} [exclusionList] - The exclusion list.
+ * @property {string} [requestValidationFunction] - The request validation function.
+ * @property {Record<string, string>} [cgi] - The additional CGI.
+ * @property {errorStyleType} errorStyle - The error style.
  */
 export const z$configPlSqlType: any;
 /**
@@ -31,17 +32,12 @@ export const z$configPlSqlType: any;
  * @property {number} port - The server port number.
  * @property {configStaticType[]} routeStatic - The static routes.
  * @property {configPlSqlType[]} routePlSql - The PL/SQL routes.
- * @property {errorStyleType} errorStyle - The error style.
  * @property {string} loggerFilename - name of the request logger filename or '' if not required.
  * @property {boolean} monitorConsole - Enable console status monitor.
  */
 export const z$configType: any;
 export type BindParameter = import("oracledb").BindParameter;
 export type errorStyleType = "basic" | "debug";
-export type pathAliasType = {
-    alias: string;
-    procedure: string;
-};
 export type configStaticType = {
     /**
      * - The Static route path.
@@ -76,11 +72,31 @@ export type configPlSqlType = {
     /**
      * - The path alias.
      */
-    pathAlias?: pathAliasType;
+    pathAlias?: string;
+    /**
+     * - The path alias.
+     */
+    pathAliasProcedure?: string;
     /**
      * - The document table.
      */
     documentTable: string;
+    /**
+     * - The exclusion list.
+     */
+    exclusionList?: string[];
+    /**
+     * - The request validation function.
+     */
+    requestValidationFunction?: string;
+    /**
+     * - The additional CGI.
+     */
+    cgi?: Record<string, string>;
+    /**
+     * - The error style.
+     */
+    errorStyle: errorStyleType;
 };
 export type configType = {
     /**
@@ -96,10 +112,6 @@ export type configType = {
      */
     routePlSql: configPlSqlType[];
     /**
-     * - The error style.
-     */
-    errorStyle: errorStyleType;
-    /**
      * - name of the request logger filename or '' if not required.
      */
     loggerFilename: string;
@@ -107,28 +119,6 @@ export type configType = {
      * - Enable console status monitor.
      */
     monitorConsole: boolean;
-};
-export type configPlSqlType = {
-    /**
-     * - The default page.
-     */
-    defaultPage?: string;
-    /**
-     * - The document table.
-     */
-    doctable?: string;
-    /**
-     * - Additional CGI environment variables.
-     */
-    cgi?: environmentType;
-    /**
-     * - The path alias.
-     */
-    pathAlias?: pathAliasType;
-    /**
-     * - The error style.
-     */
-    errorStyle?: errorStyleType;
 };
 /**
  * Environment variables as string key-value pairs

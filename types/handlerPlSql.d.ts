@@ -1,4 +1,4 @@
-export function handlerWebPlSql(connectionPool: Pool, options: Partial<configPlSqlType>): RequestHandler;
+export function handlerWebPlSql(connectionPool: Pool, config: configPlSqlType): RequestHandler;
 export type RequestHandler = import("express").RequestHandler;
 export type Request = import("express").Request;
 export type Response = import("express").Response;
