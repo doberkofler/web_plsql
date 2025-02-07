@@ -13,7 +13,7 @@ import {RequestError} from './requestError.js';
  * @typedef {import('./types.js').argObjType} argObjType
  * @typedef {import('./types.js').fileUploadType} fileUploadType
  * @typedef {import('./types.js').environmentType} environmentType
- * @typedef {import('./types.js').configPlSqlType} configPlSqlType
+ * @typedef {import('./types.js').configPlSqlHandlerType} configPlSqlHandlerType
  * @typedef {import('./types.js').BindParameterConfig} BindParameterConfig
  */
 
@@ -32,7 +32,7 @@ const REQUEST_VALIDATION_FUNCTION_CACHE_MAX_COUNT = 10000;
  *
  * @param {string} procName - The procedure name.
  * @param {Connection} databaseConnection - The database connection
- * @param {configPlSqlType} options - the options for the middleware.
+ * @param {configPlSqlHandlerType} options - the options for the middleware.
  * @returns {Promise<string>} Promise resolving to final procedure name.
  */
 export const sanitizeProcName = async (procName, databaseConnection, options) => {

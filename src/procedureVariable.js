@@ -11,7 +11,7 @@ import {sanitizeProcName} from './procedureSanitize.js';
 /**
  * @typedef {import('oracledb').Connection} Connection
  * @typedef {import('oracledb').Result<unknown>} Result
- * @typedef {import('./types.js').configPlSqlType} configPlSqlType
+ * @typedef {import('./types.js').configPlSqlHandlerType} configPlSqlHandlerType
  * @typedef {import('./types.js').argObjType} argObjType
  * @typedef {import('./types.js').BindParameterConfig} BindParameterConfig
  */
@@ -21,7 +21,7 @@ import {sanitizeProcName} from './procedureSanitize.js';
  * @param {string} procName - The procedure to execute
  * @param {argObjType} argObj - The arguments to pass to the procedure
  * @param {Connection} databaseConnection - The database connection
- * @param {configPlSqlType} options - the options for the middleware.
+ * @param {configPlSqlHandlerType} options - the options for the middleware.
  * @returns {Promise<{sql: string; bind: BindParameterConfig}>} - The SQL statement and bindings for the procedure to execute
  */
 export const getProcedureVariable = async (procName, argObj, databaseConnection, options) => {

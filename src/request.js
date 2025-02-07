@@ -17,7 +17,7 @@ import {RequestError} from './requestError.js';
  * @typedef {import('oracledb').Pool} Pool
  * @typedef {import('oracledb').Connection} Connection
  * @typedef {import('./types.js').argObjType} argObjType
- * @typedef {import('./types.js').configPlSqlType} configPlSqlType
+ * @typedef {import('./types.js').configPlSqlHandlerType} configPlSqlHandlerType
  */
 
 /**
@@ -25,7 +25,7 @@ import {RequestError} from './requestError.js';
  *
  * @param {Request} req - The req object represents the HTTP request.
  * @param {Response} res - The res object represents the HTTP response that an Express app sends when it gets an HTTP request.
- * @param {configPlSqlType} options - the options for the middleware.
+ * @param {configPlSqlHandlerType} options - the options for the middleware.
  * @param {Pool} connectionPool - The connection pool.
  * @returns {Promise<void>} - Promise resolving to th page
  */

@@ -22,11 +22,7 @@ export const z$configStaticType = z
 	.strict();
 
 /**
- * @typedef {object} configPlSqlType
- * @property {string} route - The PL/SQL route path.
- * @property {string} user - The Oracle username.
- * @property {string} password - The Oracle password.
- * @property {string} connectString - The Oracle connect string.
+ * @typedef {object} configPlSqlHandlerType
  * @property {string} defaultPage - The default page.
  * @property {string} [pathAlias] - The path alias.
  * @property {string} [pathAliasProcedure] - The path alias.
@@ -36,12 +32,8 @@ export const z$configStaticType = z
  * @property {Record<string, string>} [cgi] - The additional CGI.
  * @property {errorStyleType} errorStyle - The error style.
  */
-export const z$configPlSqlType = z
+export const z$configPlSqlHandlerType = z
 	.object({
-		route: z.string(),
-		user: z.string(),
-		password: z.string(),
-		connectString: z.string(),
 		defaultPage: z.string(),
 		pathAlias: z.string().optional(),
 		pathAliasProcedure: z.string().optional(),
@@ -51,6 +43,27 @@ export const z$configPlSqlType = z
 		errorStyle: z$errorStyleType,
 	})
 	.strict();
+
+/**
+ * @typedef {object} configPlSqlConfigType
+ * @property {string} route - The PL/SQL route path.
+ * @property {string} user - The Oracle username.
+ * @property {string} password - The Oracle password.
+ * @property {string} connectString - The Oracle connect string.
+ */
+export const z$configPlSqlConfigType = z
+	.object({
+		route: z.string(),
+		user: z.string(),
+		password: z.string(),
+		connectString: z.string(),
+	})
+	.strict();
+
+/**
+ * @typedef {configPlSqlHandlerType & configPlSqlConfigType} configPlSqlType
+ */
+export const z$configPlSqlType = z$configPlSqlHandlerType.merge(z$configPlSqlConfigType);
 
 /**
  * @typedef {object} configType

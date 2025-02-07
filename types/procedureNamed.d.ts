@@ -1,4 +1,4 @@
-export function getProcedureNamed(procName: string, argObj: argObjType, databaseConnection: Connection, options: configPlSqlType): Promise<{
+export function getProcedureNamed(procName: string, argObj: argObjType, databaseConnection: Connection, options: configPlSqlHandlerType): Promise<{
     sql: string;
     bind: BindParameterConfig;
 }>;
@@ -9,6 +9,6 @@ export type cacheEntryType = {
 };
 export type Connection = import("oracledb").Connection;
 export type Result = import("oracledb").Result<unknown>;
-export type configPlSqlType = import("./types.js").configPlSqlType;
+export type configPlSqlHandlerType = import("./types.js").configPlSqlHandlerType;
 export type argObjType = import("./types.js").argObjType;
 export type BindParameterConfig = import("./types.js").BindParameterConfig;

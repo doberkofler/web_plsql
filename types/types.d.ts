@@ -12,11 +12,7 @@ export const z$errorStyleType: any;
  */
 export const z$configStaticType: any;
 /**
- * @typedef {object} configPlSqlType
- * @property {string} route - The PL/SQL route path.
- * @property {string} user - The Oracle username.
- * @property {string} password - The Oracle password.
- * @property {string} connectString - The Oracle connect string.
+ * @typedef {object} configPlSqlHandlerType
  * @property {string} defaultPage - The default page.
  * @property {string} [pathAlias] - The path alias.
  * @property {string} [pathAliasProcedure] - The path alias.
@@ -25,6 +21,18 @@ export const z$configStaticType: any;
  * @property {string} [requestValidationFunction] - The request validation function.
  * @property {Record<string, string>} [cgi] - The additional CGI.
  * @property {errorStyleType} errorStyle - The error style.
+ */
+export const z$configPlSqlHandlerType: any;
+/**
+ * @typedef {object} configPlSqlConfigType
+ * @property {string} route - The PL/SQL route path.
+ * @property {string} user - The Oracle username.
+ * @property {string} password - The Oracle password.
+ * @property {string} connectString - The Oracle connect string.
+ */
+export const z$configPlSqlConfigType: any;
+/**
+ * @typedef {configPlSqlHandlerType & configPlSqlConfigType} configPlSqlType
  */
 export const z$configPlSqlType: any;
 /**
@@ -48,23 +56,7 @@ export type configStaticType = {
      */
     directoryPath: string;
 };
-export type configPlSqlType = {
-    /**
-     * - The PL/SQL route path.
-     */
-    route: string;
-    /**
-     * - The Oracle username.
-     */
-    user: string;
-    /**
-     * - The Oracle password.
-     */
-    password: string;
-    /**
-     * - The Oracle connect string.
-     */
-    connectString: string;
+export type configPlSqlHandlerType = {
     /**
      * - The default page.
      */
@@ -98,6 +90,25 @@ export type configPlSqlType = {
      */
     errorStyle: errorStyleType;
 };
+export type configPlSqlConfigType = {
+    /**
+     * - The PL/SQL route path.
+     */
+    route: string;
+    /**
+     * - The Oracle username.
+     */
+    user: string;
+    /**
+     * - The Oracle password.
+     */
+    password: string;
+    /**
+     * - The Oracle connect string.
+     */
+    connectString: string;
+};
+export type configPlSqlType = configPlSqlHandlerType & configPlSqlConfigType;
 export type configType = {
     /**
      * - The server port number.

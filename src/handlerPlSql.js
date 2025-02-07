@@ -17,7 +17,7 @@ import {errorPage} from './errorPage.js';
  * @typedef {import('express').NextFunction} NextFunction
  * @typedef {import('oracledb').Pool} Pool
  * @typedef {import('./types.js').environmentType} environmentType
- * @typedef {import('./types.js').configPlSqlType} configPlSqlType
+ * @typedef {import('./types.js').configPlSqlHandlerType} configPlSqlHandlerType
  */
 
 /**
@@ -26,7 +26,7 @@ import {errorPage} from './errorPage.js';
  * @param {Response} res - The res object represents the HTTP response that an Express app sends when it gets an HTTP request.
  * @param {NextFunction} next - The next function.
  * @param {Pool} connectionPool - The connection pool.
- * @param {configPlSqlType} options - the options for the middleware.
+ * @param {configPlSqlHandlerType} options - the options for the middleware.
  */
 const requestHandler = async (req, res, next, connectionPool, options) => {
 	try {
@@ -53,7 +53,7 @@ const requestHandler = async (req, res, next, connectionPool, options) => {
  * Express middleware.
  *
  * @param {Pool} connectionPool - The connection pool.
- * @param {configPlSqlType} config - The configuration options.
+ * @param {configPlSqlHandlerType} config - The configuration options.
  * @returns {RequestHandler} - The handler.
  */
 export const handlerWebPlSql = (connectionPool, config) => {
