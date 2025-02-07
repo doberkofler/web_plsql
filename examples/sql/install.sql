@@ -1,3 +1,5 @@
+set echo on termout on
+
 -- set the username
 define SAMPLE_USER=sample
 
@@ -21,8 +23,8 @@ ALTER SESSION SET CURRENT_SCHEMA=&&SAMPLE_USER;
 -- install document table
 @doc_table.sql
 
--- install demo
-@sample.pks
+-- install package
+@sample_package.sql
 show errors
-@sample.pkb
+@sample_package_body.sql
 show errors

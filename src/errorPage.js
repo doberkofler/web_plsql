@@ -13,7 +13,7 @@ import {inspectRequest, logToFile} from './trace.js';
  * @typedef {import('express').Response} Response
  * @typedef {import('./types.js').BindParameterConfig} BindParameterConfig
  * @typedef {import('./types.js').environmentType} environmentType
- * @typedef {import('./types.js').middlewareOptions} middlewareOptions
+ * @typedef {import('./types.js').configPlSqlType} configPlSqlType
  * @typedef {{html: string; text: string}} outputType
  */
 
@@ -254,7 +254,7 @@ ${body}
  *
  * @param {Request} req - The req object represents the HTTP request.
  * @param {Response} res - The res object represents the HTTP response that an Express app sends when it gets an HTTP request.
- * @param {middlewareOptions} options - The configuration options.
+ * @param {configPlSqlType} options - The configuration options.
  * @param {unknown} error - The error.
  */
 export const errorPage = (req, res, options, error) => {

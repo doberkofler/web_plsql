@@ -20,7 +20,7 @@ const DOC_TABLE = 'docTable';
 
 /**
  * @typedef {import('../src/types.js').BindParameterConfig} BindParameterConfig
- * @typedef {import('../src/types.js').middlewareOptions} middlewareOptions
+ * @typedef {import('../src/types.js').configPlSqlType} configPlSqlType
  * @typedef {{name: string, value: string | string[]}[]} paraType
  */
 
@@ -252,14 +252,12 @@ async function serverStart() {
 	app.use(compression());
 
 	// add the oracle pl/sql express middleware
-	/** @type {Partial<middlewareOptions>} */
+	/** @type {Partial<configPlSqlType>} */
 	const options = {
 		defaultPage: DEFAULT_PAGE,
-		doctable: DOC_TABLE,
-		pathAlias: {
-			alias: 'alias',
-			procedure: 'pathAlias',
-		},
+		documentTable: DOC_TABLE,
+		pathAlias: 'alias',
+		pathAliasProcedure: 'pathAlias',
 	};
 	//@ts-expect-error NOTE: the connection pool is mocked and cannot have the proper type
 	app.use(`${PATH}/:name?`, handlerWebPlSql(connectionPool, options));
@@ -301,7 +299,7 @@ function sqlExecuteProxy(config) {
 	 *	@returns {unknown}
 	 */
 	const sqlExecuteProxyCallback = (sql, bindParams) => {
-		if (sql.includes('dbms_utility.name_resolve')) {
+		if (sql.toLowerCase().includes('dbms_utility.name_resolve')) {
 			/** @type {{outBinds: {names: string[], types: string[]}}} */
 			const noPara = {
 				outBinds: {
@@ -319,7 +317,7 @@ function sqlExecuteProxy(config) {
 					}, noPara);
 		}
 
-		if (sql.includes(config.proc)) {
+		if (sql.toLowerCase().includes(config.proc.toLowerCase())) {
 			if (typeof config.para !== 'undefined') {
 				if (!parameterEqual(sql, bindParams, config.para)) {
 					console.error(`===> Parameter mismatch\n${'-'.repeat(30)}\n${util.inspect(bindParams)}\n${'-'.repeat(30)}`);
@@ -339,7 +337,7 @@ function sqlExecuteProxy(config) {
 			};
 		}
 
-		if (sql.startsWith('INSERT INTO')) {
+		if (sql.toLowerCase().startsWith('insert into')) {
 			return {
 				rowsAffected: 1,
 			};

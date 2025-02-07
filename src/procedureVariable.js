@@ -6,22 +6,27 @@ import debugModule from 'debug';
 const debug = debugModule('webplsql:procedureVariable');
 
 import oracledb from 'oracledb';
+import {sanitizeProcName} from './procedureSanitize.js';
 
 /**
+ * @typedef {import('oracledb').Connection} Connection
  * @typedef {import('oracledb').Result<unknown>} Result
+ * @typedef {import('./types.js').configPlSqlType} configPlSqlType
  * @typedef {import('./types.js').argObjType} argObjType
  * @typedef {import('./types.js').BindParameterConfig} BindParameterConfig
  */
 
 /**
  * Get the sql statement and bindings for the procedure to execute for a variable number of arguments
- * @param {string} procedure - The procedure to execute
+ * @param {string} procName - The procedure to execute
  * @param {argObjType} argObj - The arguments to pass to the procedure
- * @returns {{sql: string; bind: BindParameterConfig}} - The SQL statement and bindings for the procedure to execute
+ * @param {Connection} databaseConnection - The database connection
+ * @param {configPlSqlType} options - the options for the middleware.
+ * @returns {Promise<{sql: string; bind: BindParameterConfig}>} - The SQL statement and bindings for the procedure to execute
  */
-export const getProcedureVariable = (procedure, argObj) => {
+export const getProcedureVariable = async (procName, argObj, databaseConnection, options) => {
 	if (debug.enabled) {
-		debug(`getProcedureVariable: ${procedure} arguments=`, argObj);
+		debug(`getProcedureVariable: ${procName} arguments=`, argObj);
 	}
 
 	const names = [];
@@ -40,8 +45,10 @@ export const getProcedureVariable = (procedure, argObj) => {
 		}
 	}
 
+	const sanitizedProcName = await sanitizeProcName(procName, databaseConnection, options);
+
 	return {
-		sql: `${procedure}(:argnames, :argvalues);`,
+		sql: `${sanitizedProcName}(:argnames, :argvalues);`,
 		bind: {
 			argnames: {dir: oracledb.BIND_IN, type: oracledb.STRING, val: names},
 			argvalues: {dir: oracledb.BIND_IN, type: oracledb.STRING, val: values},

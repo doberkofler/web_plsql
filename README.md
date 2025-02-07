@@ -26,8 +26,8 @@ Please visit the [node-oracledb](https://node-oracledb.readthedocs.io/en/latest/
 
 # Example
 * Change to the `examples/sql` directory, start SQLPLus, connect to the database as SYS specifying the SYSDBA roleInstall and install the sample schema `@examples/sql/install.sql`.
-* Start the sample server using `node server_sample.js` after having set the ORACLE_SERVER environment variable to the database where you just installed the sample schema.
-* Invoke a browser and open the page `http://localhost/base`.
+* Start the sample server using `node examples/server_sample.js` after having set the ORACLE_SERVER environment variable to the database where you just installed the sample schema.
+* Invoke a browser and open the page `http://localhost/sample`.
 
 # Running
 There are 2 main options on how to use the mod_plsql Express middleware:
@@ -78,16 +78,20 @@ The following mod_plsql DAD configuration translates to the configuration option
 **DAD**
 ```
 <Location /pls/sample>
-  SetHandler                    pls_handler
-  Order                         deny,allow
-  Allow                         from all
-  PlsqlDatabaseUsername         sample
-  PlsqlDatabasePassword         sample
-  PlsqlDatabaseConnectString    localhost:1521/ORCL
-  PlsqlDefaultPage              sample.pageIndex
-  PlsqlDocumentTablename        doctable
-  PlsqlErrorStyle               DebugStyle
-  PlsqlNlsLanguage              AMERICAN_AMERICA.UTF8
+  SetHandler                     pls_handler
+  Order                          deny,allow
+  Allow                          from all
+  PlsqlDatabaseUsername          sample
+  PlsqlDatabasePassword          sample
+  PlsqlDatabaseConnectString     localhost:1521/ORCL
+  PlsqlDefaultPage               sample_pkg.pageIndex
+  PlsqlDocumentTablename         doctable
+  PlsqlPathAlias                 myalias
+  PlsqlPathAliasProcedure        sample_pkg.page_path_alias
+  PlsqlExclusionList             sample_pkg.page_exclusion_list
+  PlsqlRequestValidationFunction sample_pkg.request_validation_function
+  PlsqlErrorStyle                DebugStyle
+  PlsqlNlsLanguage               AMERICAN_AMERICA.UTF8
 </Location>
 ```
 
@@ -104,15 +108,19 @@ The following mod_plsql DAD configuration translates to the configuration option
 	routePlSql: [
 		{
 			route: '/sample',
-			user: 'sample',
-			password: 'sample',
-			connectString: 'localhost:1521/ORCL',
-			defaultPage: 'sample.pageIndex',
-			documentTable: 'doctable',
+			user: 'sample', // PlsqlDatabaseUserName
+			password: 'sample', // PlsqlDatabasePassword
+			connectString: 'localhost:1521/ORCL', // PlsqlDatabaseConnectString
+			defaultPage: 'sample_pkg.page_index', // PlsqlDefaultPage
+			documentTable: 'doctable', // PlsqlDocumentTablename
+			exclusionList: ['sample_pkg.page_exclusion_list'], // PlsqlExclusionList
+			requestValidationFunction: 'sample_pkg.request_validation_function', // PlsqlRequestValidationFunction
+			pathAlias: 'myalias', // PlsqlPathAlias
+			pathAliasProcedure: 'sample_pkg.page_path_alias', // PlsqlPathAliasProcedure
+			errorStyle: 'debug', // PlsqlErrorStyle
 		},
 	],
-	errorStyle: 'debug',
-	loggerFilename: 'access.log',
+	loggerFilename: 'access.log', // PlsqlLogEnable and PlsqlLogDirectory
 	monitorConsole: false,
 }
 ```
@@ -124,18 +132,26 @@ The following mod_plsql DAD configuration translates to the configuration option
 # Configuration options
 
 ## Supported mod_plsql configuration options
-- PlsqlDatabaseConnectString -> specified when creating the oracledb connection pool
-- PlsqlDatabaseUserName -> specified when creating the oracledb connection pool
-- PlsqlDatabasePassword -> specified when creating the oracledb connection pool
-- PlsqlDefaultPage -> use the "doctable" configuration option
-- PlsqlDocumentTablename -> use the "defaultPage" configuration option
-- PlsqlErrorStyle -> use the "errorStyle" configuration option
-- PlsqlLogEnable -> use a HTTP request logger middleware for node.js like morgan
-- PlsqlLogDirectory -> use a HTTP request logger middleware for node.js like morgan
-- PlsqlPathAlias -> use the "pathAlias.alias" configuration option
-- PlsqlPathAliasProcedure -> use the "pathAlias.procedure" configuration option
+- PlsqlDatabaseConnectString
+- PlsqlDatabaseUserName
+- PlsqlDatabasePassword
+- PlsqlDefaultPage
+- PlsqlDocumentTablename
+- PlsqlErrorStyle
+- PlsqlLogEnable
+- PlsqlLogDirectory
+- PlsqlPathAlias
+- PlsqlPathAliasProcedure
+- Default exclusion list.
+- PlsqlRequestValidationFunction
+- PlsqlExclusionList
+- Basic and custom authentication methods, based on the OWA_SEC package and custom packages.
+
+## Features that are planned to be available in web_plsql
+- Support for APEX 5 or greater.
 
 ## Configuration options that will not be supported:
+- PlsqlDocumentProcedure
 - PlsqlAfterProcedure
 - PlsqlAlwaysDescribeProcedure
 - PlsqlBeforeProcedure
@@ -145,14 +161,6 @@ The following mod_plsql DAD configuration translates to the configuration option
 - PlsqlSessionCookieName
 - PlsqlSessionStateManagement
 - PlsqlTransferMode
-
-## Features that are planned to be available in web_plsql
-- PlsqlDocumentProcedure
-- PlsqlExclusionList
-- PlsqlRequestValidationFunction
-- Support for APEX 5.
-- Default exclusion list.
-- Basic and custom authentication methods, based on the OWA_SEC package and custom packages.
 
 
 # License

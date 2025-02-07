@@ -108,7 +108,7 @@ export type configType = {
      */
     monitorConsole: boolean;
 };
-export type middlewareOptions = {
+export type configPlSqlType = {
     /**
      * - The default page.
      */

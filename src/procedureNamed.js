@@ -7,6 +7,7 @@ const debug = debugModule('webplsql:procedureNamed');
 
 import oracledb from 'oracledb';
 import z from 'zod';
+import {sanitizeProcName} from './procedureSanitize.js';
 import {RequestError} from './requestError.js';
 
 /**
@@ -17,6 +18,7 @@ import {RequestError} from './requestError.js';
 /**
  * @typedef {import('oracledb').Connection} Connection
  * @typedef {import('oracledb').Result<unknown>} Result
+ * @typedef {import('./types.js').configPlSqlType} configPlSqlType
  * @typedef {import('./types.js').argObjType} argObjType
  * @typedef {import('./types.js').BindParameterConfig} BindParameterConfig
  */
@@ -39,7 +41,7 @@ const SQL_GET_ARGUMENT = [
 	'END;',
 ].join('\n');
 
-// NOTE: Conider using a separate cache for each database pool to avoid possible conflicts.
+// NOTE: Consider using a separate cache for each database pool to avoid possible conflicts.
 /** @type {Map<string, cacheEntryType>} */
 const ARGS_CACHE = new Map();
 const ARGS_CACHE_MAX_COUNT = 10000;
@@ -172,24 +174,26 @@ const findArguments = async (procedure, databaseConnection) => {
 
 /**
  * Get the sql statement and bindings for the procedure to execute for a fixed number of arguments
- * @param {string} procedure - The procedure to execute
+ * @param {string} procName - The procedure to execute
  * @param {argObjType} argObj - The arguments to pass to the procedure
  * @param {Connection} databaseConnection - The database connection
+ * @param {configPlSqlType} options - the options for the middleware.
  * @returns {Promise<{sql: string; bind: BindParameterConfig}>} - The SQL statement and bindings for the procedure to execute
  */
-export const getProcedureNamed = async (procedure, argObj, databaseConnection) => {
+export const getProcedureNamed = async (procName, argObj, databaseConnection, options) => {
 	if (debug.enabled) {
-		debug(`getProcedureNamed: ${procedure} arguments=`, argObj);
+		debug(`getProcedureNamed: ${procName} arguments=`, argObj);
 	}
 
 	/** @type {BindParameterConfig} */
 	const bind = {};
 	let index = 0;
 
-	const argTypes = await findArguments(procedure, databaseConnection);
+	const sanitizedProcName = await sanitizeProcName(procName, databaseConnection, options);
+	const argTypes = await findArguments(sanitizedProcName, databaseConnection);
 
 	// bindings for the statement
-	let sql = `${procedure}(`;
+	let sql = `${sanitizedProcName}(`;
 	for (const key in argObj) {
 		const value = argObj[key];
 		const parameterName = `p_${key}`;

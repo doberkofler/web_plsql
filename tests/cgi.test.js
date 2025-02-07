@@ -5,7 +5,7 @@ import {getCGI} from '../src/cgi.js';
 
 /**
  * @typedef {import('express').Request} Request
- * @typedef {import('../src/types.js').middlewareOptions} middlewareOptions
+ * @typedef {import('../src/types.js').configPlSqlType} configPlSqlType
  */
 
 describe('cgi', () => {
@@ -64,13 +64,7 @@ describe('cgi', () => {
 			})
 		);
 
-		/** @type {middlewareOptions} */
-		const options = {
-			doctable: DOCUMENT_TABLE_NAME,
-			errorStyle: 'basic',
-		};
-
-		const cgi = getCGI(req, options.doctable ?? '', options.cgi ?? {});
+		const cgi = getCGI(req, DOCUMENT_TABLE_NAME, {});
 
 		assert.strictEqual(Object.keys(cgi).length, 29);
 

@@ -10,16 +10,6 @@ import z from 'zod';
 export const z$errorStyleType = z.enum(['basic', 'debug']);
 
 /**
- * @typedef {{alias: string, procedure: string}} pathAliasType
- */
-export const z$pathAliasType = z
-	.object({
-		alias: z.string(),
-		procedure: z.string(),
-	})
-	.strict();
-
-/**
  * @typedef {object} configStaticType
  * @property {string} route - The Static route path.
  * @property {string} directoryPath - The Static directory.
@@ -38,8 +28,13 @@ export const z$configStaticType = z
  * @property {string} password - The Oracle password.
  * @property {string} connectString - The Oracle connect string.
  * @property {string} defaultPage - The default page.
- * @property {pathAliasType} [pathAlias] - The path alias.
+ * @property {string} [pathAlias] - The path alias.
+ * @property {string} [pathAliasProcedure] - The path alias.
  * @property {string} documentTable - The document table.
+ * @property {string[]} [exclusionList] - The exclusion list.
+ * @property {string} [requestValidationFunction] - The request validation function.
+ * @property {Record<string, string>} [cgi] - The additional CGI.
+ * @property {errorStyleType} errorStyle - The error style.
  */
 export const z$configPlSqlType = z
 	.object({
@@ -48,8 +43,12 @@ export const z$configPlSqlType = z
 		password: z.string(),
 		connectString: z.string(),
 		defaultPage: z.string(),
-		pathAlias: z$pathAliasType.optional(),
+		pathAlias: z.string().optional(),
+		pathAliasProcedure: z.string().optional(),
 		documentTable: z.string(),
+		exclusionList: z.array(z.string()).optional(),
+		requestValidationFunction: z.string().optional(),
+		errorStyle: z$errorStyleType,
 	})
 	.strict();
 
@@ -58,7 +57,6 @@ export const z$configPlSqlType = z
  * @property {number} port - The server port number.
  * @property {configStaticType[]} routeStatic - The static routes.
  * @property {configPlSqlType[]} routePlSql - The PL/SQL routes.
- * @property {errorStyleType} errorStyle - The error style.
  * @property {string} loggerFilename - name of the request logger filename or '' if not required.
  * @property {boolean} monitorConsole - Enable console status monitor.
  */
@@ -67,20 +65,10 @@ export const z$configType = z
 		port: z.number(),
 		routeStatic: z.array(z$configStaticType),
 		routePlSql: z.array(z$configPlSqlType),
-		errorStyle: z$errorStyleType,
 		loggerFilename: z.string(),
 		monitorConsole: z.boolean(),
 	})
 	.strict();
-
-/**
- * @typedef {object} middlewareOptions
- * @property {string} [defaultPage] - The default page.
- * @property {string} [doctable] - The document table.
- * @property {environmentType} [cgi] - Additional CGI environment variables.
- * @property {pathAliasType} [pathAlias] - The path alias.
- * @property {errorStyleType} [errorStyle] - The error style.
- */
 
 /**
  * Environment variables as string key-value pairs

@@ -26,18 +26,18 @@ export const installShutdown = (handler) => {
 	 *	The 'unhandledRejection' event is emitted whenever a Promise is rejected and no error handler is attached to the promise within a turn of the event loop.
 	 */
 	process.on('unhandledRejection', (reason, p) => {
-		console.log('Unhandled promise rejection. Graceful shutdown...', reason, p);
+		console.log('\nUnhandled promise rejection. Graceful shutdown...', reason, p);
 		shutdown(handler);
 	});
 
 	// install signal event handler
 	process.on('SIGTERM', function sigterm() {
-		console.log('Got SIGINT (aka ctrl-c in docker). Graceful shutdown...');
+		console.log('\nGot SIGINT (aka ctrl-c in docker). Graceful shutdown...');
 		shutdown(handler);
 	});
 
 	process.on('SIGINT', function sigint() {
-		console.log('Got SIGTERM (aka docker container stop). Graceful shutdown...');
+		console.log('\nGot SIGTERM (aka docker container stop). Graceful shutdown...');
 		shutdown(handler);
 	});
 };

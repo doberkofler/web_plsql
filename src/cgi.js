@@ -8,7 +8,7 @@ import {URL} from 'node:url';
 /**
  * @typedef {import('express').Request} Request
  * @typedef {import('./types.js').environmentType} environmentType
- * @typedef {import('./types.js').middlewareOptions} middlewareOptions
+ * @typedef {import('./types.js').configPlSqlType} configPlSqlType
  */
 
 /** @type {environmentType} */

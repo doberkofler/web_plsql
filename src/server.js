@@ -5,6 +5,7 @@ import express from 'express';
 import bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser';
 import compression from 'compression';
+import {z$configType} from './types.js';
 import {installShutdown} from './shutdown.js';
 import {writeAfterEraseLine} from './util.js';
 import {poolCreate, poolsClose} from '../src/oracle.js';
@@ -29,7 +30,9 @@ import {getPackageVersion} from './version.js';
  * @returns {Promise<void>} - Promise.
  */
 export const startServer = async (config) => {
-	debug('config', config);
+	debug('startServer', config);
+
+	config = z$configType.parse(config);
 
 	console.log(`WEB_PL/SQL ${getPackageVersion()}`);
 
@@ -78,15 +81,7 @@ export const startServer = async (config) => {
 		const pool = await poolCreate(i.user, i.password, i.connectString);
 		pools.push(pool);
 
-		app.use(
-			`${i.route}/:name?`,
-			handlerWebPlSql(pool, {
-				defaultPage: i.defaultPage,
-				pathAlias: i.pathAlias,
-				doctable: i.documentTable,
-				errorStyle: config.errorStyle,
-			}),
-		);
+		app.use(`${i.route}/:name?`, handlerWebPlSql(pool, i));
 
 		console.log(`Application route "http://localhost:${config.port}${i.route}"`);
 		console.log(`   Oracle user:           ${i.user}`);

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import {startServer} from './src/index.js';
+import {startServer} from '../src/index.js';
 
 void startServer({
 	port: 80,
@@ -17,14 +17,12 @@ void startServer({
 			password: 'secret',
 			connectString: process.env.ORACLE_SERVER ?? '',
 			defaultPage: 'apex',
-			pathAlias: {
-				alias: 'r',
-				procedure: 'wwv_flow.resolve_friendly_url',
-			},
+			pathAlias: 'r',
+			pathAliasProcedure: 'wwv_flow.resolve_friendly_url',
 			documentTable: 'wwv_flow_file_objects$',
+			errorStyle: 'debug',
 		},
 	],
-	errorStyle: 'debug',
 	loggerFilename: 'access.log',
 	monitorConsole: false,
 });
