@@ -12,17 +12,19 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 
 
-## [0.6.0] - 2025-01-24
+## [0.6.0] - 2025-02-09
 
 ### Changed
+- Reimplement using native JavaScript code with JSDOC type annotations.
+- Improved API and examples.
+- Add support for PlsqlExclusionList parameter.
+- Add support for PlsqlRequestValidationFunction.
+- Show  use of basic and custom authentication methods.
 - Switch to ESM.
-- Switch to JSDOC type annotations.
-- Switch to native JavaScript code.
 - Support for NodeJS 22 or higher.
+- Updated all dependencies to latets versions.
 
 ### Fixed
-- Updated all dependencies.
-
 
 ## [0.5.2] - 2023-02-26
 

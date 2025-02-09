@@ -59,14 +59,7 @@ const requestHandler = async (req, res, next, connectionPool, options) => {
 export const handlerWebPlSql = (connectionPool, config) => {
 	debug('options', config);
 
-	/**
-	 * @param {Request} req - The req object represents the HTTP request.
-	 * @param {Response} res - The res object represents the HTTP response that an Express app sends when it gets an HTTP request.
-	 * @param {NextFunction} next - The next function.
-	 */
-	const handler = (req, res, next) => {
+	return (req, res, next) => {
 		void requestHandler(req, res, next, connectionPool, config);
 	};
-
-	return handler;
 };

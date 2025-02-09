@@ -2,8 +2,8 @@
 
   - addd a new version to to the CHANGELOG.md file
   - increase the version in the package.json file.
+  - run `npm run ci`
+  - run `npm run types`
   - commit and push all changes
-  - make sure that the github actions did run successfully 
-  - rebuild (npm run rebuild)
   - publish (npm publish)
   
