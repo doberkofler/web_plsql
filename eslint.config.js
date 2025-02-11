@@ -19,6 +19,7 @@ const config_ignore = {
 const config_global = {
 	linterOptions: {
 		reportUnusedDisableDirectives: 'warn',
+		reportUnusedInlineConfigs: 'warn',
 	},
 };
 

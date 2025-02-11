@@ -53,7 +53,7 @@
 	"dependencies": {
 		"basic-auth": "2.0.1",
 		"body-parser": "1.20.3",
-		"compression": "1.7.5",
+		"compression": "1.8.0",
 		"connect-multiparty": "2.2.0",
 		"cookie-parser": "1.4.7",
 		"debug": "4.4.0",
@@ -63,8 +63,8 @@
 		"http-parser-js": "0.5.9",
 		"morgan": "1.10.0",
 		"multer": "^1.4.5-lts.1",
-		"oracledb": "6.7.1",
-		"rotating-file-stream": "3.2.5",
+		"oracledb": "6.7.2",
+		"rotating-file-stream": "3.2.6",
 		"zod": "3.24.1"
 	},
 	"devDependencies": {
@@ -87,6 +87,6 @@
 		"shx": "0.3.4",
 		"supertest": "7.0.0",
 		"typescript": "5.7.3",
-		"typescript-eslint": "8.23.0"
+		"typescript-eslint": "8.24.0"
 	}
 }
