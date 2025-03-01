@@ -1,6 +1,9 @@
 import debugModule from 'debug';
 const debug = debugModule('webplsql:server');
 
+import fs from 'node:fs';
+import http from 'node:http';
+import https from 'node:https';
 import express from 'express';
 import bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser';
@@ -14,8 +17,10 @@ import {handlerLogger} from './handlerLogger.js';
 import {initMetrics, handlerMetrics} from './handlerMetrics.js';
 import {handlerWebPlSql} from './handlerPlSql.js';
 import {getPackageVersion} from './version.js';
+import {poolClose} from './oracle.js';
 
 /**
+ * @typedef {import('express').Express} Express
  * @typedef {import('express').Request} Request
  * @typedef {import('express').Response} Response
  * @typedef {import('express').NextFunction} NextFunction
@@ -23,6 +28,45 @@ import {getPackageVersion} from './version.js';
  * @typedef {import('./types.js').environmentType} environmentType
  * @typedef {import('./types.js').configType} configType
  */
+
+/**
+ * Create a server.
+ * @param {Express} app - express application
+ * @param {boolean} useSSL - ssl
+ * @param {string} sslKeyFilename - ssl
+ * @param {string} sslCertFilename - ssl
+ * @param {number} port - port number
+ * @param {Pool} connectionPool - database connection
+ * @returns {void}
+ */
+export const createServer = (app, useSSL, sslKeyFilename, sslCertFilename, port, connectionPool) => {
+	let server;
+	// Create server
+	if (useSSL) {
+		const key = fs.readFileSync(sslKeyFilename, 'utf8');
+		const cert = fs.readFileSync(sslCertFilename, 'utf8');
+
+		// eslint-disable-next-line @typescript-eslint/no-misused-promises
+		server = https.createServer({key, cert}, app);
+	} else {
+		// eslint-disable-next-line @typescript-eslint/no-misused-promises
+		server = http.createServer(app);
+	}
+
+	// Install shutdown handler
+	installShutdown(async () => {
+		// Close database pool.
+		await poolClose(connectionPool);
+
+		// Close server
+		return new Promise((resolve) => server.close(() => resolve()));
+	});
+
+	// Listen on HTTP ports
+	server.listen(port, () => {
+		console.log(`🚀 HTTP${useSSL ? 'S' : ''} Server running at http://localhost:${port}`);
+	});
+};
 
 /**
  * Start generic server.
