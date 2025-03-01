@@ -1,7 +1,6 @@
 import debugModule from 'debug';
 const debug = debugModule('webplsql:server');
 
-import fs from 'node:fs';
 import http from 'node:http';
 import https from 'node:https';
 import express from 'express';
@@ -18,6 +17,7 @@ import {initMetrics, handlerMetrics} from './handlerMetrics.js';
 import {handlerWebPlSql} from './handlerPlSql.js';
 import {getPackageVersion} from './version.js';
 import {poolClose} from './oracle.js';
+import {readFileSyncUtf8} from './file.js';
 
 /**
  * @typedef {import('express').Express} Express
@@ -39,7 +39,7 @@ import {poolClose} from './oracle.js';
 export const createHttpServer = (app, port, connectionPool) => {
 	// Create server
 	// eslint-disable-next-line @typescript-eslint/no-misused-promises
-	const server = http.createServer(app);
+	const server = http.createServer({}, app);
 
 	// Install shutdown handler
 	installShutdown(async () => {
@@ -59,18 +59,18 @@ export const createHttpServer = (app, port, connectionPool) => {
 /**
  * Create HTTPS server.
  * @param {Express} app - express application
- * @param {boolean} useSSL - ssl
  * @param {string} sslKeyFilename - ssl
  * @param {string} sslCertFilename - ssl
  * @param {number} port - port number
  * @param {Pool} connectionPool - database connection
  * @returns {void}
  */
-export const createHttpsServer = (app, useSSL, sslKeyFilename, sslCertFilename, port, connectionPool) => {
-	// Create server
-	const key = fs.readFileSync(sslKeyFilename, 'utf8');
-	const cert = fs.readFileSync(sslCertFilename, 'utf8');
+export const createHttpsServer = (app, sslKeyFilename, sslCertFilename, port, connectionPool) => {
+	// Load certificates
+	const key = readFileSyncUtf8(sslKeyFilename);
+	const cert = readFileSyncUtf8(sslCertFilename);
 
+	// Create server
 	// eslint-disable-next-line @typescript-eslint/no-misused-promises
 	const server = https.createServer({key, cert}, app);
 

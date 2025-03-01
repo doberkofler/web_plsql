@@ -4,6 +4,21 @@ import {promises as fs, readFileSync} from 'node:fs';
  * Read file.
  *
  * @param {string} filePath - File name.
+ * @returns {string} The string.
+ */
+export const readFileSyncUtf8 = (filePath) => {
+	try {
+		return readFileSync(filePath, 'utf8');
+	} catch (err) {
+		/* istanbul ignore next */
+		throw new Error(`Unable to read file "${filePath}"`);
+	}
+};
+
+/**
+ * Read file.
+ *
+ * @param {string} filePath - File name.
  * @returns {Promise<Buffer>} The buffer.
  */
 export const readFile = (filePath) => {
