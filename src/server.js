@@ -30,28 +30,16 @@ import {poolClose} from './oracle.js';
  */
 
 /**
- * Create a server.
+ * Create HTTP server.
  * @param {Express} app - express application
- * @param {boolean} useSSL - ssl
- * @param {string} sslKeyFilename - ssl
- * @param {string} sslCertFilename - ssl
  * @param {number} port - port number
  * @param {Pool} connectionPool - database connection
  * @returns {void}
  */
-export const createServer = (app, useSSL, sslKeyFilename, sslCertFilename, port, connectionPool) => {
-	let server;
+export const createHttpServer = (app, port, connectionPool) => {
 	// Create server
-	if (useSSL) {
-		const key = fs.readFileSync(sslKeyFilename, 'utf8');
-		const cert = fs.readFileSync(sslCertFilename, 'utf8');
-
-		// eslint-disable-next-line @typescript-eslint/no-misused-promises
-		server = https.createServer({key, cert}, app);
-	} else {
-		// eslint-disable-next-line @typescript-eslint/no-misused-promises
-		server = http.createServer(app);
-	}
+	// eslint-disable-next-line @typescript-eslint/no-misused-promises
+	const server = http.createServer(app);
 
 	// Install shutdown handler
 	installShutdown(async () => {
@@ -64,7 +52,40 @@ export const createServer = (app, useSSL, sslKeyFilename, sslCertFilename, port,
 
 	// Listen on HTTP ports
 	server.listen(port, () => {
-		console.log(`🚀 HTTP${useSSL ? 'S' : ''} Server running at http://localhost:${port}`);
+		console.log(`🚀 HTTP Server running at http://localhost:${port}`);
+	});
+};
+
+/**
+ * Create HTTPS server.
+ * @param {Express} app - express application
+ * @param {boolean} useSSL - ssl
+ * @param {string} sslKeyFilename - ssl
+ * @param {string} sslCertFilename - ssl
+ * @param {number} port - port number
+ * @param {Pool} connectionPool - database connection
+ * @returns {void}
+ */
+export const createHttpsServer = (app, useSSL, sslKeyFilename, sslCertFilename, port, connectionPool) => {
+	// Create server
+	const key = fs.readFileSync(sslKeyFilename, 'utf8');
+	const cert = fs.readFileSync(sslCertFilename, 'utf8');
+
+	// eslint-disable-next-line @typescript-eslint/no-misused-promises
+	const server = https.createServer({key, cert}, app);
+
+	// Install shutdown handler
+	installShutdown(async () => {
+		// Close database pool.
+		await poolClose(connectionPool);
+
+		// Close server
+		return new Promise((resolve) => server.close(() => resolve()));
+	});
+
+	// Listen on HTTP ports
+	server.listen(port, () => {
+		console.log(`🚀 HTTPS Server running at http://localhost:${port}`);
 	});
 };
 
