@@ -34,25 +34,27 @@ import {readFileSyncUtf8} from './file.js';
  * @param {Express} app - express application
  * @param {number} port - port number
  * @param {Pool} connectionPool - database connection
- * @returns {void}
+ * @returns {Promise<http.Server>} - server
  */
 export const createHttpServer = (app, port, connectionPool) => {
-	// Create server
-	// eslint-disable-next-line @typescript-eslint/no-misused-promises
-	const server = http.createServer({}, app);
+	return new Promise((resolve) => {
+		// Create server
+		// eslint-disable-next-line @typescript-eslint/no-misused-promises
+		const server = http.createServer({}, app);
 
-	// Install shutdown handler
-	installShutdown(async () => {
-		// Close database pool.
-		await poolClose(connectionPool);
+		// Install shutdown handler
+		installShutdown(async () => {
+			// Close database pool.
+			await poolClose(connectionPool);
 
-		// Close server
-		return new Promise((resolve) => server.close(() => resolve()));
-	});
+			// Close server
+			return new Promise((resolve) => server.close(() => resolve()));
+		});
 
-	// Listen on HTTP ports
-	server.listen(port, () => {
-		console.log(`🚀 HTTP Server running at http://localhost:${port}`);
+		// Listen on HTTP ports
+		server.listen(port, () => {
+			resolve(server);
+		});
 	});
 };
 
@@ -63,29 +65,31 @@ export const createHttpServer = (app, port, connectionPool) => {
  * @param {string} sslCertFilename - ssl
  * @param {number} port - port number
  * @param {Pool} connectionPool - database connection
- * @returns {void}
+ * @returns {Promise<https.Server>} - server
  */
 export const createHttpsServer = (app, sslKeyFilename, sslCertFilename, port, connectionPool) => {
-	// Load certificates
-	const key = readFileSyncUtf8(sslKeyFilename);
-	const cert = readFileSyncUtf8(sslCertFilename);
+	return new Promise((resolve) => {
+		// Load certificates
+		const key = readFileSyncUtf8(sslKeyFilename);
+		const cert = readFileSyncUtf8(sslCertFilename);
 
-	// Create server
-	// eslint-disable-next-line @typescript-eslint/no-misused-promises
-	const server = https.createServer({key, cert}, app);
+		// Create server
+		// eslint-disable-next-line @typescript-eslint/no-misused-promises
+		const server = https.createServer({key, cert}, app);
 
-	// Install shutdown handler
-	installShutdown(async () => {
-		// Close database pool.
-		await poolClose(connectionPool);
+		// Install shutdown handler
+		installShutdown(async () => {
+			// Close database pool.
+			await poolClose(connectionPool);
 
-		// Close server
-		return new Promise((resolve) => server.close(() => resolve()));
-	});
+			// Close server
+			return new Promise((resolve) => server.close(() => resolve()));
+		});
 
-	// Listen on HTTP ports
-	server.listen(port, () => {
-		console.log(`🚀 HTTPS Server running at http://localhost:${port}`);
+		// Listen on HTTP ports
+		server.listen(port, () => {
+			resolve(server);
+		});
 	});
 };
 
