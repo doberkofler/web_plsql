@@ -86,7 +86,10 @@ export const isFile = async (filePath) => {
 		return false;
 	}
 
-	const stats = await fs.stat(filePath);
-
-	return stats.isFile();
+	try {
+		const stats = await fs.stat(filePath);
+		return stats.isFile();
+	} catch {
+		return false;
+	}
 };
