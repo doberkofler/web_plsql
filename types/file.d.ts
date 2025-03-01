@@ -1,3 +1,4 @@
+export function readFileSyncUtf8(filePath: string): string;
 export function readFile(filePath: string): Promise<Buffer>;
 export function removeFile(filePath: string): Promise<void>;
 export function getJsonFile(filePath: string): unknown;

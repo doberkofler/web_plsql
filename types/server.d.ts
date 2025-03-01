@@ -1,5 +1,5 @@
 export function createHttpServer(app: Express, port: number, connectionPool: Pool): void;
-export function createHttpsServer(app: Express, useSSL: boolean, sslKeyFilename: string, sslCertFilename: string, port: number, connectionPool: Pool): void;
+export function createHttpsServer(app: Express, sslKeyFilename: string, sslCertFilename: string, port: number, connectionPool: Pool): void;
 export function startServer(config: configType): Promise<void>;
 export type Express = import("express").Express;
 export type Request = import("express").Request;
