@@ -16,7 +16,6 @@ import {handlerLogger} from './handlerLogger.js';
 import {initMetrics, handlerMetrics} from './handlerMetrics.js';
 import {handlerWebPlSql} from './handlerPlSql.js';
 import {getPackageVersion} from './version.js';
-import {poolClose} from './oracle.js';
 import {readFileSyncUtf8} from './file.js';
 
 /**
@@ -33,10 +32,10 @@ import {readFileSyncUtf8} from './file.js';
  * Create HTTP server.
  * @param {Express} app - express application
  * @param {number} port - port number
- * @param {Pool} connectionPool - database connection
+ * @param {Pool[]} connectionPools - database connection
  * @returns {Promise<http.Server>} - server
  */
-export const createHttpServer = (app, port, connectionPool) => {
+export const createHttpServer = (app, port, connectionPools) => {
 	return new Promise((resolve) => {
 		// Create server
 		// eslint-disable-next-line @typescript-eslint/no-misused-promises
@@ -45,7 +44,7 @@ export const createHttpServer = (app, port, connectionPool) => {
 		// Install shutdown handler
 		installShutdown(async () => {
 			// Close database pool.
-			await poolClose(connectionPool);
+			await poolsClose(connectionPools);
 
 			// Close server
 			return new Promise((resolve) => server.close(() => resolve()));
@@ -64,10 +63,10 @@ export const createHttpServer = (app, port, connectionPool) => {
  * @param {string} sslKeyFilename - ssl
  * @param {string} sslCertFilename - ssl
  * @param {number} port - port number
- * @param {Pool} connectionPool - database connection
+ * @param {Pool[]} connectionPools - database connection
  * @returns {Promise<https.Server>} - server
  */
-export const createHttpsServer = (app, sslKeyFilename, sslCertFilename, port, connectionPool) => {
+export const createHttpsServer = (app, sslKeyFilename, sslCertFilename, port, connectionPools) => {
 	return new Promise((resolve) => {
 		// Load certificates
 		const key = readFileSyncUtf8(sslKeyFilename);
@@ -80,7 +79,7 @@ export const createHttpsServer = (app, sslKeyFilename, sslCertFilename, port, co
 		// Install shutdown handler
 		installShutdown(async () => {
 			// Close database pool.
-			await poolClose(connectionPool);
+			await poolsClose(connectionPools);
 
 			// Close server
 			return new Promise((resolve) => server.close(() => resolve()));
@@ -94,29 +93,16 @@ export const createHttpsServer = (app, sslKeyFilename, sslCertFilename, port, co
 };
 
 /**
- * Start generic server.
+ * Start HTTP server.
  * @param {configType} config - The config.
  * @returns {Promise<void>} - Promise.
  */
-export const startServer = async (config) => {
-	debug('startServer', config);
+export const startHttpServer = async (config) => {
+	debug('startHttpServer', config);
 
 	config = z$configType.parse(config);
 
 	console.log(`WEB_PL/SQL ${getPackageVersion()}`);
-
-	/** @type {Pool[]} */
-	const pools = [];
-
-	// Install shutdown handler
-	installShutdown(async () => {
-		// Close database pools.
-		await poolsClose(pools);
-		pools.length = 0;
-
-		// Close server
-		return new Promise((resolve) => server.close(() => resolve()));
-	});
 
 	// Create express app
 	const app = express();
@@ -144,11 +130,14 @@ export const startServer = async (config) => {
 		app.use(handlerLogger(config.loggerFilename));
 	}
 
+	/** @type {Pool[]} */
+	const connectionPools = [];
+
 	// Oracle pl/sql express middleware
 	for (const i of config.routePlSql) {
 		// Allocate the Oracle database pool
 		const pool = await poolCreate(i.user, i.password, i.connectString);
-		pools.push(pool);
+		connectionPools.push(pool);
 
 		app.use(`${i.route}/:name?`, handlerWebPlSql(pool, i));
 
@@ -170,6 +159,5 @@ export const startServer = async (config) => {
 		}, 1000);
 	}
 
-	// listen on port
-	const server = app.listen(config.port);
+	await createHttpServer(app, config.port, connectionPools);
 };

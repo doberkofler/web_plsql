@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
-import {startServer} from '../src/index.js';
+import {startHttpServer} from '../src/index.js';
 
-void startServer({
+void startHttpServer({
 	port: 80,
 	routeStatic: [
 		{
