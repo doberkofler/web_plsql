@@ -40,8 +40,9 @@ export class Pool {
 	getConnection() {
 		return Promise.resolve(new Connection());
 	}
+
 	/**
-	 * @param {number} dummy
+	 * @param {any} dummy
 	 * @return {Promise<void>}
 	 */
 	close(dummy) {

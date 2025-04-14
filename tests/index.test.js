@@ -1,35 +1,11 @@
-/* eslint-disable @typescript-eslint/no-misused-promises */
-
-//import assert from 'node:assert';
+import assert from 'node:assert';
 import {describe, it, before, after, beforeEach} from 'node:test';
-import util from 'node:util';
-import path from 'node:path';
-import express from 'express';
-import bodyParser from 'body-parser';
-import multer from 'multer';
-import cookieParser from 'cookie-parser';
-import compression from 'compression';
 import request from 'supertest';
 import * as oracledb from './mock/oracledb.js';
-import {handlerWebPlSql} from '../src/handlerPlSql.js';
-
-const PORT = 8765;
-const PATH = '/base';
-const DEFAULT_PAGE = 'sample.pageIndex';
-const DOC_TABLE = 'docTable';
+import {serverStart, serverStop, sqlExecuteProxy, PATH, DEFAULT_PAGE} from './server.js';
 
 /**
- * @typedef {import('../src/types.js').BindParameterConfig} BindParameterConfig
- * @typedef {import('../src/types.js').configPlSqlType} configPlSqlType
- * @typedef {{name: string, value: string | string[]}[]} paraType
- */
-
-/**
- * File upload metadata
- * @typedef {object} serverConfigType
- * @property {import('express').Express} app
- * @property {import('node:http').Server} server
- * @property {oracledb.Pool} connectionPool
+ * @typedef {import('./server.js').serverConfigType} serverConfigType
  */
 
 describe('middleware', () => {
@@ -49,20 +25,24 @@ describe('middleware', () => {
 	});
 
 	it('get a static file', async () => {
-		await request(serverConfig.app).get('/static/static.html').expect(200, '<html>\n\t<body>\n\t\t<p>static</p>\n\t</body>\n</html>\n');
+		const response = await request(serverConfig.app).get('/static/static.html');
+		assert.strictEqual(response.status, 200);
+		assert.strictEqual(response.text, '<html>\n\t<body>\n\t\t<p>static</p>\n\t</body>\n</html>\n');
 	});
 
 	it('report a 404 error on a missing static file', async () => {
-		await request(serverConfig.app)
-			.get('/static/file_does_not_exist.html')
-			.expect(
-				404,
-				'<!DOCTYPE html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n<title>Error</title>\n</head>\n<body>\n<pre>Cannot GET /static/file_does_not_exist.html</pre>\n</body>\n</html>\n',
-			);
+		const response = await request(serverConfig.app).get('/static/file_does_not_exist.html');
+		assert.strictEqual(response.status, 404);
+		assert.strictEqual(
+			response.text,
+			'<!DOCTYPE html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n<title>Error</title>\n</head>\n<body>\n<pre>Cannot GET /static/file_does_not_exist.html</pre>\n</body>\n</html>\n',
+		);
 	});
 
 	it('get default page', async () => {
-		await request(serverConfig.app).get(PATH).expect(302, `Found. Redirecting to ${PATH}/${DEFAULT_PAGE}`);
+		const response = await request(serverConfig.app).get(PATH);
+		assert.strictEqual(response.status, 302);
+		assert.strictEqual(response.text, `Found. Redirecting to ${PATH}/${DEFAULT_PAGE}`);
 	});
 
 	it('get page', async () => {
@@ -215,220 +195,3 @@ describe('middleware', () => {
 		await request(serverConfig.app).get(`${PATH}/alias`).expect(200, new RegExp('.*<html><body><p>static</p></body></html>.*'));
 	});
 });
-
-/**
- *	Start server
- *	@returns {Promise<serverConfigType>} - The server configuration
- */
-async function serverStart() {
-	const connectionPool = await oracledb.createPool({
-		user: 'sample',
-		password: 'sample',
-		connectString: 'localhost:1521/TEST',
-	});
-
-	// create the upload middleware
-	const upload = multer({
-		storage: multer.diskStorage({
-			destination: '/tmp/uploads',
-			filename: (req, file, cb) => {
-				const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
-				cb(null, `${file.fieldname}-${uniqueSuffix}${path.extname(file.originalname)}`);
-			},
-		}),
-		limits: {
-			fileSize: 50 * 1024 * 1024, // 50MB limit
-		},
-	});
-
-	// create express app
-	const app = express();
-
-	// add middleware
-	app.use(upload.any());
-	app.use(bodyParser.json());
-	app.use(bodyParser.urlencoded({extended: true}));
-	app.use(cookieParser());
-	app.use(compression());
-
-	// add the oracle pl/sql express middleware
-	/** @type {Partial<configPlSqlType>} */
-	const options = {
-		defaultPage: DEFAULT_PAGE,
-		documentTable: DOC_TABLE,
-		pathAlias: 'alias',
-		pathAliasProcedure: 'pathAlias',
-	};
-	//@ts-expect-error NOTE: the connection pool is mocked and cannot have the proper type
-	app.use(`${PATH}/:name?`, handlerWebPlSql(connectionPool, options));
-
-	// serving static files
-	const staticResourcesPath = path.join(process.cwd(), 'tests', 'static');
-	app.use('/static', express.static(staticResourcesPath));
-
-	// listen
-	return new Promise((resolve) => {
-		const server = app.listen(PORT, () => {
-			resolve({
-				app,
-				server,
-				connectionPool,
-			});
-		});
-	});
-}
-
-/**
- *	Stop server.
- *	@param {serverConfigType} config - The server configuration.
- */
-async function serverStop(config) {
-	config.server.close();
-	await config.connectionPool.close(0);
-}
-
-/**
- *	Set the proxy for the next sql procedure to be executed
- *	@param {{proc: string; para?: paraType; lines: string[]}} config - The configuration.
- */
-function sqlExecuteProxy(config) {
-	/**
-	 *	Proxy for the next sql procedure to be executed
-	 *	@param {string} sql - The SQL statement.
-	 *	@param {BindParameterConfig} bindParams - The bind object.
-	 *	@returns {unknown}
-	 */
-	const sqlExecuteProxyCallback = (sql, bindParams) => {
-		if (sql.toLowerCase().includes('dbms_utility.name_resolve')) {
-			/** @type {{outBinds: {names: string[], types: string[]}}} */
-			const noPara = {
-				outBinds: {
-					names: [],
-					types: [],
-				},
-			};
-
-			return typeof config.para === 'undefined'
-				? noPara
-				: config.para.reduce((accumulator, currentValue) => {
-						accumulator.outBinds.names.push(currentValue.name);
-						accumulator.outBinds.types.push('VARCHAR2');
-						return accumulator;
-					}, noPara);
-		}
-
-		if (sql.toLowerCase().includes(config.proc.toLowerCase())) {
-			if (typeof config.para !== 'undefined') {
-				if (!parameterEqual(sql, bindParams, config.para)) {
-					console.error(`===> Parameter mismatch\n${'-'.repeat(30)}\n${util.inspect(bindParams)}\n${'-'.repeat(30)}`);
-					return {};
-				}
-			}
-
-			return {
-				outBinds: {
-					fileType: null,
-					fileSize: null,
-					fileBlob: null,
-					fileExist: 0,
-					lines: config.lines,
-					irows: config.lines.length,
-				},
-			};
-		}
-
-		if (sql.toLowerCase().startsWith('insert into')) {
-			return {
-				rowsAffected: 1,
-			};
-		}
-
-		console.error(`===> sql statement cannot be identified\n${'-'.repeat(30)}\n${sql}\n${'-'.repeat(30)}`);
-
-		return {};
-	};
-
-	// @ts-expect-error FIXME: do not understand!
-	oracledb.setExecuteCallback(sqlExecuteProxyCallback);
-}
-
-/**
- * Compare parameters
- * @param {string} sql - The SQL statement.
- * @param {BindParameterConfig} bind - The bind object.
- * @param {paraType} parameters - The parameters.
- * @returns {boolean} - The result of the comparison.
- */
-function parameterEqual(sql, bind, parameters) {
-	return !sql.includes('(:argnames, :argvalues)') ? parameterFixedEqual(bind, parameters) : parameterFlexibleEqual(bind, parameters);
-}
-
-/**
- * Compare parameters with fixed names
- * @param {BindParameterConfig} bind - The bind object.
- * @param {paraType} parameters - The parameters.
- * @returns {boolean} - The result of the comparison.
- */
-function parameterFixedEqual(bind, parameters) {
-	return parameters.every((para) => {
-		if (!(`p_${para.name}` in bind)) {
-			console.error(`===> The parameter "${para.name}" is missing`);
-			return false;
-		}
-
-		if (Array.isArray(para.value)) {
-			return para.value.every((v, i) => {
-				const equal = v === bind[`p_${para.name}`].val[i];
-				if (!equal) {
-					console.error(`===> The value "${v}" of parameter "${para.name}" is different`);
-				}
-				return equal;
-			});
-		}
-
-		return para.value === bind[`p_${para.name}`].val;
-	});
-}
-
-/**
- * Compare parameters with flexible names
- * @param {BindParameterConfig} bind - The bind object.
- * @param {paraType} parameters - The parameters.
- * @returns {boolean} - The result of the comparison.
- */
-function parameterFlexibleEqual(bind, parameters) {
-	if (parameters.length !== 2) {
-		console.error('===> Invalid number of parameters');
-		return false;
-	}
-
-	if (!parameters.every((para) => ['argnames', 'argvalues'].includes(para.name))) {
-		console.error('===> Invalid parameter names');
-		return false;
-	}
-
-	if (!('argnames' in bind) || !('argvalues' in bind)) {
-		console.error('===> Missing bindings');
-		return false;
-	}
-
-	return parameters.every((para) => Array.isArray(para.value) && arrayEqual(para.value, bind[para.name].val));
-}
-
-/**
- *	Compare two arrays
- *	@param {unknown[]} array1 - The first array.
- *	@param {unknown[]} array2 - The second array.
- *	@returns {boolean} - The result of the comparison.
- */
-function arrayEqual(array1, array2) {
-	if (!array1 || !array2) {
-		return false;
-	}
-
-	if (array1.length !== array2.length) {
-		return false;
-	}
-
-	return array1.every((e, i) => e === array2[i]);
-}

@@ -15,7 +15,7 @@ import {handlerUpload} from './handlerUpload.js';
 import {handlerLogger} from './handlerLogger.js';
 import {initMetrics, handlerMetrics} from './handlerMetrics.js';
 import {handlerWebPlSql} from './handlerPlSql.js';
-import {getPackageVersion} from './version.js';
+import {getPackageVersion, getExpressVersion} from './version.js';
 import {readFileSyncUtf8} from './file.js';
 
 /**
@@ -100,9 +100,12 @@ export const createHttpsServer = (app, sslKeyFilename, sslCertFilename, port, co
 export const startHttpServer = async (config) => {
 	debug('startHttpServer', config);
 
+	const expressVersion = getExpressVersion();
+	const packageVersion = getPackageVersion();
+
 	config = z$configType.parse(config);
 
-	console.log(`WEB_PL/SQL ${getPackageVersion()}`);
+	console.log(`WEB_PL/SQL ${packageVersion} using express ${expressVersion}`);
 
 	// Create express app
 	const app = express();
@@ -139,7 +142,7 @@ export const startHttpServer = async (config) => {
 		const pool = await poolCreate(i.user, i.password, i.connectString);
 		connectionPools.push(pool);
 
-		app.use(`${i.route}/:name?`, handlerWebPlSql(pool, i));
+		app.use([`${i.route}/:name`, i.route], handlerWebPlSql(pool, i));
 
 		console.log(`Application route "http://localhost:${config.port}${i.route}"`);
 		console.log(`   Oracle user:           ${i.user}`);

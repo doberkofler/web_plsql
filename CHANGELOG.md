@@ -12,6 +12,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 
 
+## [0.7.0] - 2025-04-14
+
+### Changed
+- Support for Express 5.1.0 or higher.
+- Updated all dependencies to latest versions.
+
+### Fixed
+
 ## [0.6.0] - 2025-02-09
 
 ### Changed
@@ -22,7 +30,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Show  use of basic and custom authentication methods.
 - Switch to ESM.
 - Support for NodeJS 22 or higher.
-- Updated all dependencies to latets versions.
+- Updated all dependencies to latest versions.
 
 ### Fixed
 
