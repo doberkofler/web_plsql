@@ -11,20 +11,18 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Changed
 ### Fixed
 
+
 ## [0.8.0] - 2025-04-15
 
-### Changed
+### Added
 - Add support for docker container.
 
-### Fixed
 
 ## [0.7.0] - 2025-04-14
 
 ### Changed
 - Support for Express 5.1.0 or higher.
 - Updated all dependencies to latest versions.
-
-### Fixed
 
 ## [0.6.0] - 2025-02-09
 
@@ -38,7 +36,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Support for NodeJS 22 or higher.
 - Updated all dependencies to latest versions.
 
-### Fixed
 
 ## [0.5.2] - 2023-02-26
 
