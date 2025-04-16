@@ -1,5 +1,5 @@
 // server
-export {createHttpServer, createHttpsServer, startHttpServer} from './server.js';
+export {createHttpServer, createHttpsServer, startHttpServer, loadConfig} from './server.js';
 export * from './shutdown.js';
 
 // handler

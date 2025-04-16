@@ -1,6 +1,6 @@
 {
 	"name": "web_plsql",
-	"version": "0.7.0",
+	"version": "0.8.0",
 	"author": "Dieter Oberkofler <dieter.oberkofler@gmail.com>",
 	"license": "MIT",
 	"description": "The Express Middleware for Oracle PL/SQL",
@@ -48,7 +48,9 @@
 		"types": "rm -rf types && tsc  --noEmit false --declaration true --declarationDir types --emitDeclarationOnly true --allowJs true --target es2020 --module es2020 --moduleResolution node src/*.js",
 		"clean": "shx rm -f *.tgz && shx rm -f *.log",
 		"ci": "npm run clean && npm run lint && npm run test",
-		"create-package": "shx rm -f *.tgz && npm pack"
+		"create-package": "shx rm -f *.tgz && npm pack",
+		"image-build": "docker build --no-cache --progress=plain --tag=web_plsql .",
+		"image-save": "docker save web_plsql | gzip > web_plsql.tar.gz"
 	},
 	"dependencies": {
 		"basic-auth": "2.0.1",
@@ -62,7 +64,7 @@
 		"fs-extra": "11.3.0",
 		"http-parser-js": "0.5.10",
 		"morgan": "1.10.0",
-		"multer": "^1.4.5-lts.2",
+		"multer": "1.4.5-lts.2",
 		"oracledb": "6.8.0",
 		"rotating-file-stream": "3.2.6",
 		"zod": "3.24.2"
@@ -87,6 +89,6 @@
 		"shx": "0.4.0",
 		"supertest": "7.1.0",
 		"typescript": "5.8.3",
-		"typescript-eslint": "8.30.0"
+		"typescript-eslint": "8.30.1"
 	}
 }

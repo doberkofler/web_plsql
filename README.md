@@ -24,10 +24,14 @@ Please visit the [node-oracledb](https://node-oracledb.readthedocs.io/en/latest/
 * Create a new npm project (`npm i`)
 * Install package (`npm i --omit=dev web_plsql`)
 
-# Example
+# Example (native)
 * Change to the `examples/sql` directory, start SQLPLus, connect to the database as SYS specifying the SYSDBA roleInstall and install the sample schema `@examples/sql/install.sql`.
-* Start the sample server using `node examples/server_sample.js` after having set the ORACLE_SERVER environment variable to the database where you just installed the sample schema.
+* Start server using `node examples/server_sample.js` after having set the WEB_PLSQL_ORACLE_SERVER environment variable to the database where you just installed the sample schema.
 * Invoke a browser and open the page `http://localhost/sample`.
+
+# Example (container)
+* Build the image using `npm run image-build`
+* Start the container using `./run_container.sh` after eventually modifying the `run_container.sh` script.
 
 # Running
 There are 2 main options on how to use the mod_plsql Express middleware:

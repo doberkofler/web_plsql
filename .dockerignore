@@ -1,0 +1,7 @@
+**/.DS_Store
+.github
+./.*
+./*.log
+node_modules
+tests
+types

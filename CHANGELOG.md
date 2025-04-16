@@ -11,6 +11,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Changed
 ### Fixed
 
+## [0.8.0] - 2025-04-15
+
+### Changed
+- Add support for docker container.
+
+### Fixed
 
 ## [0.7.0] - 2025-04-14
 

@@ -3,7 +3,7 @@
 import {startHttpServer} from '../src/index.js';
 
 void startHttpServer({
-	port: 80,
+	port: 8888,
 	routeStatic: [
 		{
 			route: '/static',
@@ -13,9 +13,9 @@ void startHttpServer({
 	routePlSql: [
 		{
 			route: '/sample',
-			user: 'sample', // PlsqlDatabaseUserName
-			password: 'sample', // PlsqlDatabasePassword
-			connectString: process.env.ORACLE_SERVER ?? '', // PlsqlDatabaseConnectString
+			user: process.env.WEB_PLSQL_ORACLE_USER ?? 'sample', // PlsqlDatabaseUserName
+			password: process.env.WEB_PLSQL_ORACLE_PASSWORD ?? 'sample', // PlsqlDatabasePassword
+			connectString: process.env.WEB_PLSQL_ORACLE_SERVER ?? 'localhost:1521/orcl', // PlsqlDatabaseConnectString
 			defaultPage: 'sample_pkg.page_index', // PlsqlDefaultPage
 			documentTable: 'doctable', // PlsqlDocumentTablename
 			exclusionList: ['sample_pkg.page_exclusion_list'], // PlsqlExclusionList

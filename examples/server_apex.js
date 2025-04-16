@@ -1,5 +1,3 @@
-#!/usr/bin/env node
-
 import {startHttpServer} from '../src/index.js';
 
 void startHttpServer({

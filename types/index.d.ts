@@ -6,5 +6,5 @@ export * from "./version.js";
 export { handlerWebPlSql } from "./handlerPlSql.js";
 export { handlerLogger } from "./handlerLogger.js";
 export { handlerUpload } from "./handlerUpload.js";
-export { createHttpServer, createHttpsServer, startHttpServer } from "./server.js";
+export { createHttpServer, createHttpsServer, startHttpServer, loadConfig } from "./server.js";
 export { initMetrics, handlerMetrics } from "./handlerMetrics.js";

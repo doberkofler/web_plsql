@@ -16,7 +16,7 @@ import {handlerLogger} from './handlerLogger.js';
 import {initMetrics, handlerMetrics} from './handlerMetrics.js';
 import {handlerWebPlSql} from './handlerPlSql.js';
 import {getPackageVersion, getExpressVersion} from './version.js';
-import {readFileSyncUtf8} from './file.js';
+import {readFileSyncUtf8, getJsonFile} from './file.js';
 
 /**
  * @typedef {import('express').Express} Express
@@ -163,4 +163,23 @@ export const startHttpServer = async (config) => {
 	}
 
 	await createHttpServer(app, config.port, connectionPools);
+};
+
+/**
+ * Load configuration.
+ * @param {string} [filename] - The configuration filename.
+ * @returns {configType} - Promise.
+ */
+export const loadConfig = (filename) => {
+	debug('loadConfig', filename);
+
+	if (typeof filename !== 'string' || filename.length === 0) {
+		filename = 'config.json';
+	}
+
+	const data = getJsonFile(filename);
+
+	const config = z$configType.parse(data);
+
+	return config;
 };
