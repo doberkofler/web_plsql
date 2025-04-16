@@ -5,5 +5,7 @@
   - run `npm run ci`
   - run `npm run types`
   - commit and push all changes
+  - create tag `git tag v1.0.0`
+  - create a release on GitHub
   - publish (npm publish)
   
