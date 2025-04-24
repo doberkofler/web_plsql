@@ -7,5 +7,5 @@
   - create tag `git tag v1.0.0`
   - commit and push all changes `git push` and `git push --tags`
   - create a release on GitHub
-  - publish (npm publish)
+  - publish `npm publish`
   
