@@ -1,0 +1,20 @@
+services:
+    app:
+        image: web_plsql
+        restart: unless-stopped
+        environment:
+            - WEB_PLSQL_TIMEZONE="UTC"
+            - WEB_PLSQL_CONFIG=config.json
+        ports:
+            - '8888:8888'
+        volumes:
+            - type: bind
+              source: ./examples/static
+              target: /opt/server/static
+              read_only: true
+            - type: bind
+              source: ./examples/config-docker.json
+              target: /opt/server/config.json
+              read_only: true
+        extra_hosts:
+            - 'host.docker.internal:host-gateway' # Needed on Linux

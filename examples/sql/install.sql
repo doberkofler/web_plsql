@@ -19,10 +19,10 @@ GRANT execute on dbms_lob TO &&SAMPLE_USER;
 ALTER SESSION SET CURRENT_SCHEMA=&&SAMPLE_USER;
 
 -- install document table
-@doctable.sql
+@@doctable.sql
 
 -- install package
-@sample_package.sql
+@@sample_package.sql
 show errors
-@sample_package_body.sql
+@@sample_package_body.sql
 show errors

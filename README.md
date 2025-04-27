@@ -24,21 +24,28 @@ Please visit the [node-oracledb](https://node-oracledb.readthedocs.io/en/latest/
 * Create a new npm project (`npm i`)
 * Install package (`npm i --omit=dev web_plsql`)
 
-# Example (native)
+# Example
+
+## Native
 * Change to the `examples/sql` directory, start SQLPLus, connect to the database as SYS specifying the SYSDBA roleInstall and install the sample schema `@examples/sql/install.sql`.
-* Start server using `node examples/server_sample.js` after having set the WEB_PLSQL_ORACLE_SERVER environment variable to the database where you just installed the sample schema.
+* Start server using `node examples/config-native.js` after having set the WEB_PLSQL_ORACLE_SERVER environment variable to the database where you just installed the sample schema.
 * Invoke a browser and open the page `http://localhost/sample`.
 
-# Example (container)
-* Build the image using `npm run image-build`
-* Start the container using `./run_container.sh` after eventually modifying the `run_container.sh` script.
+## Container
+* Build the image using `npm run image-build`.
+* Adapt the `examples/config-docker.json` configuration file. Typically only the `connectString` property must be changed.
+* Start the container using `docker compose up -d`.
 
-# Running
-There are 2 main options on how to use the mod_plsql Express middleware:
+# Configuration
 
-## Make a copy of the `server_sample.js` sample script and configure it accordingly to your needs.
+There are 2 options on how to use the web_plsql express middleware:
+- Use the predefined `startHttpServer` api in `src/server.js` like in the `examples/config-native.js` example
+- Hand craft a new Express server using the `handlerWebPlSql` middleware in `src/handlerPlSql.js`
 
-The the default server implemented in `src/server.js` and has the following configuration options:
+## Use the predefined `startHttpServer`
+
+The `startHttpServer` api uses the following configuration object:
+
 ```
 /**
  * @typedef {'basic' | 'debug'} errorStyleType
@@ -76,6 +83,12 @@ export const z$errorStyleType = z.enum(['basic', 'debug']);
  * @property {boolean} monitorConsole - Enable console status monitor.
  */
 ```
+
+## Hand craft a new Express server using the `handlerWebPlSql` middleware
+
+WIP
+
+# Compare with mod_plsql
 
 The following mod_plsql DAD configuration translates to the configuration options as follows:
 

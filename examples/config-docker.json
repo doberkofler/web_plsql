@@ -1,0 +1,26 @@
+{
+	"port": 8888,
+	"routeStatic": [
+		{
+			"route": "/static",
+			"directoryPath": "examples/static"
+		}
+	],
+	"routePlSql": [
+		{
+			"route": "/sample",
+			"user": "sample",
+			"password": "sample",
+			"connectString": "host.docker.internal:1521/TEST",
+			"defaultPage": "sample_pkg.page_index",
+			"documentTable": "doctable",
+			"exclusionList": ["sample_pkg.page_exclusion_list"],
+			"requestValidationFunction": "sample_pkg.request_validation_function",
+			"pathAlias": "myalias",
+			"pathAliasProcedure": "sample_pkg.page_path_alias",
+			"errorStyle": "debug"
+		}
+	],
+	"loggerFilename": "access.log",
+	"monitorConsole": false
+}

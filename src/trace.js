@@ -10,7 +10,7 @@ import util from 'node:util';
  * Return a string representation of the value.
  *
  * @param {unknown} value - Any value.
- * @param {number | null} depth - Specifies the number of times to recurse while formatting object..
+ * @param {number | null} depth - Specifies the number of times to recurse while formatting object.
  * @returns {string} - The string representation.
  */
 export const inspect = (value, depth = null) => util.inspect(value, {showHidden: false, depth, colors: false});

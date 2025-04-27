@@ -29,6 +29,54 @@ import {readFileSyncUtf8, getJsonFile} from './file.js';
  */
 
 /**
+ * Show configuration.
+ * @param {configType} config - The config.
+ * @returns {void}
+ */
+export const showConfig = (config) => {
+	const expressVersion = getExpressVersion();
+	const packageVersion = getPackageVersion();
+
+	console.log('-'.repeat(80));
+	console.log('NODE PL/SQL SERVER');
+	console.log('-'.repeat(80));
+
+	console.log(`Application version: ${packageVersion}`);
+	console.log(`Express version:     ${expressVersion}`);
+	console.log(`Server port:         ${config.port}`);
+	console.log(`Access log:          ${config.loggerFilename.length > 0 ? config.loggerFilename : ''}`);
+	console.log(`Monitor console:     ${config.monitorConsole ? 'on' : 'off'}`);
+
+	if (config.routeStatic.length > 0) {
+		console.log('');
+		config.routeStatic.forEach((e, i) => {
+			console.log(`Static route #${i + 1}`);
+			console.log(` Route:            "${e.route}"`);
+			console.log(` Directory path:   "${e.directoryPath}"`);
+		});
+	}
+
+	if (config.routePlSql.length > 0) {
+		console.log('');
+		config.routePlSql.forEach((e, i) => {
+			console.log(`Application route #${i + 1}`);
+			console.log(` Route:                       "http://localhost:${config.port}${e.route}"`);
+			console.log(` Oracle user:                 "${e.user}"`);
+			console.log(` Oracle server:               "${e.connectString}"`);
+			console.log(` Oracle document table:       "${e.documentTable}"`);
+			console.log(` Default page:                "${e.defaultPage}"`);
+			console.log(` Path alias:                  "${e.pathAlias}"`);
+			console.log(` Path alias procedure:        "${e.pathAliasProcedure}"`);
+			console.log(` Exclution list:              "${e.exclusionList?.join(', ')}"`);
+			console.log(` Request validation function: "${e.requestValidationFunction}"`);
+			console.log(` Error style:                 "${e.errorStyle}"`);
+		});
+	}
+
+	console.log('-'.repeat(80));
+};
+
+/**
  * Create HTTP server.
  * @param {Express} app - express application
  * @param {number} port - port number
@@ -100,24 +148,33 @@ export const createHttpsServer = (app, sslKeyFilename, sslCertFilename, port, co
 export const startHttpServer = async (config) => {
 	debug('startHttpServer', config);
 
-	const expressVersion = getExpressVersion();
-	const packageVersion = getPackageVersion();
-
 	config = z$configType.parse(config);
 
-	console.log(`WEB_PL/SQL ${packageVersion} using express ${expressVersion}`);
+	showConfig(config);
 
 	// Create express app
 	const app = express();
+
+	// Debug requests
+	if (debug.enabled) {
+		app.use((req, res, next) => {
+			console.log(`Request: "${req.method}" "${req.url}"`);
+			next();
+		});
+	}
 
 	// Metrics
 	const metrics = initMetrics();
 	app.use(handlerMetrics(metrics));
 
+	// Access log
+	if (config.loggerFilename.length > 0) {
+		app.use(handlerLogger(config.loggerFilename));
+	}
+
 	// Serving static files
 	for (const i of config.routeStatic) {
 		app.use(i.route, express.static(i.directoryPath));
-		console.log(`Static resources on "${i.route}" from directory ${i.directoryPath}`);
 	}
 
 	// Default middleware
@@ -126,12 +183,6 @@ export const startHttpServer = async (config) => {
 	app.use(bodyParser.urlencoded({extended: true}));
 	app.use(cookieParser());
 	app.use(compression());
-
-	// Access log
-	if (config.loggerFilename.length > 0) {
-		console.log(`Access log in "${config.loggerFilename}"`);
-		app.use(handlerLogger(config.loggerFilename));
-	}
 
 	/** @type {Pool[]} */
 	const connectionPools = [];
@@ -143,11 +194,6 @@ export const startHttpServer = async (config) => {
 		connectionPools.push(pool);
 
 		app.use([`${i.route}/:name`, i.route], handlerWebPlSql(pool, i));
-
-		console.log(`Application route "http://localhost:${config.port}${i.route}"`);
-		console.log(`   Oracle user:           ${i.user}`);
-		console.log(`   Oracle server:         ${i.connectString}`);
-		console.log(`   Oracle document table: ${i.documentTable}`);
 	}
 
 	// Update metrics every second

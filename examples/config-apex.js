@@ -13,7 +13,7 @@ void startHttpServer({
 			route: '/apex',
 			user: 'APEX_PUBLIC_USER',
 			password: 'secret',
-			connectString: process.env.ORACLE_SERVER ?? '',
+			connectString: 'localhost:1521/orcl',
 			defaultPage: 'apex',
 			pathAlias: 'r',
 			pathAliasProcedure: 'wwv_flow.resolve_friendly_url',

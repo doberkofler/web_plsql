@@ -13,9 +13,9 @@ void startHttpServer({
 	routePlSql: [
 		{
 			route: '/sample',
-			user: process.env.WEB_PLSQL_ORACLE_USER ?? 'sample', // PlsqlDatabaseUserName
-			password: process.env.WEB_PLSQL_ORACLE_PASSWORD ?? 'sample', // PlsqlDatabasePassword
-			connectString: process.env.WEB_PLSQL_ORACLE_SERVER ?? 'localhost:1521/orcl', // PlsqlDatabaseConnectString
+			user: 'sample', // PlsqlDatabaseUserName
+			password: 'sample', // PlsqlDatabasePassword
+			connectString: process.env.WEB_PLSQL_ORACLE_SERVER ?? 'localhost:1521/TEST', // PlsqlDatabaseConnectString
 			defaultPage: 'sample_pkg.page_index', // PlsqlDefaultPage
 			documentTable: 'doctable', // PlsqlDocumentTablename
 			exclusionList: ['sample_pkg.page_exclusion_list'], // PlsqlExclusionList
