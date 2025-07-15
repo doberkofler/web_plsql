@@ -1,5 +1,4 @@
 .github
-package-lock.json
 private
 .vscode/
 .nyc_output/
