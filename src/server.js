@@ -86,7 +86,6 @@ export const showConfig = (config) => {
 export const createHttpServer = (app, port, connectionPools) => {
 	return new Promise((resolve) => {
 		// Create server
-		// eslint-disable-next-line @typescript-eslint/no-misused-promises
 		const server = http.createServer({}, app);
 
 		// Install shutdown handler
@@ -121,7 +120,6 @@ export const createHttpsServer = (app, sslKeyFilename, sslCertFilename, port, co
 		const cert = readFileSyncUtf8(sslCertFilename);
 
 		// Create server
-		// eslint-disable-next-line @typescript-eslint/no-misused-promises
 		const server = https.createServer({key, cert}, app);
 
 		// Install shutdown handler
