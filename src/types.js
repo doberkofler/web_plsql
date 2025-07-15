@@ -14,12 +14,10 @@ export const z$errorStyleType = z.enum(['basic', 'debug']);
  * @property {string} route - The Static route path.
  * @property {string} directoryPath - The Static directory.
  */
-export const z$configStaticType = z
-	.object({
-		route: z.string(),
-		directoryPath: z.string(),
-	})
-	.strict();
+export const z$configStaticType = z.strictObject({
+	route: z.string(),
+	directoryPath: z.string(),
+});
 
 /**
  * @typedef {object} configPlSqlHandlerType
@@ -32,17 +30,15 @@ export const z$configStaticType = z
  * @property {Record<string, string>} [cgi] - The additional CGI.
  * @property {errorStyleType} errorStyle - The error style.
  */
-export const z$configPlSqlHandlerType = z
-	.object({
-		defaultPage: z.string(),
-		pathAlias: z.string().optional(),
-		pathAliasProcedure: z.string().optional(),
-		documentTable: z.string(),
-		exclusionList: z.array(z.string()).optional(),
-		requestValidationFunction: z.string().optional(),
-		errorStyle: z$errorStyleType,
-	})
-	.strict();
+export const z$configPlSqlHandlerType = z.strictObject({
+	defaultPage: z.string(),
+	pathAlias: z.string().optional(),
+	pathAliasProcedure: z.string().optional(),
+	documentTable: z.string(),
+	exclusionList: z.array(z.string()).optional(),
+	requestValidationFunction: z.string().optional(),
+	errorStyle: z$errorStyleType,
+});
 
 /**
  * @typedef {object} configPlSqlConfigType
@@ -51,19 +47,20 @@ export const z$configPlSqlHandlerType = z
  * @property {string} password - The Oracle password.
  * @property {string} connectString - The Oracle connect string.
  */
-export const z$configPlSqlConfigType = z
-	.object({
-		route: z.string(),
-		user: z.string(),
-		password: z.string(),
-		connectString: z.string(),
-	})
-	.strict();
+export const z$configPlSqlConfigType = z.strictObject({
+	route: z.string(),
+	user: z.string(),
+	password: z.string(),
+	connectString: z.string(),
+});
 
 /**
  * @typedef {configPlSqlHandlerType & configPlSqlConfigType} configPlSqlType
  */
-export const z$configPlSqlType = z$configPlSqlHandlerType.merge(z$configPlSqlConfigType);
+export const z$configPlSqlType = z.strictObject({
+	...z$configPlSqlHandlerType.shape,
+	...z$configPlSqlConfigType.shape,
+});
 
 /**
  * @typedef {object} configType
@@ -73,15 +70,13 @@ export const z$configPlSqlType = z$configPlSqlHandlerType.merge(z$configPlSqlCon
  * @property {string} loggerFilename - name of the request logger filename or '' if not required.
  * @property {boolean} monitorConsole - Enable console status monitor.
  */
-export const z$configType = z
-	.object({
-		port: z.number(),
-		routeStatic: z.array(z$configStaticType),
-		routePlSql: z.array(z$configPlSqlType),
-		loggerFilename: z.string(),
-		monitorConsole: z.boolean(),
-	})
-	.strict();
+export const z$configType = z.strictObject({
+	port: z.number(),
+	routeStatic: z.array(z$configStaticType),
+	routePlSql: z.array(z$configPlSqlType),
+	loggerFilename: z.string(),
+	monitorConsole: z.boolean(),
+});
 
 /**
  * Environment variables as string key-value pairs

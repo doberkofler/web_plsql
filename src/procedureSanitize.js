@@ -135,7 +135,7 @@ const loadRequestValid = async (procName, requestValidationFunction, databaseCon
 	}
 
 	try {
-		const data = z.object({valid: z.number()}).strict().parse(result.outBinds);
+		const data = z.strictObject({valid: z.number()}).parse(result.outBinds);
 		return data.valid === 1;
 	} catch (err) {
 		debug('result', result.outBinds);

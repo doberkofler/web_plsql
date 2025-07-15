@@ -63,6 +63,7 @@ const config = [
 		rules: {
 			'@typescript-eslint/consistent-type-definitions': 'off',
 			'@typescript-eslint/no-confusing-void-expression': 'off',
+			'@typescript-eslint/no-deprecated': 'warn',
 			'@typescript-eslint/no-unnecessary-condition': 'off',
 			'@typescript-eslint/no-unused-vars': [
 				'warn',
