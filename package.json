@@ -79,7 +79,7 @@
 		"@types/morgan": "1.9.10",
 		"@types/multer": "2.0.0",
 		"@types/node": "24.1.0",
-		"@types/oracledb": "6.6.2",
+		"@types/oracledb": "6.9.0",
 		"@types/supertest": "6.0.3",
 		"eslint": "9.32.0",
 		"eslint-plugin-jsdoc": "52.0.1",
