@@ -60,13 +60,13 @@
 		"debug": "4.4.1",
 		"escape-html": "1.0.3",
 		"express": "5.1.0",
-		"fs-extra": "11.3.0",
+		"fs-extra": "11.3.1",
 		"http-parser-js": "0.5.10",
 		"morgan": "1.10.1",
 		"multer": "2.0.2",
 		"oracledb": "6.9.0",
 		"rotating-file-stream": "3.2.6",
-		"zod": "4.0.14"
+		"zod": "4.0.17"
 	},
 	"devDependencies": {
 		"@types/basic-auth": "1.1.8",
@@ -78,16 +78,16 @@
 		"@types/fs-extra": "11.0.4",
 		"@types/morgan": "1.9.10",
 		"@types/multer": "2.0.0",
-		"@types/node": "24.2.0",
-		"@types/oracledb": "6.9.0",
+		"@types/node": "24.2.1",
+		"@types/oracledb": "6.9.1",
 		"@types/supertest": "6.0.3",
-		"eslint": "9.32.0",
-		"eslint-plugin-jsdoc": "52.0.2",
+		"eslint": "9.33.0",
+		"eslint-plugin-jsdoc": "54.0.0",
 		"prettier": "3.6.2",
 		"rimraf": "6.0.1",
 		"shx": "0.4.0",
 		"supertest": "7.1.4",
 		"typescript": "5.9.2",
-		"typescript-eslint": "8.39.0"
+		"typescript-eslint": "8.39.1"
 	}
 }
