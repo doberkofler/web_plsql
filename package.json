@@ -52,6 +52,9 @@
 		"image-build": "docker build --no-cache --progress=plain --tag=web_plsql .",
 		"image-save": "docker save web_plsql | gzip > web_plsql.tar.gz"
 	},
+	"peerDependencies": {
+		"oracledb": "6.9.0"
+	},
 	"dependencies": {
 		"basic-auth": "2.0.1",
 		"body-parser": "2.2.0",
@@ -64,7 +67,6 @@
 		"http-parser-js": "0.5.10",
 		"morgan": "1.10.1",
 		"multer": "2.0.2",
-		"oracledb": "6.9.0",
 		"rotating-file-stream": "3.2.6",
 		"zod": "4.0.17"
 	},
