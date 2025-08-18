@@ -4,13 +4,19 @@
 /**
  * @typedef {'basic' | 'debug'} errorStyleType
  */
-export const z$errorStyleType: any;
+export const z$errorStyleType: z.ZodEnum<{
+    basic: "basic";
+    debug: "debug";
+}>;
 /**
  * @typedef {object} configStaticType
  * @property {string} route - The Static route path.
  * @property {string} directoryPath - The Static directory.
  */
-export const z$configStaticType: any;
+export const z$configStaticType: z.ZodObject<{
+    route: z.ZodString;
+    directoryPath: z.ZodString;
+}, z.core.$strict>;
 /**
  * @typedef {object} configPlSqlHandlerType
  * @property {string} defaultPage - The default page.
@@ -22,7 +28,18 @@ export const z$configStaticType: any;
  * @property {Record<string, string>} [cgi] - The additional CGI.
  * @property {errorStyleType} errorStyle - The error style.
  */
-export const z$configPlSqlHandlerType: any;
+export const z$configPlSqlHandlerType: z.ZodObject<{
+    defaultPage: z.ZodString;
+    pathAlias: z.ZodOptional<z.ZodString>;
+    pathAliasProcedure: z.ZodOptional<z.ZodString>;
+    documentTable: z.ZodString;
+    exclusionList: z.ZodOptional<z.ZodArray<z.ZodString>>;
+    requestValidationFunction: z.ZodOptional<z.ZodString>;
+    errorStyle: z.ZodEnum<{
+        basic: "basic";
+        debug: "debug";
+    }>;
+}, z.core.$strict>;
 /**
  * @typedef {object} configPlSqlConfigType
  * @property {string} route - The PL/SQL route path.
@@ -30,11 +47,31 @@ export const z$configPlSqlHandlerType: any;
  * @property {string} password - The Oracle password.
  * @property {string} connectString - The Oracle connect string.
  */
-export const z$configPlSqlConfigType: any;
+export const z$configPlSqlConfigType: z.ZodObject<{
+    route: z.ZodString;
+    user: z.ZodString;
+    password: z.ZodString;
+    connectString: z.ZodString;
+}, z.core.$strict>;
 /**
  * @typedef {configPlSqlHandlerType & configPlSqlConfigType} configPlSqlType
  */
-export const z$configPlSqlType: any;
+export const z$configPlSqlType: z.ZodObject<{
+    route: z.ZodString;
+    user: z.ZodString;
+    password: z.ZodString;
+    connectString: z.ZodString;
+    defaultPage: z.ZodString;
+    pathAlias: z.ZodOptional<z.ZodString>;
+    pathAliasProcedure: z.ZodOptional<z.ZodString>;
+    documentTable: z.ZodString;
+    exclusionList: z.ZodOptional<z.ZodArray<z.ZodString>>;
+    requestValidationFunction: z.ZodOptional<z.ZodString>;
+    errorStyle: z.ZodEnum<{
+        basic: "basic";
+        debug: "debug";
+    }>;
+}, z.core.$strict>;
 /**
  * @typedef {object} configType
  * @property {number} port - The server port number.
@@ -43,7 +80,31 @@ export const z$configPlSqlType: any;
  * @property {string} loggerFilename - name of the request logger filename or '' if not required.
  * @property {boolean} monitorConsole - Enable console status monitor.
  */
-export const z$configType: any;
+export const z$configType: z.ZodObject<{
+    port: z.ZodNumber;
+    routeStatic: z.ZodArray<z.ZodObject<{
+        route: z.ZodString;
+        directoryPath: z.ZodString;
+    }, z.core.$strict>>;
+    routePlSql: z.ZodArray<z.ZodObject<{
+        route: z.ZodString;
+        user: z.ZodString;
+        password: z.ZodString;
+        connectString: z.ZodString;
+        defaultPage: z.ZodString;
+        pathAlias: z.ZodOptional<z.ZodString>;
+        pathAliasProcedure: z.ZodOptional<z.ZodString>;
+        documentTable: z.ZodString;
+        exclusionList: z.ZodOptional<z.ZodArray<z.ZodString>>;
+        requestValidationFunction: z.ZodOptional<z.ZodString>;
+        errorStyle: z.ZodEnum<{
+            basic: "basic";
+            debug: "debug";
+        }>;
+    }, z.core.$strict>>;
+    loggerFilename: z.ZodString;
+    monitorConsole: z.ZodBoolean;
+}, z.core.$strict>;
 export type BindParameter = import("oracledb").BindParameter;
 export type errorStyleType = "basic" | "debug";
 export type configStaticType = {
@@ -249,3 +310,4 @@ export type metricsType = {
      */
     requestsInLastInterval: number;
 };
+import z from 'zod';

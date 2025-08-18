@@ -1,3 +1,4 @@
+export function showConfig(config: configType): void;
 export function createHttpServer(app: Express, port: number, connectionPools: Pool[]): Promise<http.Server>;
 export function createHttpsServer(app: Express, sslKeyFilename: string, sslCertFilename: string, port: number, connectionPools: Pool[]): Promise<https.Server>;
 export function startHttpServer(config: configType): Promise<void>;
@@ -9,3 +10,5 @@ export type NextFunction = import("express").NextFunction;
 export type Pool = import("oracledb").Pool;
 export type environmentType = import("./types.js").environmentType;
 export type configType = import("./types.js").configType;
+import http from 'node:http';
+import https from 'node:https';

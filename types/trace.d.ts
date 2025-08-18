@@ -3,3 +3,4 @@ export function logToFile(text: string): void;
 export function inspectRequest(req: express.Request, simple?: boolean): string;
 export function getBlock(title: string, body: string): string;
 export function getTimestamp(): string;
+import express from 'express';
