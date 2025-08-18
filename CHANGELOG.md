@@ -12,6 +12,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 
 
+## [0.10.0] - 2025-08-18
+
+### Changed
+- Make oracledb a peer dependency.
+- Updated all dependencies to latest versions.
+
 ## [0.9.0] - 2025-04-15
 
 ### Added
