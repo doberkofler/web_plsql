@@ -48,9 +48,9 @@ export const processRequest = async (req, res, options, connectionPool) => {
 	const argObj = {};
 	Object.assign(argObj, req.query);
 
-	// Add the files to the arguments
+	// For add the files that must be uploaded, we now copy the actual filename to the appropriate prameter to the invoked procedure.
 	filesToUpload.reduce((aggregator, file) => {
-		aggregator[file.fieldname] = file.originalname;
+		aggregator[file.fieldname] = file.filename;
 		return aggregator;
 	}, argObj);
 

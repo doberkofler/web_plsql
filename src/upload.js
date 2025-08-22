@@ -11,6 +11,19 @@ import {readFile, removeFile} from './file.js';
 import oracledb from 'oracledb';
 import z from 'zod';
 
+const z$reqFiles = z.array(
+	z.looseObject({
+		fieldname: z.string(),
+		originalname: z.string(),
+		encoding: z.string(),
+		mimetype: z.string(),
+		destination: z.string(),
+		filename: z.string(),
+		path: z.string(),
+		size: z.number(),
+	}),
+);
+
 /**
  * @typedef {import('express').Request} Request
  * @typedef {import('oracledb').Connection} Connection
@@ -37,22 +50,7 @@ export const getFiles = (req) => {
 
 	debug('req.files=', req.files);
 
-	// validate
-	const reqFiles = z
-		.object({
-			fieldname: z.string(),
-			originalname: z.string(),
-			encoding: z.string(),
-			mimetype: z.string(),
-			destination: z.string(),
-			filename: z.string(),
-			path: z.string(),
-			size: z.number(),
-		})
-		.array()
-		.parse(req.files);
-
-	return reqFiles;
+	return z$reqFiles.parse(req.files);
 };
 
 /**

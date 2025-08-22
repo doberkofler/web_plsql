@@ -33,51 +33,69 @@ import {errorToString} from './error.js';
 
 /**
  * Get the SQL statement to execute when a new procedure is invoked
+ *
+ * NOTE:
+ * 	1) dbms_session.modify_package_state(dbms_session.reinitialize) is used to ensure a stateless environment by resetting package state (dbms_session.reset_package)
+ *
  * @param {string} procedure - The procedure
  * @returns {string} - The SQL statement to execute
  */
-const getProcedureSQL = (procedure) => `DECLARE
-	fileType VARCHAR2(32767);
-	fileSize INTEGER;
-	fileBlob BLOB;
-	fileExist INTEGER := 0;
+const getProcedureSQL = (procedure) => `
+DECLARE
+	l_file_type		VARCHAR2(32767);
+	l_file_size		INTEGER;
+	l_file_exists	INTEGER := 0;
 BEGIN
-	-- Ensure a stateless environment by resetting package state (dbms_session.reset_package)
 	dbms_session.modify_package_state(dbms_session.reinitialize);
-
-	-- initialize the cgi
 	owa.init_cgi_env(:cgicount, :cginames, :cgivalues);
-
-	-- initialize the htp package
 	htp.init;
-
-	-- set the HTBUF_LEN
 	htp.HTBUF_LEN := :htbuflen;
 
-	-- execute the procedure
 	BEGIN
 		${procedure}
 	EXCEPTION WHEN OTHERS THEN
-		raise_application_error(-20000, 'Error executing ${procedure}'||CHR(10)||SUBSTR(dbms_utility.format_error_stack()||CHR(10)||dbms_utility.format_error_backtrace(), 1, 2000));
+		raise_application_error(-20000, 'Error executing "${procedure}"', TRUE);
 	END;
 
-	-- Check for file download
 	IF (wpg_docload.is_file_download()) THEN
-		wpg_docload.get_download_file(fileType);
-		IF (filetype = 'B') THEN
-			fileExist := 1;
+		wpg_docload.get_download_file(l_file_type);
+		IF (l_file_type = 'B') THEN
+			l_file_exists := 1;
 			wpg_docload.get_download_blob(:fileBlob);
-			fileSize := dbms_lob.getlength(:fileBlob);
-			--dbms_lob.copy(dest_lob=>:fileBlob, src_lob=>fileBlob, amount=>fileSize);
+			l_file_size := dbms_lob.getlength(:fileBlob);
 		END IF;
 	END IF;
-	:fileExist := fileExist;
-	:fileType := fileType;
-	:fileSize := fileSize;
+	:fileExist := l_file_exists;
+	:fileType := l_file_type;
+	:fileSize := l_file_size;
 
-	-- retrieve the page
 	owa.get_page(thepage=>:lines, irows=>:irows);
-END;`;
+END;
+`;
+
+/**
+ *	Get the procedure and arguments to execute
+ *	@param {string} procName - The procedure to execute
+ *	@param {argObjType} argObj - The arguments to pass to the procedure
+ *	@param {configPlSqlHandlerType} options - The options for the middleware
+ *	@param {Connection} databaseConnection - The database connection
+ *	@returns {Promise<{sql: string; bind: BindParameterConfig}>} - The SQL statement and bindings for the procedure to execute
+ */
+const getProcedure = async (procName, argObj, options, databaseConnection) => {
+	if (options.pathAlias && options.pathAlias.toLowerCase() === procName.toLowerCase()) {
+		debug(`getProcedure: path alias "${options.pathAlias}" redirects to "${options.pathAliasProcedure}"`);
+		return {
+			sql: `${options.pathAliasProcedure}(p_path=>:p_path);`,
+			bind: {
+				p_path: {dir: oracledb.BIND_IN, type: oracledb.STRING, val: procName},
+			},
+		};
+	} else if (procName.startsWith('!')) {
+		return await getProcedureVariable(procName.substring(1), argObj, databaseConnection, options);
+	}
+
+	return await getProcedureNamed(procName, argObj, databaseConnection, options);
+};
 
 /**
  * Invoke the Oracle procedure and return the page content
@@ -233,28 +251,4 @@ export const invokeProcedure = async (req, res, argObj, cgiObj, filesToUpload, o
 	fileBlob.destroy();
 
 	debug('invokeProcedure: EXIT');
-};
-
-/**
- *	Get the procedure and arguments to execute
- *	@param {string} procName - The procedure to execute
- *	@param {argObjType} argObj - The arguments to pass to the procedure
- *	@param {configPlSqlHandlerType} options - The options for the middleware
- *	@param {Connection} databaseConnection - The database connection
- *	@returns {Promise<{sql: string; bind: BindParameterConfig}>} - The SQL statement and bindings for the procedure to execute
- */
-const getProcedure = async (procName, argObj, options, databaseConnection) => {
-	if (options.pathAlias && options.pathAlias.toLowerCase() === procName.toLowerCase()) {
-		debug(`getProcedure: path alias "${options.pathAlias}" redirects to "${options.pathAliasProcedure}"`);
-		return {
-			sql: `${options.pathAliasProcedure}(p_path=>:p_path);`,
-			bind: {
-				p_path: {dir: oracledb.BIND_IN, type: oracledb.STRING, val: procName},
-			},
-		};
-	} else if (procName.startsWith('!')) {
-		return await getProcedureVariable(procName.substring(1), argObj, databaseConnection, options);
-	}
-
-	return await getProcedureNamed(procName, argObj, databaseConnection, options);
 };
