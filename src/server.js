@@ -15,7 +15,6 @@ import {handlerUpload} from './handlerUpload.js';
 import {handlerLogger} from './handlerLogger.js';
 import {initMetrics, handlerMetrics} from './handlerMetrics.js';
 import {handlerWebPlSql} from './handlerPlSql.js';
-import {getPackageVersion, getExpressVersion} from './version.js';
 import {readFileSyncUtf8, getJsonFile} from './file.js';
 
 /**
@@ -34,15 +33,10 @@ import {readFileSyncUtf8, getJsonFile} from './file.js';
  * @returns {void}
  */
 export const showConfig = (config) => {
-	const expressVersion = getExpressVersion();
-	const packageVersion = getPackageVersion();
-
 	console.log('-'.repeat(80));
 	console.log('NODE PL/SQL SERVER');
 	console.log('-'.repeat(80));
 
-	console.log(`Application version: ${packageVersion}`);
-	console.log(`Express version:     ${expressVersion}`);
 	console.log(`Server port:         ${config.port}`);
 	console.log(`Access log:          ${config.loggerFilename.length > 0 ? config.loggerFilename : ''}`);
 	console.log(`Monitor console:     ${config.monitorConsole ? 'on' : 'off'}`);
