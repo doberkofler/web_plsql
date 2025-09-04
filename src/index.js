@@ -14,4 +14,3 @@ export * from './oracle.js';
 // util
 export * from './file.js';
 export * from './tty.js';
-export * from './version.js';
