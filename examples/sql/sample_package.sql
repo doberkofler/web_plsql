@@ -9,6 +9,7 @@ PROCEDURE page_index(p IN VARCHAR2 DEFAULT NULL);
 PROCEDURE pag_simple(text IN VARCHAR2 DEFAULT NULL);
 PROCEDURE page_flexible(name_array IN owa.vc_arr, value_array IN owa.vc_arr);
 PROCEDURE page_array(text IN vc_arr);
+PROCEDURE page_slow;
 PROCEDURE page_cgi;
 PROCEDURE page_cookie;
 PROCEDURE page_form;

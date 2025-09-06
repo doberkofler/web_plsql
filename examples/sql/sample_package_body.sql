@@ -19,6 +19,7 @@ BEGIN
 	htp.p('<li><a href="sample_pkg.pag_simple?text=some-text">Simple page</a></li>');
 	htp.p('<li><a href="sample_pkg.page_array?text=some-text'||CHR(38)||'text=more-text'||CHR(38)||'text=last-text">Array passing</a></li>');
 	htp.p('<li><a href="!sample_pkg.page_flexible?p1=v1'||CHR(38)||'p2=v2'||CHR(38)||'p3=v3.1'||CHR(38)||'p3=v3.2"">Flexible parameter passing</a></li>');
+	htp.p('<li><a href="sample_pkg.page_slow">Slow page (5 seconds)</a></li>');
 	htp.p('<li><a href="sample_pkg.page_cgi">CGI</a></li>');
 	htp.p('<li><a href="sample_pkg.page_cookie">Cookies</a></li>');
 	htp.p('<li><a href="sample_pkg.page_form">Form</a></li>');
@@ -39,6 +40,21 @@ BEGIN
 	htp.p('<p>'||text||'</p>');
 	close_page();
 END pag_simple;
+
+PROCEDURE page_slow
+IS
+	l_start  TIMESTAMP := SYSTIMESTAMP;
+	l_now    TIMESTAMP;
+BEGIN
+	LOOP
+		l_now := SYSTIMESTAMP;
+		EXIT WHEN l_now >= l_start + INTERVAL '5' SECOND;
+	END LOOP;
+
+	open_page('web_plsql - Slow page');
+	htp.p('<p>I am slow</p>');
+	close_page();
+END page_slow;
 
 PROCEDURE page_array(text IN vc_arr)
 IS
