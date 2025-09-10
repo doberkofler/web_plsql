@@ -10,12 +10,14 @@ export default defineConfig([
 	{
 		ignores: ['**/.*', 'examples/**', 'types/**', 'node_modules/**'],
 	},
+
 	{
 		linterOptions: {
 			reportUnusedDisableDirectives: 'warn',
 			reportUnusedInlineConfigs: 'warn',
 		},
 	},
+
 	eslint.configs.recommended,
 	...tseslint.configs.strictTypeChecked,
 	...tseslint.configs.stylisticTypeChecked,

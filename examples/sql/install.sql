@@ -26,3 +26,5 @@ ALTER SESSION SET CURRENT_SCHEMA=&&SAMPLE_USER;
 show errors
 @@sample_package_body.sql
 show errors
+
+exit

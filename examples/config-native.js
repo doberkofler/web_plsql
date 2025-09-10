@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
-import {startHttpServer} from '../src/index.js';
+import {startServer} from '../src/index.js';
 
-void startHttpServer({
+void startServer({
 	port: 8888,
 	routeStatic: [
 		{
@@ -26,5 +26,4 @@ void startHttpServer({
 		},
 	],
 	loggerFilename: 'access.log', // PlsqlLogEnable and PlsqlLogDirectory
-	monitorConsole: false,
 });

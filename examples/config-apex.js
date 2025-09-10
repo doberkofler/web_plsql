@@ -1,6 +1,6 @@
-import {startHttpServer} from '../src/index.js';
+import {startServer} from '../src/index.js';
 
-void startHttpServer({
+void startServer({
 	port: 80,
 	routeStatic: [
 		{
@@ -22,5 +22,4 @@ void startHttpServer({
 		},
 	],
 	loggerFilename: 'access.log',
-	monitorConsole: false,
 });

@@ -12,6 +12,21 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 
 
+## [0.13.0] - 2025-09-10
+
+### Added
+- Add handling to keep track of connections and close them at shutdown.
+- Add a simple cli console to quit server.
+
+### Changed
+- Improved metrics handler.
+- Removed configuration option `monitorConsole`.
+- Updated all dependencies to latest versions.
+
+### Fixed
+- Fixed a problem with cookies that did not have all options properly set.
+
+
 ## [0.12.1] - 2025-09-04
 
 ### Fixed

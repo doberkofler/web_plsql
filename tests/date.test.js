@@ -1,6 +1,6 @@
 import assert from 'node:assert';
 import {describe, it} from 'node:test';
-import {humanDuration} from '../src/date.js';
+import {humanDuration} from '../src/util/date.js';
 
 describe('date', () => {
 	it('humanDuration', () => {

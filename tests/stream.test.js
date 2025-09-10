@@ -1,7 +1,7 @@
 import assert from 'node:assert';
 import {describe, it} from 'node:test';
 import fs from 'node:fs';
-import {streamToBuffer} from '../src/stream.js';
+import {streamToBuffer} from '../src/handler/plsql/stream.js';
 
 describe('stream', () => {
 	it('should convert a stream to a buffer', async () => {

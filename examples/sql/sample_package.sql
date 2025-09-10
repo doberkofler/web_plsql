@@ -11,7 +11,7 @@ PROCEDURE page_flexible(name_array IN owa.vc_arr, value_array IN owa.vc_arr);
 PROCEDURE page_array(text IN vc_arr);
 PROCEDURE page_slow;
 PROCEDURE page_cgi;
-PROCEDURE page_cookie;
+PROCEDURE page_cookie(p_action IN VARCHAR2 DEFAULT NULL);
 PROCEDURE page_form;
 PROCEDURE page_form_process(firstname IN VARCHAR2 DEFAULT NULL, lastname IN VARCHAR2 DEFAULT NULL, age IN VARCHAR2 DEFAULT NULL, sex IN VARCHAR2 DEFAULT NULL, vehicle IN vc_arr  DEFAULT emptyArray);
 PROCEDURE page_file_upload;

@@ -2,6 +2,7 @@ import z from 'zod';
 
 /**
  * @typedef {import('oracledb').BindParameter} BindParameter
+ * @typedef {import('express').CookieOptions} CookieOptions
  */
 
 /**
@@ -68,14 +69,12 @@ export const z$configPlSqlType = z.strictObject({
  * @property {configStaticType[]} routeStatic - The static routes.
  * @property {configPlSqlType[]} routePlSql - The PL/SQL routes.
  * @property {string} loggerFilename - name of the request logger filename or '' if not required.
- * @property {boolean} monitorConsole - Enable console status monitor.
  */
 export const z$configType = z.strictObject({
 	port: z.number(),
 	routeStatic: z.array(z$configStaticType),
 	routePlSql: z.array(z$configPlSqlType),
 	loggerFilename: z.string(),
-	monitorConsole: z.boolean(),
 });
 
 /**
@@ -109,11 +108,7 @@ export const z$configType = z.strictObject({
  * @typedef {object} cookieType
  * @property {string} name - The name of the cookie.
  * @property {string} value - The value of the cookie.
- * @property {string} [path] - The path of the cookie.
- * @property {string} [domain] - The domain of the cookie.
- * @property {string} [secure] - The secure flag.
- * @property {Date} [expires] - The expiration date.
- * @property {boolean} [httpOnly] - The httpOnly flag.
+ * @property {CookieOptions} options - The cookie options.
  */
 
 /**
@@ -132,10 +127,4 @@ export const z$configType = z.strictObject({
  * @property {string | null} file.fileType - The file type.
  * @property {number | null} file.fileSize - The file size.
  * @property {Buffer | null} file.fileBlob - The file blob.
- */
-
-/**
- * @typedef {object} metricsType - The metrics.
- * @property {number} totalRequests - The total number of requests.
- * @property {number} requestsInLastInterval - The number of requests in the last second.
  */

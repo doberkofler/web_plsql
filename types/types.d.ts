@@ -1,5 +1,6 @@
 /**
  * @typedef {import('oracledb').BindParameter} BindParameter
+ * @typedef {import('express').CookieOptions} CookieOptions
  */
 /**
  * @typedef {'basic' | 'debug'} errorStyleType
@@ -78,7 +79,6 @@ export const z$configPlSqlType: z.ZodObject<{
  * @property {configStaticType[]} routeStatic - The static routes.
  * @property {configPlSqlType[]} routePlSql - The PL/SQL routes.
  * @property {string} loggerFilename - name of the request logger filename or '' if not required.
- * @property {boolean} monitorConsole - Enable console status monitor.
  */
 export const z$configType: z.ZodObject<{
     port: z.ZodNumber;
@@ -103,9 +103,9 @@ export const z$configType: z.ZodObject<{
         }>;
     }, z.core.$strict>>;
     loggerFilename: z.ZodString;
-    monitorConsole: z.ZodBoolean;
 }, z.core.$strict>;
 export type BindParameter = import("oracledb").BindParameter;
+export type CookieOptions = import("express").CookieOptions;
 export type errorStyleType = "basic" | "debug";
 export type configStaticType = {
     /**
@@ -187,10 +187,6 @@ export type configType = {
      * - name of the request logger filename or '' if not required.
      */
     loggerFilename: string;
-    /**
-     * - Enable console status monitor.
-     */
-    monitorConsole: boolean;
 };
 /**
  * Environment variables as string key-value pairs
@@ -247,25 +243,9 @@ export type cookieType = {
      */
     value: string;
     /**
-     * - The path of the cookie.
+     * - The cookie options.
      */
-    path?: string;
-    /**
-     * - The domain of the cookie.
-     */
-    domain?: string;
-    /**
-     * - The secure flag.
-     */
-    secure?: string;
-    /**
-     * - The expiration date.
-     */
-    expires?: Date;
-    /**
-     * - The httpOnly flag.
-     */
-    httpOnly?: boolean;
+    options: CookieOptions;
 };
 /**
  * - The page.
@@ -296,18 +276,5 @@ export type pageType = {
         fileSize: number | null;
         fileBlob: Buffer | null;
     };
-};
-/**
- * - The metrics.
- */
-export type metricsType = {
-    /**
-     * - The total number of requests.
-     */
-    totalRequests: number;
-    /**
-     * - The number of requests in the last second.
-     */
-    requestsInLastInterval: number;
 };
 import z from 'zod';

@@ -7,7 +7,7 @@ import multer from 'multer';
 import cookieParser from 'cookie-parser';
 import compression from 'compression';
 import * as oracledb from './mock/oracledb.js';
-import {handlerWebPlSql} from '../src/handlerPlSql.js';
+import {handlerWebPlSql} from '../src/handler/plsql/handlerPlSql.js';
 
 const PORT = 8765;
 const DOC_TABLE = 'docTable';

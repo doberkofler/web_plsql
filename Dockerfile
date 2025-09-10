@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-ARG WEB_PLSQL_BASE_IMAGE=node:22-alpine
+ARG WEB_PLSQL_BASE_IMAGE=node:24-alpine
 
 #
 # STEP 1 - build

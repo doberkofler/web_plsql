@@ -110,7 +110,7 @@ describe('middleware', () => {
 		await request(serverConfig.app)
 			.get(`${PATH}/${DEFAULT_PAGE}`)
 			.expect(200)
-			.expect('set-cookie', 'C1=V1; Path=/')
+			.expect('set-cookie', 'C1=V1; Domain=mozilla.org; Path=/apex; Expires=Wed, 21 Oct 2015 07:28:00 GMT; HttpOnly')
 			.expect(new RegExp('.*<html><body><p>static</p></body></html>.*'));
 	});
 

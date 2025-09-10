@@ -27,5 +27,4 @@ void startHttpServer({
 		},
 	],
 	loggerFilename: 'access.log', // PlsqlLogEnable and PlsqlLogDirectory
-	monitorConsole: false,
 });

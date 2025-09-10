@@ -80,7 +80,6 @@ export const z$errorStyleType = z.enum(['basic', 'debug']);
  * @property {configPlSqlType[]} routePlSql - The PL/SQL routes.
  * @property {errorStyleType} errorStyle - The error style.
  * @property {string} loggerFilename - name of the request logger filename or '' if not required.
- * @property {boolean} monitorConsole - Enable console status monitor.
  */
 ```
 
@@ -138,7 +137,6 @@ The following mod_plsql DAD configuration translates to the configuration option
 		},
 	],
 	loggerFilename: 'access.log', // PlsqlLogEnable and PlsqlLogDirectory
-	monitorConsole: false,
 }
 ```
 

@@ -1,6 +1,12 @@
 CREATE OR REPLACE
 PACKAGE BODY sample_pkg IS
 
+COOKIE_ACTION_REMOVE	CONSTANT	VARCHAR2(30)	:=	'REMOVE';
+COOKIE_ACTION_SEND		CONSTANT	VARCHAR2(30)	:=	'SEND';
+
+COOKIE_NAME_NO_EXPIRES	CONSTANT	VARCHAR2(30)	:=	'COOKIE_NO_EXPIRES';
+COOKIE_NAME_ONE_DAY		CONSTANT	VARCHAR2(30)	:=	'COOKIE_ONE_DAY';
+
 PROCEDURE open_page(title IN VARCHAR2);
 PROCEDURE close_page;
 
@@ -95,26 +101,56 @@ BEGIN
 	close_page();
 END page_cgi;
 
-PROCEDURE page_cookie
+PROCEDURE page_cookie(p_action IN VARCHAR2 DEFAULT NULL)
 IS
-	names		owa_cookie.vc_arr;
-	vals		owa_cookie.vc_arr;
-	num_vals	INTEGER;
+	l_names		owa_cookie.vc_arr;
+	l_vals		owa_cookie.vc_arr;
+	l_num_vals	INTEGER;
 BEGIN
-	owa_cookie.get_all(names=>names, vals=>vals, num_vals=>num_vals);
+	CASE UPPER(p_action)
 
-	owa_util.mime_header('text/html', FALSE);
-	owa_cookie.send('demoCookie', TO_CHAR(SYSDATE, 'YYYY.MM.DD HH24:MI:SS'));
-	owa_util.http_header_close;
+	WHEN COOKIE_ACTION_REMOVE THEN
+		owa_util.mime_header('text/html', FALSE);
 
-	open_page('web_plsql - Cookies');
-	htp.p('<table>');
-	htp.p('<tr><th>name</th><th>value</th></tr>');
-	FOR i IN 1 .. num_vals LOOP
-		htp.p('<tr><td>'||names(i)||'</td><td>'||vals(i)||'</td></tr>');
-	END LOOP;
-	htp.p('</table>');
-	close_page();
+		owa_cookie.remove(name=>COOKIE_NAME_NO_EXPIRES, val=>'');
+		owa_cookie.remove(name=>COOKIE_NAME_ONE_DAY, val=>'');
+
+		owa_util.redirect_url('sample_pkg.page_cookie');
+		owa_util.http_header_close;
+
+	WHEN COOKIE_ACTION_SEND THEN
+		owa_util.mime_header('text/html', FALSE);
+
+		owa_cookie.send(name=>COOKIE_NAME_NO_EXPIRES, value=>'VALUE-' || TO_CHAR(TRUNC(dbms_random.value(1, 101))));
+		owa_cookie.send(name=>COOKIE_NAME_ONE_DAY, value=>'VALUE-' || TO_CHAR(TRUNC(dbms_random.value(1, 101))), expires=>SYSDATE + 1);
+
+		owa_util.redirect_url('sample_pkg.page_cookie');
+		owa_util.http_header_close;
+
+	ELSE
+		owa_cookie.get_all(names=>l_names, vals=>l_vals, num_vals=>l_num_vals);
+
+		open_page('web_plsql - Cookies');
+
+		-- actions
+		htp.p('<p>');
+		htp.p('<form method="POST" action="sample_pkg.page_cookie">');
+		htp.p('<input type="submit" name="p_action" value="' || COOKIE_ACTION_REMOVE || '">');
+		htp.p('<input type="submit" name="p_action" value="' || COOKIE_ACTION_SEND || '">');
+		htp.p('</form>');
+		htp.p('</p>');
+
+		-- show cookies
+		htp.p('<table>');
+		htp.p('<tr><th>name</th><th>value</th></tr>');
+		FOR i IN 1 .. l_num_vals LOOP
+			htp.p('<tr><td>'||l_names(i)||'</td><td>'||l_vals(i)||'</td></tr>');
+		END LOOP;
+		htp.p('</table>');
+
+		close_page();
+
+	END CASE;
 END page_cookie;
 
 PROCEDURE page_form
@@ -256,6 +292,9 @@ BEGIN
 	htp.p('</body>');
 	htp.p('</html>');
 END close_page;
+
+BEGIN
+	dbms_random.seed(TO_CHAR(SYSDATE,'MM-DD-YYYY HH24:MI:SS'));
 
 END sample_pkg;
 /

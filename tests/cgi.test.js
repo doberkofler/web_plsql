@@ -1,7 +1,7 @@
 import assert from 'node:assert';
 import {describe, it} from 'node:test';
 import os from 'node:os';
-import {getCGI} from '../src/cgi.js';
+import {getCGI} from '../src/handler/plsql/cgi.js';
 
 /**
  * @typedef {import('express').Request} Request
@@ -16,7 +16,8 @@ describe('cgi', () => {
 		const REMOTE_ADDRESS = '127.0.0.1';
 
 		/**
-		 * @param {string} name
+		 * @param {string} name - name
+		 * @returns {string | null}
 		 */
 		const get = (name) => {
 			switch (name.toLowerCase()) {

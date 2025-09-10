@@ -21,6 +21,5 @@
 			"errorStyle": "debug"
 		}
 	],
-	"loggerFilename": "access.log",
-	"monitorConsole": false
+	"loggerFilename": "access.log"
 }
