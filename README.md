@@ -39,12 +39,12 @@ Please visit the [node-oracledb](https://node-oracledb.readthedocs.io/en/latest/
 # Configuration
 
 There are 2 options on how to use the web_plsql express middleware:
-- Use the predefined `startHttpServer` api in `src/server.js` like in the `examples/config-native.js` example
+- Use the predefined `startServer` api in `src/server.js` like in the `examples/config-native.js` example
 - Hand craft a new Express server using the `handlerWebPlSql` middleware in `src/handlerPlSql.js`
 
-## Use the predefined `startHttpServer`
+## Use the predefined `startServer`
 
-The `startHttpServer` api uses the following configuration object:
+The `startServer` api uses the following configuration object:
 
 ```
 /**
