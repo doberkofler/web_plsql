@@ -28,8 +28,12 @@ import {showConfig} from './config.js';
  */
 
 /**
- * @typedef {object} Server - server interface.
- * @property {http.Server | https.Server} server - native Node http(s) server instance.
+ * @typedef {object} webServer - Web server interface.
+ * @property {configType} config - Configuration object.
+ * @property {Pool[]} connectionPools - Oracle connection pools.
+ * @property {Express} app - Express app.
+ * @property {http.Server | https.Server} server - Native Node http(s) server instance.
+ * @property {() => Promise<void>} shutdown - Shutdown function.
  */
 
 /**
@@ -51,7 +55,7 @@ export const createServer = (app, ssl) => {
 
 		return https.createServer({key, cert}, app);
 	} else {
-		return http.createServer({}, app);
+		return http.createServer(app);
 	}
 };
 
@@ -59,7 +63,7 @@ export const createServer = (app, ssl) => {
  * Start server.
  * @param {configType} config - The config.
  * @param {sslConfig} [ssl] - ssl configuration.
- * @returns {Promise<http.Server | https.Server>} - Promise resolving to the server.
+ * @returns {Promise<webServer>} - Promise resolving to the web server object.
  */
 export const startServer = async (config, ssl) => {
 	debug('startServer: BEGIN', config, ssl);
@@ -121,7 +125,7 @@ export const startServer = async (config, ssl) => {
 		}
 	};
 
-	const onShutdown = async () => {
+	const shutdown = async () => {
 		debug('startServer: onShutdown');
 
 		await poolsClose(connectionPools);
@@ -135,7 +139,7 @@ export const startServer = async (config, ssl) => {
 	};
 
 	// Install shutdown handler
-	installShutdown(onShutdown);
+	installShutdown(shutdown);
 
 	// Listen
 	debug('startServer: start listener');
@@ -156,7 +160,13 @@ export const startServer = async (config, ssl) => {
 
 	debug('startServer: END');
 
-	return server;
+	return {
+		config,
+		connectionPools,
+		app,
+		server,
+		shutdown,
+	};
 };
 
 /**
@@ -164,24 +174,12 @@ export const startServer = async (config, ssl) => {
  * @param {string} [filename] - The configuration filename.
  * @returns {configType} - Promise.
  */
-export const loadConfig = (filename = 'config.json') => {
-	debug('loadConfig', filename);
-
-	const data = getJsonFile(filename);
-
-	const config = z$configType.parse(data);
-
-	return config;
-};
+export const loadConfig = (filename = 'config.json') => z$configType.parse(getJsonFile(filename));
 
 /**
  * Start server from config file.
  * @param {string} [filename] - The configuration filename.
  * @param {sslConfig} [ssl] - ssl configuration.
- * @returns {Promise<http.Server | https.Server>} - Promise resolving to the server.
+ * @returns {Promise<webServer>} - Promise resolving to the web server object.
  */
-export const startServerConfig = async (filename = 'config.json', ssl) => {
-	const config = loadConfig(filename);
-
-	return startServer(config, ssl);
-};
+export const startServerConfig = async (filename = 'config.json', ssl) => startServer(loadConfig(filename), ssl);

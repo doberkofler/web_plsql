@@ -1,7 +1,7 @@
 export function createServer(app: Express, ssl?: sslConfig): http.Server | https.Server;
-export function startServer(config: configType, ssl?: sslConfig): Promise<http.Server | https.Server>;
+export function startServer(config: configType, ssl?: sslConfig): Promise<webServer>;
 export function loadConfig(filename?: string): configType;
-export function startServerConfig(filename?: string, ssl?: sslConfig): Promise<http.Server | https.Server>;
+export function startServerConfig(filename?: string, ssl?: sslConfig): Promise<webServer>;
 export type Socket = import("node:net").Socket;
 export type Express = import("express").Express;
 export type Request = import("express").Request;
@@ -11,13 +11,29 @@ export type Pool = import("oracledb").Pool;
 export type environmentType = import("../types.js").environmentType;
 export type configType = import("../types.js").configType;
 /**
- * - server interface.
+ * - Web server interface.
  */
-export type Server = {
+export type webServer = {
     /**
-     * - native Node http(s) server instance.
+     * - Configuration object.
+     */
+    config: configType;
+    /**
+     * - Oracle connection pools.
+     */
+    connectionPools: Pool[];
+    /**
+     * - Express app.
+     */
+    app: Express;
+    /**
+     * - Native Node http(s) server instance.
      */
     server: http.Server | https.Server;
+    /**
+     * - Shutdown function.
+     */
+    shutdown: () => Promise<void>;
 };
 /**
  * - SSL configuration.
