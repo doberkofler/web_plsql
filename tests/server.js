@@ -2,7 +2,6 @@ import util from 'node:util';
 import path from 'node:path';
 import express from 'express';
 import morgan from 'morgan';
-import bodyParser from 'body-parser';
 import multer from 'multer';
 import cookieParser from 'cookie-parser';
 import compression from 'compression';
@@ -144,8 +143,8 @@ export const serverStart = async (log = false) => {
 
 	// add middleware
 	app.use(upload.any());
-	app.use(bodyParser.json());
-	app.use(bodyParser.urlencoded({extended: true}));
+	app.use(express.json());
+	app.use(express.urlencoded({extended: true}));
 	app.use(cookieParser());
 	app.use(compression());
 

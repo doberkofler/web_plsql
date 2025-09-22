@@ -4,7 +4,6 @@ const debug = debugModule('webplsql:server');
 import http from 'node:http';
 import https from 'node:https';
 import express from 'express';
-import bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser';
 import compression from 'compression';
 import {z$configType} from '../types.js';
@@ -87,8 +86,8 @@ export const startServer = async (config, ssl) => {
 
 	// Default middleware
 	app.use(handlerUpload());
-	app.use(bodyParser.json());
-	app.use(bodyParser.urlencoded({extended: true}));
+	app.use(express.json());
+	app.use(express.urlencoded({extended: true}));
 	app.use(cookieParser());
 	app.use(compression());
 
