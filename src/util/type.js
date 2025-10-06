@@ -1,3 +1,5 @@
+/* eslint-disable jsdoc/no-undefined-types */
+
 /**
  *	Is the given value a string or an array of strings
  *	@param {unknown} value - The value to check.
