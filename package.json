@@ -67,7 +67,7 @@
 		"morgan": "1.10.1",
 		"multer": "2.0.2",
 		"rotating-file-stream": "3.2.7",
-		"zod": "4.1.11"
+		"zod": "4.1.12"
 	},
 	"devDependencies": {
 		"@types/basic-auth": "1.1.8",
@@ -82,12 +82,12 @@
 		"@types/oracledb": "6.9.1",
 		"@types/supertest": "6.0.3",
 		"eslint": "9.37.0",
-		"eslint-plugin-jsdoc": "60.8.2",
+		"eslint-plugin-jsdoc": "60.8.3",
 		"prettier": "3.6.2",
 		"rimraf": "6.0.1",
 		"shx": "0.4.0",
 		"supertest": "7.1.4",
 		"typescript": "5.9.3",
-		"typescript-eslint": "8.45.0"
+		"typescript-eslint": "8.46.0"
 	}
 }
