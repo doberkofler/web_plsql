@@ -67,20 +67,20 @@ export const createServer = (app, ssl) => {
 export const startServer = async (config, ssl) => {
 	debug('startServer: BEGIN', config, ssl);
 
-	config = z$configType.parse(config);
+	const internalConfig = /** @type {configType} */ (z$configType.parse(config));
 
-	showConfig(config);
+	showConfig(internalConfig);
 
 	// Create express app
 	const app = express();
 
 	// Access log
-	if (config.loggerFilename.length > 0) {
-		app.use(handlerLogger(config.loggerFilename));
+	if (internalConfig.loggerFilename.length > 0) {
+		app.use(handlerLogger(internalConfig.loggerFilename));
 	}
 
 	// Serving static files
-	for (const i of config.routeStatic) {
+	for (const i of internalConfig.routeStatic) {
 		app.use(i.route, express.static(i.directoryPath));
 	}
 
@@ -95,7 +95,7 @@ export const startServer = async (config, ssl) => {
 	const connectionPools = [];
 
 	// Oracle pl/sql express middleware
-	for (const i of config.routePlSql) {
+	for (const i of internalConfig.routePlSql) {
 		// Allocate the Oracle database pool
 		const pool = await poolCreate(i.user, i.password, i.connectString);
 		connectionPools.push(pool);
@@ -145,7 +145,7 @@ export const startServer = async (config, ssl) => {
 	await /** @type {Promise<void>} */ (
 		new Promise((resolve, reject) => {
 			server
-				.listen(config.port)
+				.listen(internalConfig.port)
 				.on('listening', () => {
 					debug('startServer: listener running');
 					resolve();
@@ -160,7 +160,7 @@ export const startServer = async (config, ssl) => {
 	debug('startServer: END');
 
 	return {
-		config,
+		config: internalConfig,
 		connectionPools,
 		app,
 		server,
@@ -173,7 +173,7 @@ export const startServer = async (config, ssl) => {
  * @param {string} [filename] - The configuration filename.
  * @returns {configType} - Promise.
  */
-export const loadConfig = (filename = 'config.json') => z$configType.parse(getJsonFile(filename));
+export const loadConfig = (filename = 'config.json') => /** @type {configType} */ (z$configType.parse(getJsonFile(filename)));
 
 /**
  * Start server from config file.

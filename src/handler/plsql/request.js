@@ -49,7 +49,7 @@ export const processRequest = async (req, res, options, connectionPool) => {
 	const argObj = {};
 	Object.assign(argObj, req.query);
 
-	// For add the files that must be uploaded, we now copy the actual filename to the appropriate prameter to the invoked procedure.
+	// For add the files that must be uploaded, we now copy the actual filename to the appropriate parameter to the invoked procedure.
 	filesToUpload.reduce((aggregator, file) => {
 		aggregator[file.fieldname] = file.filename;
 		return aggregator;
@@ -57,9 +57,26 @@ export const processRequest = async (req, res, options, connectionPool) => {
 
 	// Does the request contain a body
 	Object.assign(argObj, normalizeBody(req));
+	debug('executeRequest: argObj=', argObj);
 
 	// invoke the Oracle procedure and get the page contenst
 	await invokeProcedure(req, res, argObj, cgiObj, filesToUpload, options, connection);
+
+	// transaction mode
+	if (options.transactionMode === 'rollback') {
+		debug('transactionMode: rollback');
+		await connection.rollback();
+	} else if (typeof options.transactionMode === 'function') {
+		debug('transactionMode: callback');
+		const result = options.transactionMode(req, connection);
+		debug('transactionMode: callback restult', result);
+		if (result && typeof result.then === 'function') {
+			await result;
+		}
+	} else {
+		debug('transactionMode: commit');
+		await connection.commit();
+	}
 
 	// close database connection
 	await connection.release();

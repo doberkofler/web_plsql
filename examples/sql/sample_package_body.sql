@@ -32,6 +32,7 @@ BEGIN
 	htp.p('<li><a href="sample_pkg.page_file_upload">File upload</a></li>');
 	htp.p('<li><a href="sample_pkg.page_redirect">Redirect</a></li>');
 	htp.p('<li><a href="sample_pkg.page_location">Change location</a></li>');
+	htp.p('<li><a href="sample_pkg.page_open_transaction">Transaction mode: custom handler</a></li>');
 	htp.p('<li><a href="myalias">pathAlias configuration setting</a></li>');
 	htp.p('<li><a href="sample_pkg.page_exclusion_list">Custom exclusion list</a></li>');
 	htp.p('<li><a href="sample_pkg.page_request_validation_function">Request validation function</a></li>');
@@ -236,12 +237,17 @@ BEGIN
 	close_page();
 END page_location;
 
-PROCEDURE page_other
+PROCEDURE page_open_transaction
 IS
+	l_name CONSTANT docTable.name%TYPE := 'page_open_transaction';
 BEGIN
-	open_page('web_plsql - Other page');
+	open_page('web_plsql - Transaction mode: custom handler');
+
+	DELETE docTable WHERE name = l_name;
+	INSERT INTO docTable (name) VALUES (l_name);
+
 	close_page();
-END page_other;
+END page_open_transaction;
 
 PROCEDURE page_path_alias(p_path IN VARCHAR2)
 IS

@@ -1,6 +1,7 @@
 /**
  * @typedef {import('oracledb').BindParameter} BindParameter
  * @typedef {import('express').CookieOptions} CookieOptions
+ * @typedef {import('express').Request} Request
  */
 /**
  * @typedef {'basic' | 'debug'} errorStyleType
@@ -19,6 +20,15 @@ export const z$configStaticType: z.ZodObject<{
     directoryPath: z.ZodString;
 }, z.core.$strict>;
 /**
+ * @callback transactionCallbackType
+ * @param {Request} req - Incoming request object.
+ * @param {import('oracledb').Connection} connection - Active database connection pool.
+ * @returns {void | Promise<void>}
+ */
+/**
+ * @typedef {'commit' | 'rollback' | transactionCallbackType | undefined | null} transactionModeType
+ */
+/**
  * @typedef {object} configPlSqlHandlerType
  * @property {string} defaultPage - The default page.
  * @property {string} [pathAlias] - The path alias.
@@ -27,6 +37,10 @@ export const z$configStaticType: z.ZodObject<{
  * @property {string[]} [exclusionList] - The exclusion list.
  * @property {string} [requestValidationFunction] - The request validation function.
  * @property {Record<string, string>} [cgi] - The additional CGI.
+ * @property {transactionModeType} [transactionMode='commit'] - Specifies an optional transaction mode.
+ * "commit" this automatically commits any open transaction after each request. This is the defaults because this is what mod_plsql and ohs are doing.
+ * "rollback" this automatically rolles back any open transaction after each request.
+ * "transactionCallbackType" this allows to defined a custom handler as a JavaScript function.
  * @property {errorStyleType} errorStyle - The error style.
  */
 export const z$configPlSqlHandlerType: z.ZodObject<{
@@ -36,6 +50,7 @@ export const z$configPlSqlHandlerType: z.ZodObject<{
     documentTable: z.ZodString;
     exclusionList: z.ZodOptional<z.ZodArray<z.ZodString>>;
     requestValidationFunction: z.ZodOptional<z.ZodString>;
+    transactionMode: z.ZodOptional<z.ZodUnknown>;
     errorStyle: z.ZodEnum<{
         basic: "basic";
         debug: "debug";
@@ -68,6 +83,7 @@ export const z$configPlSqlType: z.ZodObject<{
     documentTable: z.ZodString;
     exclusionList: z.ZodOptional<z.ZodArray<z.ZodString>>;
     requestValidationFunction: z.ZodOptional<z.ZodString>;
+    transactionMode: z.ZodOptional<z.ZodUnknown>;
     errorStyle: z.ZodEnum<{
         basic: "basic";
         debug: "debug";
@@ -97,6 +113,7 @@ export const z$configType: z.ZodObject<{
         documentTable: z.ZodString;
         exclusionList: z.ZodOptional<z.ZodArray<z.ZodString>>;
         requestValidationFunction: z.ZodOptional<z.ZodString>;
+        transactionMode: z.ZodOptional<z.ZodUnknown>;
         errorStyle: z.ZodEnum<{
             basic: "basic";
             debug: "debug";
@@ -106,6 +123,7 @@ export const z$configType: z.ZodObject<{
 }, z.core.$strict>;
 export type BindParameter = import("oracledb").BindParameter;
 export type CookieOptions = import("express").CookieOptions;
+export type Request = import("express").Request;
 export type errorStyleType = "basic" | "debug";
 export type configStaticType = {
     /**
@@ -117,6 +135,8 @@ export type configStaticType = {
      */
     directoryPath: string;
 };
+export type transactionCallbackType = (req: Request, connection: import("oracledb").Connection) => void | Promise<void>;
+export type transactionModeType = "commit" | "rollback" | transactionCallbackType | undefined | null;
 export type configPlSqlHandlerType = {
     /**
      * - The default page.
@@ -146,6 +166,13 @@ export type configPlSqlHandlerType = {
      * - The additional CGI.
      */
     cgi?: Record<string, string>;
+    /**
+     * - Specifies an optional transaction mode.
+     * "commit" this automatically commits any open transaction after each request. This is the defaults because this is what mod_plsql and ohs are doing.
+     * "rollback" this automatically rolles back any open transaction after each request.
+     * "transactionCallbackType" this allows to defined a custom handler as a JavaScript function.
+     */
+    transactionMode?: transactionModeType;
     /**
      * - The error style.
      */

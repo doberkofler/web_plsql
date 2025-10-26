@@ -12,6 +12,21 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 
 
+## [0.14.0] - 2025-11-02
+
+### Added
+- The option `transactionModeType` specifies an optional transaction mode.<br>
+"commit" this automatically commits any open transaction after each request. This is the defaults because this is what mod_plsql and ohs are doing.<br>
+"rollback" this automatically rolles back any open transaction after each request.<br>
+"transactionCallbackType" this allows to defined a custom handler as a JavaScript function.
+
+### Changed
+- Updated all dependencies to latest versions.
+
+### Fixed
+- The filename of uploaded files now has the some format as in ords and mod_plsql by including the actual filename after a slash at the end.
+
+
 ## [0.13.2] - 2025-09-22
 
 ### Changed

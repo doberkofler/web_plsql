@@ -8,6 +8,7 @@ import debugModule from 'debug';
 const debug = debugModule('webplsql:fileUpload');
 
 import {readFile, removeFile} from '../../util/file.js';
+import {errorToString} from '../../util/errorToString.js';
 import oracledb from 'oracledb';
 import z from 'zod';
 
@@ -37,20 +38,25 @@ const z$reqFiles = z.array(
  * @returns {fileUploadType[]} - Promise that resolves with an array of files to be uploaded.
  */
 export const getFiles = (req) => {
-	/** @type {fileUploadType[]} */
-	const files = [];
-
 	if (!('files' in req)) {
-		return files;
+		debug('getFiles: no files');
+		return [];
 	}
 
 	if (typeof req.files === 'object' && req.files !== null && Object.keys(req.files).length === 0) {
-		return files;
+		debug('getFiles: no files');
+		return [];
 	}
 
-	debug('req.files=', req.files);
+	const files = z$reqFiles.parse(req.files);
 
-	return z$reqFiles.parse(req.files);
+	for (const file of files) {
+		file.filename += `/${file.originalname}`;
+	}
+
+	debug('getFiles', files);
+
+	return files;
 };
 
 /**
@@ -62,12 +68,22 @@ export const getFiles = (req) => {
  * @returns {Promise<void>} - Promise that resolves when uploaded.
  */
 export const uploadFile = async (file, doctable, databaseConnection) => {
+	debug(`uploadFile`, file, doctable);
+
 	/* istanbul ignore next */
 	if (typeof doctable !== 'string' || doctable.length === 0) {
 		throw new Error(`Unable to upload file "${file.filename}" because the option ""doctable" has not been defined`);
 	}
 
-	const blobContent = await readFile(file.path);
+	// read file
+	let blobContent;
+	try {
+		blobContent = await readFile(file.path);
+	} catch (err) {
+		throw new Error(`Unable to load file "${file.path}".\n${errorToString(err)}`);
+	}
+
+	// insert file in document table
 	const sql = `INSERT INTO ${doctable} (name, mime_type, doc_size, dad_charset, last_updated, content_type, blob_content) VALUES (:name, :mime_type, :doc_size, 'ascii', SYSDATE, 'BLOB', :blob_content)`;
 	const bind = {
 		name: file.filename,
@@ -78,13 +94,16 @@ export const uploadFile = async (file, doctable, databaseConnection) => {
 			type: oracledb.BUFFER,
 		},
 	};
-
 	try {
 		await databaseConnection.execute(sql, bind, {autoCommit: true});
 	} catch (err) {
-		throw new Error(`Unable to insert file "${file.filename}"}`);
+		throw new Error(`Unable to insert file "${file.filename}".\n${errorToString(err)}`);
 	}
 
 	// remove the file
-	await removeFile(file.path);
+	try {
+		await removeFile(file.path);
+	} catch (err) {
+		throw new Error(`Unable to remove file "${file.filename}".\n${errorToString(err)}`);
+	}
 };

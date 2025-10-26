@@ -18,7 +18,7 @@ PROCEDURE page_file_upload;
 PROCEDURE page_file_uploaded(name_array IN owa.vc_arr, value_array IN owa.vc_arr);
 PROCEDURE page_redirect;
 PROCEDURE page_location;
-PROCEDURE page_other;
+PROCEDURE page_open_transaction;
 PROCEDURE page_path_alias(p_path IN VARCHAR2);
 PROCEDURE page_exclusion_list;
 PROCEDURE page_request_validation_function;

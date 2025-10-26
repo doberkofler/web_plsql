@@ -15,6 +15,10 @@ GRANT create sequence TO &&SAMPLE_USER;
 GRANT create procedure TO &&SAMPLE_USER;
 GRANT execute on dbms_lob TO &&SAMPLE_USER;
 
+-- only required if you want to test for open connections
+GRANT select on sys.v_$transaction TO &&SAMPLE_USER;
+GRANT select on sys.v_$session TO &&SAMPLE_USER;
+
 -- change schema
 ALTER SESSION SET CURRENT_SCHEMA=&&SAMPLE_USER;
 

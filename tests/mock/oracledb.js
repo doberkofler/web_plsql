@@ -1,5 +1,8 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
+import debugModule from 'debug';
+const debug = debugModule('webplsql:oracledb');
+
 /**
  * @typedef {import('../../src/types.js').BindParameterConfig} BindParameterConfig
  * @typedef {(sql: string, bindParams?: BindParameterConfig) => unknown} executeCallbackType
@@ -22,6 +25,7 @@ export class Lob {
 	 * @param {number} type - The type of Lob.
 	 */
 	constructor(type) {
+		debug('Lob.constructor', type);
 		/** @type {number} */
 		this.type = type;
 	}
@@ -29,6 +33,7 @@ export class Lob {
 	 * @return {Promise<void>}
 	 */
 	destroy() {
+		debug('Lob.destroy');
 		return Promise.resolve();
 	}
 }
@@ -38,6 +43,7 @@ export class Pool {
 	 * @return {Promise<Connection>}
 	 */
 	getConnection() {
+		debug('Pool.getConnection');
 		return Promise.resolve(new Connection());
 	}
 
@@ -46,6 +52,7 @@ export class Pool {
 	 * @return {Promise<void>}
 	 */
 	close(dummy) {
+		debug('Pool.close');
 		return Promise.resolve();
 	}
 }
@@ -58,6 +65,7 @@ export class Connection {
 	 * @return {Promise<unknown>}
 	 */
 	execute(sql, bindParams, options) {
+		debug('Connection.execute', sql, bindParams, options);
 		return Promise.resolve(_executeCallback ? _executeCallback(sql, bindParams) : {});
 	}
 
@@ -66,6 +74,7 @@ export class Connection {
 	 * @return {Promise<Lob>}
 	 */
 	createLob(type) {
+		debug('Connection.createLob');
 		const lob = new Lob(type);
 		return Promise.resolve(lob);
 	}
@@ -73,7 +82,24 @@ export class Connection {
 	/**
 	 * @return {Promise<void>}
 	 */
+	commit() {
+		debug('Connection.commit');
+		return Promise.resolve();
+	}
+
+	/**
+	 * @return {Promise<void>}
+	 */
+	rollback() {
+		debug('Connection.rollback');
+		return Promise.resolve();
+	}
+
+	/**
+	 * @return {Promise<void>}
+	 */
 	release() {
+		debug('Connection.release');
 		return Promise.resolve();
 	}
 }
@@ -83,6 +109,7 @@ export class Connection {
  * @returns {Promise<Pool>}
  */
 export const createPool = (options) => {
+	debug('createPool');
 	return Promise.resolve(new Pool());
 };
 

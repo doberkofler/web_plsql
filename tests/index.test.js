@@ -194,4 +194,13 @@ describe('middleware', () => {
 
 		await request(serverConfig.app).get(`${PATH}/alias`).expect(200, new RegExp('.*<html><body><p>static</p></body></html>.*'));
 	});
+
+	it('use before and after requets handler', async () => {
+		sqlExecuteProxy({
+			proc: 'pathAlias(p_path=>:p_path);',
+			lines: ['Content-type: text/html; charset=UTF-8\n', '\n', '<html><body><p>static</p></body></html>\n'],
+		});
+
+		await request(serverConfig.app).get(`${PATH}/alias`).expect(200, new RegExp('.*<html><body><p>static</p></body></html>.*'));
+	});
 });

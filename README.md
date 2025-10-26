@@ -50,11 +50,6 @@ The `startServer` api uses the following configuration object:
 /**
  * @typedef {'basic' | 'debug'} errorStyleType
  */
-export const z$errorStyleType = z.enum(['basic', 'debug']);
-
-/**
- * @typedef {{alias: string, procedure: string}} pathAliasType
- */
 
 /**
  * @typedef {object} configStaticType
@@ -63,14 +58,42 @@ export const z$errorStyleType = z.enum(['basic', 'debug']);
  */
 
 /**
- * @typedef {object} configPlSqlType
+ * @callback transactionCallbackType
+ * @param {Request} req - Incoming request object.
+ * @param {import('oracledb').Connection} connection - Active database connection pool.
+ * @returns {void | Promise<void>}
+ */
+
+/**
+ * @typedef {'commit' | 'rollback' | transactionCallbackType | undefined | null} transactionModeType
+ */
+
+/**
+ * @typedef {object} configPlSqlHandlerType
+ * @property {string} defaultPage - The default page.
+ * @property {string} [pathAlias] - The path alias.
+ * @property {string} [pathAliasProcedure] - The path alias.
+ * @property {string} documentTable - The document table.
+ * @property {string[]} [exclusionList] - The exclusion list.
+ * @property {string} [requestValidationFunction] - The request validation function.
+ * @property {Record<string, string>} [cgi] - The additional CGI.
+ * @property {transactionModeType} [transactionMode='commit'] - Specifies an optional transaction mode.
+ * "commit" this automatically commits any open transaction after each request. This is the defaults because this is what mod_plsql and ohs are doing.
+ * "rollback" this automatically rolles back any open transaction after each request.
+ * "transactionCallbackType" this allows to defined a custom handler as a JavaScript function.
+ * @property {errorStyleType} errorStyle - The error style.
+ */
+
+/**
+ * @typedef {object} configPlSqlConfigType
  * @property {string} route - The PL/SQL route path.
  * @property {string} user - The Oracle username.
  * @property {string} password - The Oracle password.
  * @property {string} connectString - The Oracle connect string.
- * @property {string} defaultPage - The default page.
- * @property {pathAliasType} [pathAlias] - The path alias.
- * @property {string} documentTable - The document table.
+ */
+
+/**
+ * @typedef {configPlSqlHandlerType & configPlSqlConfigType} configPlSqlType
  */
 
 /**
@@ -78,7 +101,6 @@ export const z$errorStyleType = z.enum(['basic', 'debug']);
  * @property {number} port - The server port number.
  * @property {configStaticType[]} routeStatic - The static routes.
  * @property {configPlSqlType[]} routePlSql - The PL/SQL routes.
- * @property {errorStyleType} errorStyle - The error style.
  * @property {string} loggerFilename - name of the request logger filename or '' if not required.
  */
 ```
@@ -147,30 +169,36 @@ The following mod_plsql DAD configuration translates to the configuration option
 # Configuration options
 
 ## Supported mod_plsql configuration options
-- PlsqlDatabaseConnectString
-- PlsqlDatabaseUserName
-- PlsqlDatabasePassword
-- PlsqlDefaultPage
-- PlsqlDocumentTablename
-- PlsqlErrorStyle
-- PlsqlLogEnable
-- PlsqlLogDirectory
-- PlsqlPathAlias
-- PlsqlPathAliasProcedure
+- PlsqlDatabaseConnectString -> routePlSql[].connectString
+- PlsqlDatabaseUserName -> routePlSql[].user
+- PlsqlDatabasePassword -> routePlSql[].password
+- PlsqlDefaultPage -> routePlSql[].defaultPage
+- PlsqlDocumentTablename -> routePlSql[].documentTable
+- PlsqlErrorStyle -> routePlSql[].errorStyle
+- PlsqlLogEnable -> loggerFilename
+- PlsqlLogDirectory -> loggerFilename
+- PlsqlPathAlias -> routePlSql[].pathAlias
+- PlsqlPathAliasProcedure -> routePlSql[].pathAliasProcedure
 - Default exclusion list.
-- PlsqlRequestValidationFunction
+- PlsqlRequestValidationFunction -> routePlSql[].pathAliasProcedure
 - PlsqlExclusionList
 - Basic and custom authentication methods, based on the OWA_SEC package and custom packages.
+
+## Features that are only available in web_plsql
+- The option `transactionModeType` specifies an optional transaction mode.
+  "commit" this automatically commits any open transaction after each request. This is the defaults because this is what mod_plsql and ohs are doing.
+  "rollback" this automatically rolles back any open transaction after each request.
+  "transactionCallbackType" this allows to defined a custom handler as a JavaScript function.
 
 ## Features that are planned to be available in web_plsql
 - Support for APEX 5 or greater.
 
 ## Configuration options that will not be supported:
-- PlsqlDocumentProcedure
-- PlsqlAfterProcedure
 - PlsqlAlwaysDescribeProcedure
+- PlsqlAfterProcedure
 - PlsqlBeforeProcedure
 - PlsqlCGIEnvironmentList
+- PlsqlDocumentProcedure
 - PlsqlDocumentPath
 - PlsqlIdleSessionCleanupInterval
 - PlsqlSessionCookieName

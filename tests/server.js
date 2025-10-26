@@ -2,11 +2,11 @@ import util from 'node:util';
 import path from 'node:path';
 import express from 'express';
 import morgan from 'morgan';
-import multer from 'multer';
 import cookieParser from 'cookie-parser';
 import compression from 'compression';
 import * as oracledb from './mock/oracledb.js';
 import {handlerWebPlSql} from '../src/handler/plsql/handlerPlSql.js';
+import {handlerUpload} from '../src/handler/handlerUpload.js';
 
 const PORT = 8765;
 const DOC_TABLE = 'docTable';
@@ -16,11 +16,12 @@ export const DEFAULT_PAGE = 'sample.pageIndex';
 /**
  * @typedef {import('../src/types.js').BindParameterConfig} BindParameterConfig
  * @typedef {import('../src/types.js').configPlSqlHandlerType} configPlSqlHandlerType
+ * @typedef {import('../src/types.js').transactionModeType} transactionModeType
  * @typedef {{name: string, value: string | string[]}[]} paraType
  */
 
 /**
- * File upload metadata
+ * Server configuration result type.
  * @typedef {object} serverConfigType
  * @property {import('express').Express} app
  * @property {import('node:http').Server} server
@@ -108,29 +109,23 @@ const arrayEqual = (array1, array2) => {
 };
 
 /**
+ *	Start server configuration options.
+ *	@typedef configOptionsType
+ *	@property {boolean} [log=false] - Enable request logging.
+ *	@property {transactionModeType} [transactionMode] - Specifies an optional handler to be invoked before calling the requested procedure.
+ */
+
+/**
  *	Start server
- *	@param {boolean} [log] - Log requests.
+ *	@param {configOptionsType} [config] - Configuration.
  *	@returns {Promise<serverConfigType>} - The server configuration
  */
-export const serverStart = async (log = false) => {
+export const serverStart = async (config = {}) => {
+	const {log = false, transactionMode} = config;
 	const connectionPool = await oracledb.createPool({
 		user: 'sample',
 		password: 'sample',
 		connectString: 'localhost:1521/TEST',
-	});
-
-	// create the upload middleware
-	const upload = multer({
-		storage: multer.diskStorage({
-			destination: '/tmp/uploads',
-			filename: (req, file, cb) => {
-				const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
-				cb(null, `${file.fieldname}-${uniqueSuffix}${path.extname(file.originalname)}`);
-			},
-		}),
-		limits: {
-			fileSize: 50 * 1024 * 1024, // 50MB limit
-		},
 	});
 
 	// create express app
@@ -142,7 +137,7 @@ export const serverStart = async (log = false) => {
 	}
 
 	// add middleware
-	app.use(upload.any());
+	app.use(handlerUpload());
 	app.use(express.json());
 	app.use(express.urlencoded({extended: true}));
 	app.use(cookieParser());
@@ -155,6 +150,7 @@ export const serverStart = async (log = false) => {
 		pathAlias: 'alias',
 		pathAliasProcedure: 'pathAlias',
 		documentTable: DOC_TABLE,
+		transactionMode,
 		errorStyle: 'basic',
 	};
 

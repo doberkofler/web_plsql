@@ -41,6 +41,7 @@ const requestHandler = async (req, res, next, connectionPool, options) => {
 				errorPage(req, res, options, new RequestError('No procedure name given and no default page has been specified'));
 			}
 		} else {
+			// request handler
 			await processRequest(req, res, options, connectionPool);
 		}
 	} catch (err) {
