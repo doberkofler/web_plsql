@@ -2,6 +2,7 @@ import z from 'zod';
 
 /**
  * @typedef {import('oracledb').BindParameter} BindParameter
+ * @typedef {import('oracledb').Connection} Connection
  * @typedef {import('express').CookieOptions} CookieOptions
  * @typedef {import('express').Request} Request
  */
@@ -22,13 +23,7 @@ export const z$configStaticType = z.strictObject({
 });
 
 /**
- * @callback transactionCallbackType
- * @param {Request} req - Incoming request object.
- * @param {import('oracledb').Connection} connection - Active database connection pool.
- * @returns {void | Promise<void>}
- */
-
-/**
+ * @typedef {(req: Request, connection: Connection) => void | Promise<void>} transactionCallbackType
  * @typedef {'commit' | 'rollback' | transactionCallbackType | undefined | null} transactionModeType
  */
 

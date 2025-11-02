@@ -1,5 +1,6 @@
 /**
  * @typedef {import('oracledb').BindParameter} BindParameter
+ * @typedef {import('oracledb').Connection} Connection
  * @typedef {import('express').CookieOptions} CookieOptions
  * @typedef {import('express').Request} Request
  */
@@ -20,12 +21,7 @@ export const z$configStaticType: z.ZodObject<{
     directoryPath: z.ZodString;
 }, z.core.$strict>;
 /**
- * @callback transactionCallbackType
- * @param {Request} req - Incoming request object.
- * @param {import('oracledb').Connection} connection - Active database connection pool.
- * @returns {void | Promise<void>}
- */
-/**
+ * @typedef {(req: Request, connection: Connection) => void | Promise<void>} transactionCallbackType
  * @typedef {'commit' | 'rollback' | transactionCallbackType | undefined | null} transactionModeType
  */
 /**
@@ -122,6 +118,7 @@ export const z$configType: z.ZodObject<{
     loggerFilename: z.ZodString;
 }, z.core.$strict>;
 export type BindParameter = import("oracledb").BindParameter;
+export type Connection = import("oracledb").Connection;
 export type CookieOptions = import("express").CookieOptions;
 export type Request = import("express").Request;
 export type errorStyleType = "basic" | "debug";
@@ -135,7 +132,7 @@ export type configStaticType = {
      */
     directoryPath: string;
 };
-export type transactionCallbackType = (req: Request, connection: import("oracledb").Connection) => void | Promise<void>;
+export type transactionCallbackType = (req: Request, connection: Connection) => void | Promise<void>;
 export type transactionModeType = "commit" | "rollback" | transactionCallbackType | undefined | null;
 export type configPlSqlHandlerType = {
     /**
