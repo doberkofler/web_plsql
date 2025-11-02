@@ -21,7 +21,7 @@ export const z$configStaticType: z.ZodObject<{
     directoryPath: z.ZodString;
 }, z.core.$strict>;
 /**
- * @typedef {(req: Request, connection: Connection) => void | Promise<void>} transactionCallbackType
+ * @typedef {(connection: Connection, procedure: string) => void | Promise<void>} transactionCallbackType
  * @typedef {'commit' | 'rollback' | transactionCallbackType | undefined | null} transactionModeType
  */
 /**
@@ -132,7 +132,7 @@ export type configStaticType = {
      */
     directoryPath: string;
 };
-export type transactionCallbackType = (req: Request, connection: Connection) => void | Promise<void>;
+export type transactionCallbackType = (connection: Connection, procedure: string) => void | Promise<void>;
 export type transactionModeType = "commit" | "rollback" | transactionCallbackType | undefined | null;
 export type configPlSqlHandlerType = {
     /**

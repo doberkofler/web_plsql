@@ -23,7 +23,7 @@ export const z$configStaticType = z.strictObject({
 });
 
 /**
- * @typedef {(req: Request, connection: Connection) => void | Promise<void>} transactionCallbackType
+ * @typedef {(connection: Connection, procedure: string) => void | Promise<void>} transactionCallbackType
  * @typedef {'commit' | 'rollback' | transactionCallbackType | undefined | null} transactionModeType
  */
 

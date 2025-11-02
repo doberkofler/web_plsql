@@ -58,13 +58,7 @@ The `startServer` api uses the following configuration object:
  */
 
 /**
- * @callback transactionCallbackType
- * @param {Request} req - Incoming request object.
- * @param {import('oracledb').Connection} connection - Active database connection pool.
- * @returns {void | Promise<void>}
- */
-
-/**
+ * @typedef {(connection: Connection, procedure: string) => void | Promise<void>} transactionCallbackType
  * @typedef {'commit' | 'rollback' | transactionCallbackType | undefined | null} transactionModeType
  */
 

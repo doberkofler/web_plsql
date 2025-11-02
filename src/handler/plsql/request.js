@@ -68,7 +68,7 @@ export const processRequest = async (req, res, options, connectionPool) => {
 		await connection.rollback();
 	} else if (typeof options.transactionMode === 'function') {
 		debug('transactionMode: callback');
-		const result = options.transactionMode(req, connection);
+		const result = options.transactionMode(connection, req.params.name);
 		debug('transactionMode: callback restult', result);
 		if (result && typeof result.then === 'function') {
 			await result;

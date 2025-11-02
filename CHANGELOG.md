@@ -12,6 +12,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 
 
+## [0.14.2] - 2025-11-02
+
+### Fixed
+- Type `transactionCallbackType` now offers procedure.
+
+
 ## [0.14.1] - 2025-11-02
 
 ### Fixed

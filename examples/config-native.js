@@ -55,14 +55,12 @@ void startServer({
 			requestValidationFunction: 'sample_pkg.request_validation_function', // PlsqlRequestValidationFunction
 			pathAlias: 'myalias', // PlsqlPathAlias
 			pathAliasProcedure: 'sample_pkg.page_path_alias', // PlsqlPathAliasProcedure
-			transactionMode: 'commit',
-			/*
-			transactionMode: async (req, connection) => {
+			//transactionMode: 'commit',
+			transactionMode: async (connection, procedure) => {
 				if (await hasOpenTransaction(connection)) {
-					console.log(`We detected an open transaction in "${req.originalUrl}"`);
+					console.log(`We detected an open transaction in "${procedure}"`);
 				}
 			},
-			*/
 			errorStyle: 'debug', // PlsqlErrorStyle
 		},
 	],
