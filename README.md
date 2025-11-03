@@ -46,7 +46,7 @@ There are 2 options on how to use the web_plsql express middleware:
 
 The `startServer` api uses the following configuration object:
 
-```
+```typescript
 /**
  * @typedef {'basic' | 'debug'} errorStyleType
  */
@@ -95,6 +95,7 @@ The `startServer` api uses the following configuration object:
  * @property {number} port - The server port number.
  * @property {configStaticType[]} routeStatic - The static routes.
  * @property {configPlSqlType[]} routePlSql - The PL/SQL routes.
+ * @property {number} [uploadFileSizeLimit] - Maximum size of each uploaded file in bytes or no limit if omitted.
  * @property {string} loggerFilename - name of the request logger filename or '' if not required.
  */
 ```
@@ -128,7 +129,7 @@ The following mod_plsql DAD configuration translates to the configuration option
 ```
 
 **mod_plsql**
-```
+```typescript
 {
 	port: 80,
 	routeStatic: [
@@ -149,9 +150,11 @@ The following mod_plsql DAD configuration translates to the configuration option
 			requestValidationFunction: 'sample_pkg.request_validation_function', // PlsqlRequestValidationFunction
 			pathAlias: 'myalias', // PlsqlPathAlias
 			pathAliasProcedure: 'sample_pkg.page_path_alias', // PlsqlPathAliasProcedure
+			transactionMode: 'commit',
 			errorStyle: 'debug', // PlsqlErrorStyle
 		},
 	],
+	uploadFileSizeLimit: 50 * 1024 * 1024, // 50MB
 	loggerFilename: 'access.log', // PlsqlLogEnable and PlsqlLogDirectory
 }
 ```

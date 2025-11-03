@@ -33,7 +33,7 @@ export const z$configStaticType: z.ZodObject<{
  * @property {string[]} [exclusionList] - The exclusion list.
  * @property {string} [requestValidationFunction] - The request validation function.
  * @property {Record<string, string>} [cgi] - The additional CGI.
- * @property {transactionModeType} [transactionMode='commit'] - Specifies an optional transaction mode.
+ * @property {transactionModeType} [transactionMode] - Specifies an optional transaction mode.
  * "commit" this automatically commits any open transaction after each request. This is the defaults because this is what mod_plsql and ohs are doing.
  * "rollback" this automatically rolles back any open transaction after each request.
  * "transactionCallbackType" this allows to defined a custom handler as a JavaScript function.
@@ -90,6 +90,7 @@ export const z$configPlSqlType: z.ZodObject<{
  * @property {number} port - The server port number.
  * @property {configStaticType[]} routeStatic - The static routes.
  * @property {configPlSqlType[]} routePlSql - The PL/SQL routes.
+ * @property {number} [uploadFileSizeLimit] - Maximum size of each uploaded file in bytes or no limit if omitted.
  * @property {string} loggerFilename - name of the request logger filename or '' if not required.
  */
 export const z$configType: z.ZodObject<{
@@ -115,6 +116,7 @@ export const z$configType: z.ZodObject<{
             debug: "debug";
         }>;
     }, z.core.$strict>>;
+    uploadFileSizeLimit: z.ZodOptional<z.ZodNumber>;
     loggerFilename: z.ZodString;
 }, z.core.$strict>;
 export type BindParameter = import("oracledb").BindParameter;
@@ -207,6 +209,10 @@ export type configType = {
      * - The PL/SQL routes.
      */
     routePlSql: configPlSqlType[];
+    /**
+     * - Maximum size of each uploaded file in bytes or no limit if omitted.
+     */
+    uploadFileSizeLimit?: number;
     /**
      * - name of the request logger filename or '' if not required.
      */

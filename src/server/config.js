@@ -16,6 +16,7 @@ export const showConfig = (config) => {
 
 	console.log(`Server port:            ${config.port}`);
 	console.log(`Access log:             ${config.loggerFilename.length > 0 ? config.loggerFilename : ''}`);
+	console.log(`Upload file size limit: ${typeof config.uploadFileSizeLimit === 'number' ? `${config.uploadFileSizeLimit} bytes` : 'any'}`);
 
 	if (config.routeStatic.length > 0) {
 		console.log(LINE);

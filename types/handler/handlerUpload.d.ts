@@ -1,4 +1,4 @@
-export function handlerUpload(): RequestHandler;
+export function handlerUpload(uploadFileSizeLimit?: number): RequestHandler;
 export type RequestHandler = import("express").RequestHandler;
 export type Response = import("express").Response;
 export type NextFunction = import("express").NextFunction;

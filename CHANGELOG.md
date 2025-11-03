@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [?.?.?] - ????-??-??
 
 ### Added
+- Add configuration option `uploadFileSizeLimit` to limit the max file size on uploads.
+
 ### Changed
 ### Fixed
 

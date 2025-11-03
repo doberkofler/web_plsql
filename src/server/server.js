@@ -85,7 +85,7 @@ export const startServer = async (config, ssl) => {
 	}
 
 	// Default middleware
-	app.use(handlerUpload());
+	app.use(handlerUpload(internalConfig.uploadFileSizeLimit));
 	app.use(express.json());
 	app.use(express.urlencoded({extended: true}));
 	app.use(cookieParser());

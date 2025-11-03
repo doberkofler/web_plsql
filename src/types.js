@@ -36,7 +36,7 @@ export const z$configStaticType = z.strictObject({
  * @property {string[]} [exclusionList] - The exclusion list.
  * @property {string} [requestValidationFunction] - The request validation function.
  * @property {Record<string, string>} [cgi] - The additional CGI.
- * @property {transactionModeType} [transactionMode='commit'] - Specifies an optional transaction mode.
+ * @property {transactionModeType} [transactionMode] - Specifies an optional transaction mode.
  * "commit" this automatically commits any open transaction after each request. This is the defaults because this is what mod_plsql and ohs are doing.
  * "rollback" this automatically rolles back any open transaction after each request.
  * "transactionCallbackType" this allows to defined a custom handler as a JavaScript function.
@@ -80,12 +80,14 @@ export const z$configPlSqlType = z.strictObject({
  * @property {number} port - The server port number.
  * @property {configStaticType[]} routeStatic - The static routes.
  * @property {configPlSqlType[]} routePlSql - The PL/SQL routes.
+ * @property {number} [uploadFileSizeLimit] - Maximum size of each uploaded file in bytes or no limit if omitted.
  * @property {string} loggerFilename - name of the request logger filename or '' if not required.
  */
 export const z$configType = z.strictObject({
 	port: z.number(),
 	routeStatic: z.array(z$configStaticType),
 	routePlSql: z.array(z$configPlSqlType),
+	uploadFileSizeLimit: z.number().optional(),
 	loggerFilename: z.string(),
 });
 
