@@ -31,18 +31,18 @@ import {isStringOrArrayOfString} from '../../util/type.js';
  * @returns {Promise<void>} - Promise resolving to th page
  */
 export const processRequest = async (req, res, options, connectionPool) => {
-	debug('executeRequest: ENTER');
+	debug('processRequest: ENTER');
 
 	// open database connection
 	const connection = await connectionPool.getConnection();
 
 	// Get the CGI
 	const cgiObj = getCGI(req, options.documentTable ?? '', options.cgi ?? {});
-	debug('executeRequest: cgiObj=', cgiObj);
+	debug('processRequest: cgiObj=', cgiObj);
 
 	// Does the request contain any files
 	const filesToUpload = getFiles(req);
-	debug('executeRequest: filesToUpload=', filesToUpload);
+	debug('processRequest: filesToUpload=', filesToUpload);
 
 	// Add the query properties
 	/** @type {argObjType} */
@@ -57,7 +57,7 @@ export const processRequest = async (req, res, options, connectionPool) => {
 
 	// Does the request contain a body
 	Object.assign(argObj, normalizeBody(req));
-	debug('executeRequest: argObj=', argObj);
+	debug('processRequest: argObj=', argObj);
 
 	// invoke the Oracle procedure and get the page contenst
 	await invokeProcedure(req, res, argObj, cgiObj, filesToUpload, options, connection);
@@ -81,7 +81,7 @@ export const processRequest = async (req, res, options, connectionPool) => {
 	// close database connection
 	await connection.release();
 
-	debug('executeRequest: EXIT');
+	debug('processRequest: EXIT');
 };
 
 /**
