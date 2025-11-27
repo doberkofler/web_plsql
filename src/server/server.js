@@ -1,6 +1,5 @@
 import debugModule from 'debug';
 const debug = debugModule('webplsql:server');
-
 import http from 'node:http';
 import https from 'node:https';
 import express from 'express';

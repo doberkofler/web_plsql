@@ -1,3 +1,5 @@
+import {getVersion} from './version.js';
+
 /**
  * @typedef {import('../types.js').configType} configType
  */
@@ -11,7 +13,7 @@ export const showConfig = (config) => {
 	const LINE = '-'.repeat(80);
 
 	console.log(LINE);
-	console.log('NODE PL/SQL SERVER');
+	console.log(`NODE PL/SQL SERVER version ${getVersion()}`);
 	console.log(LINE);
 
 	console.log(`Server port:            ${config.port}`);

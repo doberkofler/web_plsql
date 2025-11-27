@@ -1,4 +1,5 @@
 // server
+export {getVersion} from './server/version.js';
 export {createServer, startServer, loadConfig, startServerConfig} from './server/server.js';
 export * from './util/shutdown.js';
 

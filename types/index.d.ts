@@ -1,3 +1,4 @@
+export { getVersion } from "./server/version.js";
 export * from "./util/shutdown.js";
 export * from "./util/oracle.js";
 export * from "./util/file.js";
