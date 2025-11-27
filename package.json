@@ -1,6 +1,6 @@
 {
 	"name": "web_plsql",
-	"version": "0.14.2",
+	"version": "0.15.0",
 	"author": "Dieter Oberkofler <dieter.oberkofler@gmail.com>",
 	"license": "MIT",
 	"description": "The Express Middleware for Oracle PL/SQL",
@@ -83,7 +83,7 @@
 		"@types/supertest": "6.0.3",
 		"eslint": "9.39.1",
 		"eslint-plugin-jsdoc": "61.4.1",
-		"prettier": "3.6.2",
+		"prettier": "3.7.1",
 		"shx": "0.4.0",
 		"supertest": "7.1.4",
 		"typescript": "5.9.3",

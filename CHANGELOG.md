@@ -8,10 +8,18 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [?.?.?] - ????-??-??
 
 ### Added
-- Add configuration option `uploadFileSizeLimit` to limit the max file size on uploads.
-
 ### Changed
 ### Fixed
+
+
+## [0.15.0] - 2025-11-27
+
+### Added
+- Add configuration option `uploadFileSizeLimit` to limit the max file size on uploads.
+- Increased the limits for `express.json` and `express.urlencoded` to 50MB.
+
+### Changed
+- Updated all dependencies to latest versions.
 
 
 ## [0.14.2] - 2025-11-02
