@@ -61,7 +61,7 @@
 		"cookie-parser": "1.4.7",
 		"debug": "4.4.3",
 		"escape-html": "1.0.3",
-		"express": "5.1.0",
+		"express": "5.2.0",
 		"fs-extra": "11.3.2",
 		"http-parser-js": "0.5.10",
 		"morgan": "1.10.1",
