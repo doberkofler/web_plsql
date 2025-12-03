@@ -2,12 +2,11 @@
  *	Error handling
  */
 
-import util from 'node:util';
-import escape from 'escape-html';
 import {ProcedureError} from './procedureError.js';
 import {RequestError} from './requestError.js';
-import {inspectRequest, logToFile} from '../../util/trace.js';
+import {inspectRequest, inspectBindParameter, inspectEnvironment, logToFile} from '../../util/trace.js';
 import {errorToString} from '../../util/errorToString.js';
+import {convertAsciiToHtml} from '../../util/html.js';
 
 /**
  * @typedef {import('express').Request} Request
@@ -18,84 +17,61 @@ import {errorToString} from '../../util/errorToString.js';
  * @typedef {{html: string; text: string}} outputType
  */
 
-/**
- *	Convert value to string
- *	@param {unknown} value - The value to convert.
- *	@returns {string} - The string representation of the value.
- */
-const inspect = (value) => util.inspect(value, {showHidden: false, depth: null, colors: false});
+const separator = '='.repeat(100);
+let errorCount = 0;
 
 /**
- *	Convert LF and/or CR to <br>
+ *	Get line html
+ *	@param {string} text - The text.
+ *	@returns {string} - The line.
+ */
+const getLineHtml = (text) => `<p>${convertAsciiToHtml(text)}</p>`;
+
+/**
+ *	Get line text
+ *	@param {string} text - The text.
+ *	@returns {string} - The line.
+ */
+const getLineText = (text) => `${text}\n`;
+
+/**
+ *	Add line
+ *	@param {outputType} output - The output.
  *	@param {string} text - The text to convert.
- *	@returns {string} - The converted text.
  */
-const convertToHtml = (text) => {
-	let html = escape(text);
-
-	html = html.replace(/(?:\r\n|\r|\n)/g, '<br />');
-	html = html.replace(/\t/g, '&nbsp;&nbsp;&nbsp;');
-
-	return html;
+const addLine = (output, text) => {
+	output.html += getLineHtml(text);
+	output.text += getLineText(text);
 };
 
 /**
- *	Get html
- *	@param {string} text - The text to convert.
- *	@returns {string} - The converted text.
- */
-const getHtml = (text) => `<p>${convertToHtml(text)}</p>`;
-
-/**
- *	Get text header
- *	@param {string} text - The text to convert.
- *	@returns {string} - The converted text.
- */
-const getHeaderText = (text) => `\n${text}\n${'='.repeat(text.length)}\n`;
-
-/**
- *	Get html header
- *	@param {string} text - The text to convert.
- *	@returns {string} - The converted text.
- */
-const getHeaderHtml = (text) => `<h1>${text}</h1>`;
-
-/**
- *	Get text
- *	@param {string} text - The text to convert.
- *	@returns {string} - The converted text.
- */
-const getText = (text) => `${text}\n`;
-
-/**
- * Get evnironment
+ *	Add header
  *	@param {outputType} output - The output.
- *	@param {environmentType} environment - The environment.
+ *	@param {string} text - The text to convert.
  */
-const getEnvironment = (output, environment) => {
-	let html = '<table>';
-	let text = '';
+const addHeader = (output, text) => {
+	output.html += `<h2>${text}</h2>`;
+	output.text += `\n${text}\n${'-'.repeat(text.length)}\n`;
+};
+
+/**
+ *	Add procedure
+ *	@param {outputType} output - The output.
+ *	@param {string} sql - The SQL to execute.
+ *	@param {BindParameterConfig} bind - The bind parameters.
+ */
+const addProcedure = (output, sql, bind) => {
+	output.html += `${sql}<br><br>`;
+	output.text += `${sql}\n\n`;
 
 	try {
-		for (const key in environment) {
-			html += `<tr><td>${key}:</td><td>${environment[key]}</td></tr>`;
-			text += `${key}=${environment[key]}\n`;
-		}
+		inspectBindParameter(output, bind);
 	} catch (err) {
-		/* istanbul ignore next */
-		output.html += errorToString(err);
-
-		/* istanbul ignore next */
-		output.text += errorToString(err);
-
-		/* istanbul ignore next */
-		return;
+		addLine(output, `Unable to inspect bind parameter: ${errorToString(err)}`);
 	}
 
-	html += '</table>';
-
-	output.html += html;
-	output.text += text;
+	output.html += `<br>`;
+	output.text += `\n`;
 };
 
 /**
@@ -143,83 +119,35 @@ const getError = (req, error) => {
 		}
 	}
 
-	/** @type {outputType} */
+	errorCount++;
+	const url = typeof req.originalUrl === 'string' && req.originalUrl.length > 0 ? ` on ${req.originalUrl}` : '';
+	const header = `ERROR #${errorCount} at ${timestamp.toUTCString()}${url}`;
 	const output = {
-		html: '',
-		text: '',
+		html: `<h1>${header}</h1>`,
+		text: `\n\n${separator}\n== ${header}\n${separator}\n`,
 	};
 
-	// timestamp
-	let header = 'TIMESTAMP';
-	output.html += getHeaderHtml(header);
-	output.html += getHtml(timestamp.toUTCString());
-
 	// error
-	header = 'ERROR';
-	output.html += getHeaderHtml(header);
-	output.html += getHtml(message);
-	output.text += getHeaderText(header);
-	output.text += getText(message);
+	addHeader(output, 'ERROR');
+	addLine(output, message);
 
 	// request
-	header = 'REQUEST';
-	output.text += getHeaderText(header);
-	output.text += getText(inspectRequest(req));
+	addHeader(output, 'REQUEST');
+	addLine(output, inspectRequest(req));
 
 	// parameters
 	if (typeof sql === 'string' && bind) {
-		header = 'PROCEDURE';
-		output.html += getHeaderHtml(header);
-		output.text += getHeaderText(header);
-		getProcedure(output, sql, bind);
+		addHeader(output, 'PROCEDURE');
+		addProcedure(output, sql, bind);
 	}
 
 	// environment
 	if (environment) {
-		header = 'ENVIRONMENT';
-		output.html += getHeaderHtml(header);
-		output.text += getHeaderText(header);
-		getEnvironment(output, environment);
+		addHeader(output, 'ENVIRONMENT');
+		inspectEnvironment(output, environment);
 	}
 
 	return output;
-};
-
-/**
- *	Get procedure
- *	@param {outputType} output - The output.
- *	@param {string} sql - The SQL to execute.
- *	@param {BindParameterConfig} bind - The bind parameters.
- */
-const getProcedure = (output, sql, bind) => {
-	let html = '<table>';
-	let text = '';
-
-	text += `PROCEDURE: ${sql}\n`;
-	html += `<tr><td>PROCEDURE:</td><td>${sql}</td></tr>`;
-
-	try {
-		/* istanbul ignore else */
-		for (const key in bind) {
-			const value = inspect(bind[key].val);
-
-			html += `<tr><td>${key}:</td><td>${value}</td></tr>`;
-			text += `${key}: ${value}\n`;
-		}
-	} catch (err) {
-		/* istanbul ignore next */
-		output.html += err instanceof Error ? err.toString() : 'ERROR';
-
-		/* istanbul ignore next */
-		output.text += err instanceof Error ? err.toString() : 'ERROR';
-		/* istanbul ignore next */
-		return;
-	}
-
-	html += '</table>';
-
-	output.html += html;
-	output.text += text;
 };
 
 /**
@@ -259,38 +187,19 @@ ${body}
  * @param {unknown} error - The error.
  */
 export const errorPage = (req, res, options, error) => {
-	let output = {
-		html: '',
-		text: '',
-	};
-
-	// get the error description
-	try {
-		output = getError(req, error);
-	} catch (err) {
-		/* istanbul ignore next */
-		const header = 'ERROR';
-
-		/* istanbul ignore next */
-		const message = errorToString(err);
-
-		/* istanbul ignore next */
-		output.html += getHeaderHtml(header) + getHtml(message);
-
-		/* istanbul ignore next */
-		output.text += getHeaderHtml(header) + getHtml(message);
-	}
+	// get error message
+	const {html, text} = getError(req, error);
 
 	// trace to file
-	logToFile(output.text);
+	logToFile(text);
 
 	// console
-	console.error(output.text);
+	console.error(text);
 
 	// show page
 	if (options.errorStyle === 'basic') {
 		res.status(404).send('Page not found');
 	} else {
-		res.status(404).send(getHtmlPage(output.html));
+		res.status(404).send(getHtmlPage(html));
 	}
 };

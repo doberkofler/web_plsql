@@ -37,7 +37,6 @@ const requestHandler = async (req, res, next, connectionPool, options) => {
 				debug(`Redirect to the url "${newUrl}"`);
 				res.redirect(newUrl);
 			} else {
-				/* istanbul ignore next */
 				errorPage(req, res, options, new RequestError('No procedure name given and no default page has been specified'));
 			}
 		} else {
@@ -45,7 +44,6 @@ const requestHandler = async (req, res, next, connectionPool, options) => {
 			await processRequest(req, res, options, connectionPool);
 		}
 	} catch (err) {
-		/* istanbul ignore next */
 		errorPage(req, res, options, err);
 	}
 };
