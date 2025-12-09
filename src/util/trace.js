@@ -6,15 +6,19 @@ import * as rotatingFileStream from 'rotating-file-stream';
 import express from 'express';
 import util from 'node:util';
 import oracledb from 'oracledb';
-import {escapeHtml} from './html.js';
+import {escapeHtml, convertAsciiToHtml} from './html.js';
+import {errorToString} from './errorToString.js';
 
 /**
+ * @typedef {import('express').Request} Request
  * @typedef {import('../types.js').BindParameterConfig} BindParameterConfig
  * @typedef {import('../types.js').environmentType} environmentType
  * @typedef {{html: string; text: string}} outputType
+ * @typedef {{type: 'error' | 'warning' | 'trace'; message: string; timestamp?: Date | null; req?: Request | null; environment?: environmentType | null, sql?: string | null; bind?: BindParameterConfig | null}} messageType
  */
 
-const SEPARATOR = '-'.repeat(30);
+const SEPARATOR_H1 = '='.repeat(100);
+const SEPARATOR_H2 = '-'.repeat(30);
 
 /**
  * Return a string representation of the value.
@@ -101,7 +105,7 @@ export const logToFile = (text) => {
  * @param {boolean} simple - Set to false to see all public properties of the request.
  * @returns {string} - The string representation.
  */
-export const inspectRequest = (req, simple = true) => {
+const inspectRequest = (req, simple = true) => {
 	/** @type {Record<string, unknown>} */
 	const requestData = {};
 
@@ -161,7 +165,7 @@ const bindTypeToString = (type) => {
  *	@param {BindParameterConfig} bind - The bind parameters.
  *	@returns {undefined}
  */
-export const inspectBindParameter = (output, bind) => {
+const inspectBindParameter = (output, bind) => {
 	const rows = Object.entries(bind);
 
 	if (rows.length === 0) {
@@ -190,7 +194,7 @@ export const inspectBindParameter = (output, bind) => {
  *	@param {outputType} output - The output.
  *	@param {environmentType} environment - The environment.
  */
-export const inspectEnvironment = (output, environment) => {
+const inspectEnvironment = (output, environment) => {
 	const rows = Object.entries(environment);
 
 	if (rows.length === 0) {
@@ -209,10 +213,113 @@ export const inspectEnvironment = (output, environment) => {
  *	@param {string} body - The name.
  *	@returns {string} - The text.
  */
-export const getBlock = (title, body) => `\n${SEPARATOR}${title.toUpperCase()}${SEPARATOR}\n${body}`;
+export const getBlock = (title, body) => `\n${SEPARATOR_H2}${title.toUpperCase()}${SEPARATOR_H2}\n${body}`;
 
 /**
- *	Get a timestamp
- *	@returns {string} - The timestamp.
+ *	Get line html
+ *	@param {string} text - The text.
+ *	@returns {string} - The line.
  */
-export const getTimestamp = () => new Date().toISOString();
+const getLineHtml = (text) => `<p>${convertAsciiToHtml(text)}</p>`;
+
+/**
+ *	Get line text
+ *	@param {string} text - The text.
+ *	@returns {string} - The line.
+ */
+const getLineText = (text) => `${text}\n`;
+
+/**
+ *	Add line
+ *	@param {outputType} output - The output.
+ *	@param {string} text - The text to convert.
+ */
+const addLine = (output, text) => {
+	output.html += getLineHtml(text);
+	output.text += getLineText(text);
+};
+
+/**
+ *	Add header
+ *	@param {outputType} output - The output.
+ *	@param {string} text - The text to convert.
+ */
+const addHeader = (output, text) => {
+	output.html += `<h2>${text}</h2>`;
+	output.text += `\n${text}\n${'-'.repeat(text.length)}\n`;
+};
+
+/**
+ *	Add procedure
+ *	@param {outputType} output - The output.
+ *	@param {string} sql - The SQL to execute.
+ *	@param {BindParameterConfig} bind - The bind parameters.
+ */
+const addProcedure = (output, sql, bind) => {
+	output.html += `${sql}<br><br>`;
+	output.text += `${sql}\n\n`;
+
+	try {
+		inspectBindParameter(output, bind);
+	} catch (err) {
+		addLine(output, `Unable to inspect bind parameter: ${errorToString(err)}`);
+	}
+
+	output.html += `<br>`;
+	output.text += `\n`;
+};
+
+/**
+ *	Get a formatted message.
+ *	@param {messageType} para - The req object represents the HTTP request.
+ *	@returns {outputType} - The output.
+ */
+export const getFormattedMessage = (para) => {
+	const timestamp = para.timestamp ?? new Date();
+
+	// header
+	const url = typeof para.req?.originalUrl === 'string' && para.req.originalUrl.length > 0 ? ` on ${para.req.originalUrl}` : '';
+	const header = `${para.type.toUpperCase()} at ${timestamp.toUTCString()}${url}`;
+	const output = {
+		html: `<h1>${header}</h1>`,
+		text: `\n\n${SEPARATOR_H1}\n== ${header}\n${SEPARATOR_H1}\n`,
+	};
+
+	// error
+	addHeader(output, 'ERROR');
+	addLine(output, para.message);
+
+	// request
+	if (para.req) {
+		addHeader(output, 'REQUEST');
+		addLine(output, inspectRequest(para.req));
+	}
+
+	// parameters
+	if (para.sql && para.bind) {
+		addHeader(output, 'PROCEDURE');
+		addProcedure(output, para.sql, para.bind);
+	}
+
+	// environment
+	if (para.environment) {
+		addHeader(output, 'ENVIRONMENT');
+		inspectEnvironment(output, para.environment);
+	}
+
+	return output;
+};
+
+/**
+ *	Log a warning message.
+ *	@param {messageType} para - The req object represents the HTTP request.
+ */
+export const warningMessage = (para) => {
+	const {text} = getFormattedMessage(para);
+
+	// trace to file
+	logToFile(text);
+
+	// console
+	console.warn(text);
+};

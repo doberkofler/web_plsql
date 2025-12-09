@@ -62,7 +62,7 @@ describe('middleware', () => {
 
 	it('get page with query string', async () => {
 		sqlExecuteProxy({
-			proc: 'sample.pageIndex(a=>:p_a,b=>:p_b);',
+			proc: 'sample.pageIndex(a=>:p_a, b=>:p_b);',
 			para: [
 				{name: 'a', value: '1'},
 				{name: 'b', value: '2'},

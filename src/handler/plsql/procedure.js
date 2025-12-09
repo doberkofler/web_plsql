@@ -18,6 +18,7 @@ import {sendResponse} from './sendResponse.js';
 import {ProcedureError} from './procedureError.js';
 import {inspect, getBlock} from '../../util/trace.js';
 import {errorToString} from '../../util/errorToString.js';
+import {sanitizeProcName} from './procedureSanitize.js';
 
 /**
  * @typedef {import('express').Request} Request
@@ -75,13 +76,15 @@ END;
 
 /**
  *	Get the procedure and arguments to execute
+ *	@param {Request} req - The req object represents the HTTP request. (only used for debugging)
  *	@param {string} procName - The procedure to execute
  *	@param {argObjType} argObj - The arguments to pass to the procedure
  *	@param {configPlSqlHandlerType} options - The options for the middleware
  *	@param {Connection} databaseConnection - The database connection
  *	@returns {Promise<{sql: string; bind: BindParameterConfig}>} - The SQL statement and bindings for the procedure to execute
  */
-const getProcedure = async (procName, argObj, options, databaseConnection) => {
+const getProcedure = async (req, procName, argObj, options, databaseConnection) => {
+	// path alias
 	if (options.pathAlias && options.pathAlias.toLowerCase() === procName.toLowerCase()) {
 		debug(`getProcedure: path alias "${options.pathAlias}" redirects to "${options.pathAliasProcedure}"`);
 		return {
@@ -90,11 +93,20 @@ const getProcedure = async (procName, argObj, options, databaseConnection) => {
 				p_path: {dir: oracledb.BIND_IN, type: oracledb.STRING, val: procName},
 			},
 		};
-	} else if (procName.startsWith('!')) {
-		return await getProcedureVariable(procName.substring(1), argObj, databaseConnection, options);
 	}
 
-	return await getProcedureNamed(procName, argObj, databaseConnection, options);
+	// check if we use variable arguments
+	const useVariableArguments = procName.startsWith('!');
+
+	// sanitize procedure name
+	const sanitizedProcName = await sanitizeProcName(useVariableArguments ? procName.substring(1) : procName, databaseConnection, options);
+
+	// run procedure
+	if (useVariableArguments) {
+		return getProcedureVariable(req, sanitizedProcName, argObj);
+	} else {
+		return await getProcedureNamed(req, sanitizedProcName, argObj, databaseConnection);
+	}
 };
 
 /**
@@ -133,7 +145,7 @@ export const invokeProcedure = async (req, res, argObj, cgiObj, filesToUpload, o
 	// 2) GET SQL STATEMENT AND ARGUMENTS
 	//
 
-	const para = await getProcedure(procName, argObj, options, databaseConnection);
+	const para = await getProcedure(req, procName, argObj, options, databaseConnection);
 
 	//
 	//	3) EXECUTE PROCEDURE

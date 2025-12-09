@@ -23,3 +23,31 @@ export const convertAsciiToHtml = (text) => {
 
 	return html;
 };
+
+/**
+ *	get a minimal html page.
+ *	@param {string} body - The body.
+ *	@returns {string} - The html page.
+ */
+export const getHtmlPage = (body) => `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>web_plsql error page</title>
+<style type="text/css">
+html {
+	font-family: monospace, sans-serif;
+	font-size: 12px;
+}
+h1 {
+	font-size: 16px;
+	padding: 2px;
+	background-color: #cc0000;
+}
+</style>
+</head>
+<body>
+${body}
+</body>
+</html>
+`;

@@ -12,6 +12,19 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 
 
+## [0.16.0] - 2025-12-09
+
+### Added
+- Improved error handling.
+- Improved tracing.
+
+### Changed
+- Updated all dependencies to latest versions.
+
+### Fixed
+- Allow to submit more named parameters than defined in procedure.
+
+
 ## [0.15.1] - 2025-11-27
 
 ### Added

@@ -7,21 +7,21 @@ const debug = debugModule('webplsql:procedureNamed');
 
 import oracledb from 'oracledb';
 import z from 'zod';
-import {sanitizeProcName} from './procedureSanitize.js';
 import {RequestError} from './requestError.js';
 import {errorToString} from '../../util/errorToString.js';
+import {stringToNumber} from '../../util/util.js';
+import {toTable, warningMessage} from '../../util/trace.js';
 
 /**
- * @typedef {Record<string, string>} argsType
- * @typedef {{hitCount: number, args: argsType}} cacheEntryType
- */
-
-/**
+ * @typedef {import('express').Request} Request
  * @typedef {import('oracledb').Connection} Connection
  * @typedef {import('oracledb').Result<unknown>} Result
  * @typedef {import('../../types.js').configPlSqlHandlerType} configPlSqlHandlerType
  * @typedef {import('../../types.js').argObjType} argObjType
  * @typedef {import('../../types.js').BindParameterConfig} BindParameterConfig
+ * @typedef {import('../../types.js').BindParameter} BindParameter
+ * @typedef {Record<string, string>} argsType
+ * @typedef {{hitCount: number, args: argsType}} cacheEntryType
  */
 
 const SQL_GET_ARGUMENT = [
@@ -41,6 +41,24 @@ const SQL_GET_ARGUMENT = [
 	'	END IF;',
 	'END;',
 ].join('\n');
+
+const DATA_TYPES = Object.freeze({
+	VARCHAR2: 'VARCHAR2',
+	CHAR: 'CHAR',
+	BINARY_INTEGER: 'BINARY_INTEGER',
+	NUMBER: 'NUMBER',
+	DATE: 'DATE',
+	CLOB: 'CLOB',
+	PL_SQL_TABLE: 'PL/SQL TABLE',
+	//	PL/SQL BOOLEAN
+	//	PL/SQL RECORD
+	//	OBJECT
+	//	TABLE
+	//	BLOB
+	//	RAW
+	//	VARRAY
+	//	REF CURSOR
+});
 
 // NOTE: Consider using a separate cache for each database pool to avoid possible conflicts.
 /** @type {Map<string, cacheEntryType>} */
@@ -137,8 +155,6 @@ const removeLowestHitCountEntries = (count) => {
  *	@returns {Promise<argsType>} - The argument types
  */
 const findArguments = async (procedure, databaseConnection) => {
-	// calculate the key
-	//const key = `${databaseConnection.connectString}_${databaseConnection.user}_${procedure.toUpperCase()}`;
 	const key = procedure.toUpperCase();
 
 	// lookup in the cache
@@ -174,60 +190,113 @@ const findArguments = async (procedure, databaseConnection) => {
 };
 
 /**
- * Get the sql statement and bindings for the procedure to execute for a fixed number of arguments
- * @param {string} procName - The procedure to execute
- * @param {argObjType} argObj - The arguments to pass to the procedure
- * @param {Connection} databaseConnection - The database connection
- * @param {configPlSqlHandlerType} options - the options for the middleware.
- * @returns {Promise<{sql: string; bind: BindParameterConfig}>} - The SQL statement and bindings for the procedure to execute
+ *	Get the bindling for an argument.
+ *	@param {string} argName - The argument name.
+ *	@param {unknown} argValue - The argument value.
+ *	@param {string} argType - The argument type.
+ *	@returns {BindParameter} - The binding.
  */
-export const getProcedureNamed = async (procName, argObj, databaseConnection, options) => {
-	if (debug.enabled) {
-		debug(`getProcedureNamed: ${procName} arguments=`, argObj);
+export const getBinding = (argName, argValue, argType) => {
+	if (argType === DATA_TYPES.VARCHAR2 || argType === DATA_TYPES.CHAR) {
+		return {dir: oracledb.BIND_IN, type: oracledb.DB_TYPE_VARCHAR, val: argValue};
 	}
+
+	if (argType === DATA_TYPES.CLOB) {
+		return {dir: oracledb.BIND_IN, type: oracledb.DB_TYPE_CLOB, val: argValue};
+	}
+
+	if (argType === DATA_TYPES.NUMBER || argType === DATA_TYPES.BINARY_INTEGER) {
+		const value = stringToNumber(argValue);
+		if (value === null) {
+			throw new Error(`Error in named parameter "${argName}": invalid value "${argValue}" for type "${argType}"`);
+		}
+
+		return {dir: oracledb.BIND_IN, type: oracledb.DB_TYPE_NUMBER, val: value};
+	}
+
+	if (argType === DATA_TYPES.DATE) {
+		if (typeof argValue !== 'string') {
+			throw new Error(`Error in named parameter "${argName}": invalid value "${argValue}" for type "${argType}"`);
+		}
+		const value = new Date(argValue);
+		if (Number.isNaN(value.getTime())) {
+			throw new Error(`Error in named parameter "${argName}": invalid value "${argValue}" for type "${argType}"`);
+		}
+
+		return {dir: oracledb.BIND_IN, type: oracledb.DB_TYPE_VARCHAR, val: value};
+	}
+
+	if (argType === DATA_TYPES.PL_SQL_TABLE || Array.isArray(argValue)) {
+		const value = typeof argValue === 'string' ? [argValue] : argValue;
+
+		return {dir: oracledb.BIND_IN, type: oracledb.DB_TYPE_DATE, val: value};
+	}
+
+	throw new Error(`Error in named parameter "${argName}": invalid binding type "${argType}"`);
+};
+
+/**
+ *	Get binding table for tracing.
+ *	@param {argObjType} argObj - The arguments to pass to the procedure
+ *	@param {argsType} argTypes - The argument types.
+ *	@returns {string} - The text.
+ */
+const inspectBindings = (argObj, argTypes) => {
+	const rows = Object.entries(argObj).map(([key, value]) => {
+		return [key, value.toString(), typeof value, argTypes[key.toLowerCase()]];
+	});
+
+	const {text} = toTable(['id', 'value', 'value type', 'argument type'], rows);
+
+	return text;
+};
+
+/**
+ *	Get the sql statement and bindings for the procedure to execute for a fixed number of arguments
+ *	@param {Request} req - The req object represents the HTTP request. (only used for debugging)
+ *	@param {string} procName - The procedure to execute
+ *	@param {argObjType} argObj - The arguments to pass to the procedure
+ *	@param {Connection} databaseConnection - The database connection
+ *	@returns {Promise<{sql: string; bind: BindParameterConfig}>} - The SQL statement and bindings for the procedure to execute
+ */
+export const getProcedureNamed = async (req, procName, argObj, databaseConnection) => {
+	debug(`getProcedureNamed: ${procName} arguments=`, argObj);
+
+	// get the types of the arguments
+	const argTypes = await findArguments(procName, databaseConnection);
+
+	/** @type {string[]} */
+	const sqlParameter = [];
 
 	/** @type {BindParameterConfig} */
-	const bind = {};
-	let index = 0;
-
-	const sanitizedProcName = await sanitizeProcName(procName, databaseConnection, options);
-	const argTypes = await findArguments(sanitizedProcName, databaseConnection);
+	const bindings = {};
 
 	// bindings for the statement
-	let sql = `${sanitizedProcName}(`;
 	for (const key in argObj) {
-		const value = argObj[key];
 		const parameterName = `p_${key}`;
+		const argValue = argObj[key];
+		const argType = argTypes[key.toLowerCase()];
+		/** @type {BindParameter} */
+		let bind = {dir: oracledb.BIND_IN, type: oracledb.DB_TYPE_VARCHAR, val: argValue};
 
-		// prepend the separator, if this is not the first argument
-		if (index > 0) {
-			sql += ',';
+		if (argType) {
+			bind = getBinding(key, argValue, argType);
+		} else {
+			const text = inspectBindings(argObj, argTypes);
+			warningMessage({type: 'warning', message: `Error in named parameter "${key}": invalid binding type "${argType}"\n\n${text}`, req});
 		}
-		index++;
 
-		// add the argument
-		sql += `${key}=>:${parameterName}`;
-
-		// add the binding
-		bind[parameterName] = {dir: oracledb.BIND_IN, type: oracledb.STRING};
-
-		// set the value or array of values
-		if (Array.isArray(value) || argTypes[key] === 'PL/SQL TABLE') {
-			/** @type {string[]} */
-			const val = [];
-			if (typeof value === 'string') {
-				val.push(value);
-			} else {
-				value.forEach((element) => {
-					val.push(element);
-				});
-			}
-			bind[parameterName].val = val;
-		} else if (typeof value === 'string') {
-			bind[parameterName].val = value;
-		}
+		sqlParameter.push(`${key}=>:${parameterName}`);
+		bindings[parameterName] = bind;
 	}
-	sql += ');';
 
-	return {sql, bind};
+	// select statement
+	const sql = `${procName}(${sqlParameter.join(', ')});`;
+
+	if (debug.enabled) {
+		debug(sql);
+		debug(inspectBindings(argObj, argTypes));
+	}
+
+	return {sql, bind: bindings};
 };

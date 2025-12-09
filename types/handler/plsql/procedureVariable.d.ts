@@ -1,7 +1,8 @@
-export function getProcedureVariable(procName: string, argObj: argObjType, databaseConnection: Connection, options: configPlSqlHandlerType): Promise<{
+export function getProcedureVariable(req: Request, procName: string, argObj: argObjType): {
     sql: string;
     bind: BindParameterConfig;
-}>;
+};
+export type Request = import("express").Request;
 export type Connection = import("oracledb").Connection;
 export type Result = import("oracledb").Result<unknown>;
 export type configPlSqlHandlerType = import("../../types.js").configPlSqlHandlerType;
