@@ -85,7 +85,7 @@ END;
  */
 const getProcedure = async (req, procName, argObj, options, databaseConnection) => {
 	// path alias
-	if (options.pathAlias && options.pathAlias.toLowerCase() === procName.toLowerCase()) {
+	if (options.pathAlias?.toLowerCase() === procName.toLowerCase()) {
 		debug(`getProcedure: path alias "${options.pathAlias}" redirects to "${options.pathAliasProcedure}"`);
 		return {
 			sql: `${options.pathAliasProcedure}(p_path=>:p_path);`,
