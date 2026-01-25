@@ -78,11 +78,11 @@
 		"@types/oracledb": "6.10.1",
 		"@types/supertest": "6.0.3",
 		"eslint": "9.39.2",
-		"eslint-plugin-jsdoc": "62.4.0",
+		"eslint-plugin-jsdoc": "62.4.1",
 		"prettier": "3.8.1",
 		"shx": "0.4.0",
 		"supertest": "7.2.2",
 		"typescript": "5.9.3",
-		"typescript-eslint": "8.53.0"
+		"typescript-eslint": "8.53.1"
 	}
 }

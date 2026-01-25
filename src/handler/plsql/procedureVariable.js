@@ -45,7 +45,7 @@ export const getProcedureVariable = (req, procName, argObj) => {
 	}
 
 	return {
-		sql: `${procName}(:argnames, :argvalues);`,
+		sql: `${procName}(:argnames, :argvalues)`,
 		bind: {
 			argnames: {dir: oracledb.BIND_IN, type: oracledb.STRING, val: names},
 			argvalues: {dir: oracledb.BIND_IN, type: oracledb.STRING, val: values},

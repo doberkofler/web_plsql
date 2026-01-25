@@ -47,7 +47,7 @@ const parameterEqual = (sql, bind, parameters) =>
 const parameterFixedEqual = (bind, parameters) => {
 	return parameters.every((para) => {
 		if (!(`p_${para.name}` in bind)) {
-			console.error(`===> The parameter "${para.name}" is missing`);
+			proxyError(`The parameter "${para.name}" is missing`);
 			return false;
 		}
 
@@ -55,7 +55,7 @@ const parameterFixedEqual = (bind, parameters) => {
 			return para.value.every((v, i) => {
 				const equal = v === bind[`p_${para.name}`].val[i];
 				if (!equal) {
-					console.error(`===> The value "${v}" of parameter "${para.name}" is different`);
+					proxyError(`===> The value "${v}" of parameter "${para.name}" is different`);
 				}
 				return equal;
 			});
@@ -73,17 +73,17 @@ const parameterFixedEqual = (bind, parameters) => {
  */
 const parameterFlexibleEqual = (bind, parameters) => {
 	if (parameters.length !== 2) {
-		console.error('===> Invalid number of parameters');
+		proxyError('===> Invalid number of parameters');
 		return false;
 	}
 
 	if (!parameters.every((para) => ['argnames', 'argvalues'].includes(para.name))) {
-		console.error('===> Invalid parameter names');
+		proxyError('===> Invalid parameter names');
 		return false;
 	}
 
 	if (!('argnames' in bind) || !('argvalues' in bind)) {
-		console.error('===> Missing bindings');
+		proxyError('===> Missing bindings');
 		return false;
 	}
 
@@ -114,6 +114,22 @@ const arrayEqual = (array1, array2) => {
  *	@property {boolean} [log=false] - Enable request logging.
  *	@property {transactionModeType} [transactionMode] - Specifies an optional handler to be invoked before calling the requested procedure.
  */
+
+/**
+ *	Proxy error
+ *	@param {string} title - Error title.
+ *	@param {string} [description] - description title.
+ *	@returns {void}
+ */
+const proxyError = (title, description) => {
+	const separator = '*'.repeat(80);
+	let text = `${separator}\n*\n* Server proxy: ${title}\n*\n${separator}`;
+	if (description) {
+		text += `\n${description}\n${separator}`;
+	}
+
+	console.error(text);
+};
 
 /**
  *	Start server
@@ -211,22 +227,44 @@ export const sqlExecuteProxy = (config) => {
 					}, noPara);
 		}
 
+		if (sql.toLowerCase().includes('dbms_session.modify_package_state')) {
+			return;
+		}
+
+		// this is the proxy for the sql statement in the function "procedurePrepare" in "procedure.js"
+		if (sql.toLowerCase().includes('dbms_session.modify_package_state') || sql.toLowerCase().includes('owa.init_cgi_env')) {
+			return;
+		}
+
+		// this is the proxy for the sql statement in the function "procedureExecute" in "procedure.js"
 		if (sql.toLowerCase().includes(config.proc.toLowerCase())) {
 			if (typeof config.para !== 'undefined') {
 				if (!parameterEqual(sql, bindParams, config.para)) {
-					console.error(`===> Parameter mismatch\n${'-'.repeat(30)}\n${util.inspect(bindParams)}\n${'-'.repeat(30)}`);
+					proxyError('parameter mismatch', util.inspect(bindParams));
 					return {};
 				}
 			}
 
+			return;
+		}
+
+		// this is the proxy for the sql statement in the function "procedureGetPage" in "procedure.js"
+		if (sql.toLowerCase().includes('owa.get_page(thepage=>:lines, irows=>:irows)')) {
 			return {
 				outBinds: {
-					fileType: null,
-					fileSize: null,
-					fileBlob: null,
-					fileExist: 0,
 					lines: config.lines,
 					irows: config.lines.length,
+				},
+			};
+		}
+
+		// this is the proxy for the sql statement in the function "procedureSownloadFiles" in "procedure.js"
+		if (sql.toLowerCase().includes('wpg_docload.get_download_file')) {
+			return {
+				outBinds: {
+					fileType: '',
+					fileSize: 0,
+					fileBlob: null,
 				},
 			};
 		}
@@ -237,9 +275,8 @@ export const sqlExecuteProxy = (config) => {
 			};
 		}
 
-		console.error(`===> sql statement cannot be identified\n${'-'.repeat(30)}\n${sql}\n${'-'.repeat(30)}`);
-
-		return {};
+		proxyError('the sql statement has no proxy', sql);
+		process.exit(1);
 	};
 
 	// @ts-expect-error FIXME: do not understand!

@@ -291,7 +291,7 @@ export const getProcedureNamed = async (req, procName, argObj, databaseConnectio
 	}
 
 	// select statement
-	const sql = `${procName}(${sqlParameter.join(', ')});`;
+	const sql = `${procName}(${sqlParameter.join(', ')})`;
 
 	if (debug.enabled) {
 		debug(sql);

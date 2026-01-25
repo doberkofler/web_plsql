@@ -33,48 +33,6 @@ import {sanitizeProcName} from './procedureSanitize.js';
  */
 
 /**
- * Get the SQL statement to execute when a new procedure is invoked
- *
- * NOTE:
- * 	1) dbms_session.modify_package_state(dbms_session.reinitialize) is used to ensure a stateless environment by resetting package state (dbms_session.reset_package)
- *
- * @param {string} procedure - The procedure
- * @returns {string} - The SQL statement to execute
- */
-const getProcedureSQL = (procedure) => `
-DECLARE
-	l_file_type		VARCHAR2(32767);
-	l_file_size		INTEGER;
-	l_file_exists	INTEGER := 0;
-BEGIN
-	dbms_session.modify_package_state(dbms_session.reinitialize);
-	owa.init_cgi_env(:cgicount, :cginames, :cgivalues);
-	htp.init;
-	htp.HTBUF_LEN := :htbuflen;
-
-	BEGIN
-		${procedure}
-	EXCEPTION WHEN OTHERS THEN
-		raise_application_error(-20000, 'Error executing "${procedure}"', TRUE);
-	END;
-
-	IF (wpg_docload.is_file_download()) THEN
-		wpg_docload.get_download_file(l_file_type);
-		IF (l_file_type = 'B') THEN
-			l_file_exists := 1;
-			wpg_docload.get_download_blob(:fileBlob);
-			l_file_size := dbms_lob.getlength(:fileBlob);
-		END IF;
-	END IF;
-	:fileExist := l_file_exists;
-	:fileType := l_file_type;
-	:fileSize := l_file_size;
-
-	owa.get_page(thepage=>:lines, irows=>:irows);
-END;
-`;
-
-/**
  *	Get the procedure and arguments to execute
  *	@param {Request} req - The req object represents the HTTP request. (only used for debugging)
  *	@param {string} procName - The procedure to execute
@@ -88,7 +46,7 @@ const getProcedure = async (req, procName, argObj, options, databaseConnection) 
 	if (options.pathAlias?.toLowerCase() === procName.toLowerCase()) {
 		debug(`getProcedure: path alias "${options.pathAlias}" redirects to "${options.pathAliasProcedure}"`);
 		return {
-			sql: `${options.pathAliasProcedure}(p_path=>:p_path);`,
+			sql: `${options.pathAliasProcedure}(p_path=>:p_path)`,
 			bind: {
 				p_path: {dir: oracledb.BIND_IN, type: oracledb.STRING, val: procName},
 			},
@@ -110,6 +68,159 @@ const getProcedure = async (req, procName, argObj, options, databaseConnection) 
 };
 
 /**
+ * Prepare procedure
+ *
+ * NOTE:
+ * 	1) dbms_session.modify_package_state(dbms_session.reinitialize) is used to ensure a stateless environment by resetting package state (dbms_session.reset_package)
+ *
+ * @param {environmentType} cgiObj - The cgi of the procedure to invoke.
+ * @param {Connection} databaseConnection - Database connection.
+ * @returns {Promise<void>} Promise resolving to void.
+ */
+const procedurePrepare = async (cgiObj, databaseConnection) => {
+	let sqlStatement = 'BEGIN dbms_session.modify_package_state(dbms_session.reinitialize); END;';
+	try {
+		await databaseConnection.execute(sqlStatement);
+	} catch (err) {
+		throw new ProcedureError(`Error when preparing procedure\n${errorToString(err)}`, cgiObj, sqlStatement, {});
+	}
+
+	// htbuf_len: reduce this limit based on your worst-case character size.
+	// For most character sets, this will be 2 bytes per character, so the limit would be 127.
+	// For UTF8 Unicode, it's 3 bytes per character, meaning the limit should be 85.
+	// For the newer AL32UTF8 Unicode, it's 4 bytes per character, and the limit should be 63.
+	sqlStatement = 'BEGIN owa.init_cgi_env(:cgicount, :cginames, :cgivalues); htp.init; htp.htbuf_len := 63; END;';
+	/** @type {BindParameterConfig} */
+	const bindParameter = {
+		cgicount: {dir: oracledb.BIND_IN, type: oracledb.NUMBER, val: Object.keys(cgiObj).length},
+		cginames: {dir: oracledb.BIND_IN, type: oracledb.STRING, val: Object.keys(cgiObj)},
+		cgivalues: {dir: oracledb.BIND_IN, type: oracledb.STRING, val: Object.values(cgiObj)},
+	};
+	try {
+		await databaseConnection.execute(sqlStatement, bindParameter);
+	} catch (err) {
+		throw new ProcedureError(`Error when preparing procedure\n${errorToString(err)}`, cgiObj, sqlStatement, bindParameter);
+	}
+};
+
+/**
+ * Execute procedure
+ *
+ * @param {{sql: string; bind: BindParameterConfig}} para - The statement and binding to use when executing the procedure.
+ * @param {Connection} databaseConnection - Database connection.
+ * @returns {Promise<void>} Promise resolving to void.
+ */
+const procedureExecute = async (para, databaseConnection) => {
+	const sqlStatement = `BEGIN ${para.sql}; END;`;
+
+	try {
+		await databaseConnection.execute(sqlStatement, para.bind);
+	} catch (err) {
+		throw new ProcedureError(`Error when executing procedure:\n${sqlStatement}\n${errorToString(err)}`, {}, para.sql, para.bind);
+	}
+};
+
+/**
+ * Get page from procedure
+ *
+ * @param {boolean} test - Test.
+ * @param {Connection} databaseConnection - Database connection.
+ * @returns {Promise<string>} Promise resolving to the returned page content.
+ */
+const procedureGetPage = async (test, databaseConnection) => {
+	const MAX_IROWS = 100000;
+
+	/** @type {BindParameterConfig} */
+	const bindParameter = {
+		lines: {dir: oracledb.BIND_OUT, type: oracledb.STRING, maxArraySize: MAX_IROWS},
+		irows: {dir: oracledb.BIND_INOUT, type: oracledb.NUMBER, val: MAX_IROWS},
+	};
+
+	const sqlStatement = 'BEGIN owa.get_page(thepage=>:lines, irows=>:irows); END;';
+
+	/** @type {Result} */
+	let result = {};
+	try {
+		result = await databaseConnection.execute(sqlStatement, bindParameter);
+	} catch (err) {
+		if (debug.enabled) {
+			debug(getBlock('results', inspect(result)));
+		}
+
+		throw new ProcedureError(`Error when getting page returned by procedure\n${errorToString(err)}`, {}, sqlStatement, bindParameter);
+	}
+
+	const {lines, irows} = z.object({irows: z.number(), lines: z.array(z.string())}).parse(result.outBinds);
+
+	// Make sure that we have retrieved all the rows
+	if (irows > MAX_IROWS) {
+		/* istanbul ignore next */
+		throw new ProcedureError(`Error when retrieving rows. irows="${irows}"`, {}, sqlStatement, bindParameter);
+	}
+
+	return lines.join('');
+};
+
+/**
+ * Download files from procedure
+ *
+ * @param {oracledb.Lob} fileBlob - The blob eventually containing the file.
+ * @param {Connection} databaseConnection - Database connection.
+ * @returns {Promise<{fileType: string, fileSize: number, fileBlob: stream.Readable | null}>} Promise resolving to the result.
+ */
+const procedureDownloadFiles = async (fileBlob, databaseConnection) => {
+	/** @type {BindParameterConfig} */
+	const bindParameter = {
+		fileType: {dir: oracledb.BIND_OUT, type: oracledb.STRING},
+		fileSize: {dir: oracledb.BIND_OUT, type: oracledb.NUMBER},
+		fileBlob: {dir: oracledb.BIND_INOUT, type: oracledb.BLOB, val: fileBlob},
+	};
+
+	const sqlStatement = `
+DECLARE
+	l_file_type		VARCHAR2(32767)	:= '';
+	l_file_size		INTEGER			:= 0;
+BEGIN
+	IF (wpg_docload.is_file_download()) THEN
+		wpg_docload.get_download_file(l_file_type);
+		IF (l_file_type = 'B') THEN
+			wpg_docload.get_download_blob(:fileBlob);
+			l_file_size := dbms_lob.getlength(:fileBlob);
+		END IF;
+	END IF;
+	:fileType := l_file_type;
+	:fileSize := l_file_size;
+END;
+`;
+
+	/** @type {Result | null} */
+	let result = null;
+	try {
+		result = await databaseConnection.execute(sqlStatement, bindParameter);
+	} catch (err) {
+		if (debug.enabled) {
+			debug(getBlock('results', inspect(result)));
+		}
+
+		throw new ProcedureError(`Error when downloading files of procedure\n${errorToString(err)}`, {}, sqlStatement, bindParameter);
+	}
+
+	return z
+		.object({
+			fileType: z
+				.string()
+				.nullable()
+				.transform((val) => val ?? ''),
+			fileSize: z
+				.number()
+				.nullable()
+				.transform((val) => val ?? 0),
+			fileBlob: z.instanceof(stream.Readable).nullable(),
+		})
+		.parse(result.outBinds);
+};
+
+/**
  * Invoke the Oracle procedure and return the page content
  *
  * @param {Request} req - The req object represents the HTTP request.
@@ -124,10 +235,8 @@ const getProcedure = async (req, procName, argObj, options, databaseConnection) 
 export const invokeProcedure = async (req, res, argObj, cgiObj, filesToUpload, options, databaseConnection) => {
 	debug('invokeProcedure: ENTER');
 
-	const procName = req.params.name;
-
 	//
-	// 1) UPLOAD FILES
+	// UPLOAD FILES
 	//
 
 	debug(`invokeProcedure: upload "${filesToUpload.length}" files`);
@@ -142,119 +251,67 @@ export const invokeProcedure = async (req, res, argObj, cgiObj, filesToUpload, o
 	}
 
 	//
-	// 2) GET SQL STATEMENT AND ARGUMENTS
+	// GET SQL STATEMENT AND ARGUMENTS
 	//
 
-	const para = await getProcedure(req, procName, argObj, options, databaseConnection);
+	const para = await getProcedure(req, req.params.name, argObj, options, databaseConnection);
 
 	//
-	//	3) EXECUTE PROCEDURE
+	//	PROCEDURE PREPARE
 	//
 
-	const HTBUF_LEN = 63;
-	const MAX_IROWS = 100000;
+	await procedurePrepare(cgiObj, databaseConnection);
 
-	const cgi = {
-		keys: Object.keys(cgiObj),
-		values: Object.values(cgiObj),
-	};
+	//
+	//	PROCEDURE EXECUTE
+	//
+
+	await procedureExecute(para, databaseConnection);
+
+	//
+	//	PROCEDURE GET PAGE
+	//
+
+	const lines = await procedureGetPage(true, databaseConnection);
+	if (debug.enabled) {
+		debug(getBlock('data', lines));
+	}
+
+	//
+	//	PROCEDURE DOWNLOAD FILE
+	//
 
 	const fileBlob = await databaseConnection.createLob(oracledb.BLOB);
-
-	/** @type {BindParameterConfig} */
-	const bind = {
-		cgicount: {dir: oracledb.BIND_IN, type: oracledb.NUMBER, val: cgi.keys.length},
-		cginames: {dir: oracledb.BIND_IN, type: oracledb.STRING, val: cgi.keys},
-		cgivalues: {dir: oracledb.BIND_IN, type: oracledb.STRING, val: cgi.values},
-		htbuflen: {dir: oracledb.BIND_IN, type: oracledb.NUMBER, val: HTBUF_LEN},
-		fileExist: {dir: oracledb.BIND_OUT, type: oracledb.NUMBER},
-		fileType: {dir: oracledb.BIND_OUT, type: oracledb.STRING},
-		fileSize: {dir: oracledb.BIND_OUT, type: oracledb.NUMBER},
-		fileBlob: {dir: oracledb.BIND_INOUT, type: oracledb.BLOB, val: fileBlob},
-		lines: {dir: oracledb.BIND_OUT, type: oracledb.STRING, maxSize: HTBUF_LEN * 2, maxArraySize: MAX_IROWS},
-		irows: {dir: oracledb.BIND_INOUT, type: oracledb.NUMBER, val: MAX_IROWS},
-	};
-
-	// execute procedure and retrieve page
-	const sqlStatement = getProcedureSQL(para.sql);
-	/** @type {Result | null} */
-	let result = null;
-	const bindParams = Object.assign({}, bind, para.bind);
-	try {
-		if (debug.enabled) {
-			if (debug.enabled) {
-				debug(getBlock('execute', sqlStatement));
-				// NOTE: Because inspecting a BLOB value generates a craxy amount of text, we somply remove it.
-				const temp = Object.assign({}, bindParams);
-				delete temp.fileBlob.val;
-				debug(getBlock('bindParams', inspect(temp)));
-			}
-		}
-		result = await databaseConnection.execute(sqlStatement, bindParams);
-	} catch (err) {
-		if (debug.enabled) {
-			debug(getBlock('results', inspect(result)));
-		}
-
-		throw new ProcedureError(`Error when executing procedure\n${sqlStatement}\n${errorToString(err)}`, cgiObj, para.sql, para.bind);
-	}
-
-	//
-	//	4) PROCESS RESULTS
-	//
-
-	// validate results
-	const data = z
-		.object({
-			irows: z.number(),
-			lines: z.array(z.string()),
-			fileExist: z.number(),
-			fileType: z.string().nullable(),
-			fileSize: z.number().nullable(),
-			fileBlob: z.instanceof(stream.Readable).nullable(),
-		})
-		.parse(result.outBinds);
-
+	const fileDownload = await procedureDownloadFiles(fileBlob, databaseConnection);
 	if (debug.enabled) {
-		debug(getBlock('data', inspect(data)));
+		debug(getBlock('data', inspect(fileDownload)));
 	}
-
-	// Make sure that we have retrieved all the rows
-	if (data.irows > MAX_IROWS) {
-		/* istanbul ignore next */
-		throw new ProcedureError(`Error when retrieving rows. irows="${data.irows}"`, cgiObj, para.sql, para.bind);
-	}
-
-	// combine page
-	const pageContent = data.lines.join('');
 
 	//
-	//	6) PARSE PAGE
+	//	PARSE PAGE
 	//
 
 	// parse what we received from PL/SQL
-	const pageComponents = parsePage(pageContent);
+	const pageComponents = parsePage(lines);
 
 	// add "Server" header
 	pageComponents.head.server = cgiObj.SERVER_SOFTWARE;
 
 	// add file download information
-	if (data.fileExist === 1) {
-		pageComponents.file.fileType = data.fileType;
-		pageComponents.file.fileSize = data.fileSize;
-		if (data.fileBlob) {
-			pageComponents.file.fileBlob = await streamToBuffer(data.fileBlob);
-		}
+	if (fileDownload.fileType !== '' && fileDownload.fileSize > 0 && fileDownload.fileBlob !== null) {
+		pageComponents.file.fileType = fileDownload.fileType;
+		pageComponents.file.fileSize = fileDownload.fileSize;
+		pageComponents.file.fileBlob = await streamToBuffer(fileDownload.fileBlob);
 	}
 
 	//
-	//	5) SEND THE RESPONSE
+	//	SEND THE RESPONSE
 	//
 
 	sendResponse(req, res, pageComponents);
 
 	//
-	//	6) CLEANUP
+	//	CLEANUP
 	//
 
 	fileBlob.destroy();
