@@ -12,6 +12,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 
 
+## [0.17.0] - 2026-01-26
+
+### Changed
+- Separated procedure invokation so only main procedure will be shown in excepztion messages.
+- Updated all dependencies to latest versions.
+
+
 ## [0.16.1] - 2025-12-09
 
 ### Fixed
