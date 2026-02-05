@@ -22,5 +22,6 @@
 		"noImplicitThis": true,
 		"strictNullChecks": true,
 		"resolveJsonModule": true
-	}
+	},
+	"exclude": ["node_modules", "types", "coverage", "examples"]
 }

@@ -1,5 +1,4 @@
-import assert from 'node:assert';
-import {describe, it} from 'node:test';
+import {assert, describe, it} from 'vitest';
 import fs from 'node:fs';
 import {streamToBuffer} from '../src/handler/plsql/stream.js';
 

@@ -1,5 +1,4 @@
-import assert from 'node:assert';
-import {describe, it, before, after, beforeEach} from 'node:test';
+import {assert, describe, it, beforeAll, afterAll, beforeEach} from 'vitest';
 import request from 'supertest';
 import * as oracledb from './mock/oracledb.js';
 import {serverStart, serverStop, sqlExecuteProxy, PATH, DEFAULT_PAGE} from './server.js';
@@ -12,11 +11,11 @@ describe('middleware', () => {
 	/** @type {serverConfigType} */
 	let serverConfig;
 
-	before(async () => {
+	beforeAll(async () => {
 		serverConfig = await serverStart();
 	});
 
-	after(async () => {
+	afterAll(async () => {
 		await serverStop(serverConfig);
 	});
 

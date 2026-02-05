@@ -1,5 +1,4 @@
-import assert from 'node:assert';
-import {describe, it} from 'node:test';
+import {assert, describe, it} from 'vitest';
 import {getVersion} from '../src/version.js';
 import {readFileSync} from 'fs';
 import {fileURLToPath} from 'url';

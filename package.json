@@ -44,10 +44,11 @@
 	"type": "module",
 	"scripts": {
 		"lint": "prettier --check --experimental-cli . && eslint . && tsc --noEmit",
-		"test": "node --test --test-concurrency=1 \"./tests/**/*.test.js\"",
+		"test": "vitest run",
+		"test:coverage": "vitest run --coverage",
 		"types": "rm -rf types && tsc  --noEmit false --declaration true --declarationDir types --emitDeclarationOnly true --allowJs true --target es2020 --module es2020 --moduleResolution node --allowSyntheticDefaultImports true src/*.js",
 		"clean": "shx rm -f *.tgz && shx rm -f *.log",
-		"ci": "npm run clean && npm run version && npm run lint && npm run test && npm run types",
+		"ci": "npm run clean && npm run version && npm run types && npm run lint && npm run test:coverage",
 		"version": "node update-version.js",
 		"create-package": "shx rm -f *.tgz && npm pack",
 		"image-build": "docker build --no-cache --progress=plain --tag=web_plsql .",
@@ -76,6 +77,7 @@
 		"@types/node": "25.2.0",
 		"@types/oracledb": "6.10.1",
 		"@types/supertest": "6.0.3",
+		"@vitest/coverage-v8": "^4.0.18",
 		"eslint": "9.39.2",
 		"eslint-plugin-jsdoc": "62.5.1",
 		"oracledb": "6.10.0",
@@ -83,6 +85,7 @@
 		"shx": "0.4.0",
 		"supertest": "7.2.2",
 		"typescript": "5.9.3",
-		"typescript-eslint": "8.54.0"
+		"typescript-eslint": "8.54.0",
+		"vitest": "^4.0.18"
 	}
 }

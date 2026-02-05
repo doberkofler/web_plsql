@@ -1,5 +1,4 @@
-import assert from 'node:assert';
-import {describe, it} from 'node:test';
+import {assert, describe, it} from 'vitest';
 import {isStringOrArrayOfString} from '../src/util/type.js';
 
 describe('type', () => {

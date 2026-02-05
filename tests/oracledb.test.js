@@ -1,5 +1,4 @@
-import assert from 'node:assert';
-import {describe, it, beforeEach, before, after} from 'node:test';
+import {assert, describe, it, beforeEach, beforeAll, afterAll} from 'vitest';
 import * as oracledb from './mock/oracledb.js';
 
 describe('oracledb', () => {
@@ -43,7 +42,7 @@ describe('Connection.execute', () => {
 	/** @type {oracledb.Connection} */
 	let connection;
 
-	before(async () => {
+	beforeAll(async () => {
 		connectionPool = await oracledb.createPool({
 			user: 'sample',
 			password: 'sample',
@@ -52,7 +51,7 @@ describe('Connection.execute', () => {
 		connection = await connectionPool.getConnection();
 	});
 
-	after(async () => {
+	afterAll(async () => {
 		await connection.release();
 		await connectionPool.close(0);
 	});
