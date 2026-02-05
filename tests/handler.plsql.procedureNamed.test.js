@@ -4,7 +4,9 @@ import oracledb from 'oracledb';
 import {getBinding, getProcedureNamed} from '../src/handler/plsql/procedureNamed.js';
 
 // Mock console.warn
-vi.spyOn(console, 'warn').mockImplementation(() => {});
+vi.spyOn(console, 'warn').mockImplementation(() => {
+	/* mock implementation */
+});
 
 describe('handler/plsql/procedureNamed', () => {
 	afterEach(() => {

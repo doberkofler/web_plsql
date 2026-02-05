@@ -3,8 +3,12 @@ import request from 'supertest';
 import * as oracledb from './mock/oracledb.js';
 import {serverStart, serverStop, sqlExecuteProxy, PATH, DEFAULT_PAGE} from './server.js';
 
+/** @typedef {import('./server.js').serverConfigType} serverConfigType */
+
 // Mock console.warn
-vi.spyOn(console, 'warn').mockImplementation(() => {});
+vi.spyOn(console, 'warn').mockImplementation(() => {
+	/* mock implementation */
+});
 
 describe('middleware', () => {
 	/** @type {serverConfigType} */
