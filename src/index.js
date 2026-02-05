@@ -1,5 +1,9 @@
+// libraries
+import oracledb from 'oracledb';
+export {oracledb};
+
 // server
-export {getVersion} from './server/version.js';
+export {getVersion} from './version.js';
 export {createServer, startServer, loadConfig, startServerConfig} from './server/server.js';
 export * from './util/shutdown.js';
 

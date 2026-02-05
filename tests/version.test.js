@@ -1,6 +1,6 @@
 import assert from 'node:assert';
 import {describe, it} from 'node:test';
-import {getVersion} from '../src/server/version.js';
+import {getVersion} from '../src/version.js';
 import {readFileSync} from 'fs';
 import {fileURLToPath} from 'url';
 import {dirname, join} from 'path';

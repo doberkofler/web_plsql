@@ -33,6 +33,11 @@ import {isStringOrArrayOfString} from '../../util/type.js';
 export const processRequest = async (req, res, options, connectionPool) => {
 	debug('processRequest: ENTER');
 
+	//
+	if (Array.isArray(req.params.name)) {
+		console.warn(`processRequest: WARNING: the req.params.name is not a string but an array of string: ${req.params.name.join(',')}`);
+	}
+
 	// open database connection
 	const connection = await connectionPool.getConnection();
 
@@ -68,7 +73,7 @@ export const processRequest = async (req, res, options, connectionPool) => {
 		await connection.rollback();
 	} else if (typeof options.transactionMode === 'function') {
 		debug('transactionMode: callback');
-		const result = options.transactionMode(connection, req.params.name);
+		const result = options.transactionMode(connection, Array.isArray(req.params.name) ? req.params.name[0] : req.params.name);
 		debug('transactionMode: callback restult', result);
 		if (result && typeof result.then === 'function') {
 			await result;

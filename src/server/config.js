@@ -1,4 +1,4 @@
-import {getVersion} from './version.js';
+import {getVersion} from '../version.js';
 
 /**
  * @typedef {import('../types.js').configType} configType

@@ -109,7 +109,7 @@ export const getCGI = (req, doctable, cgi) => {
 	const CGI = {
 		SERVER_PORT: typeof req.socket.localPort === 'number' ? req.socket.localPort.toString() : '',
 		REQUEST_METHOD: req.method,
-		PATH_INFO: req.params.name,
+		PATH_INFO: Array.isArray(req.params.name) ? req.params.name[0] : req.params.name,
 		SCRIPT_NAME: PATH.script,
 		REMOTE_ADDR: (req.ip ?? '').replace('::ffff:', ''),
 		SERVER_PROTOCOL: `${PROTOCOL}/${req.httpVersion}`,
