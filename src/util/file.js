@@ -10,7 +10,6 @@ export const readFileSyncUtf8 = (filePath) => {
 	try {
 		return readFileSync(filePath, 'utf8');
 	} catch (err) {
-		/* istanbul ignore next */
 		throw new Error(`Unable to read file "${filePath}"`);
 	}
 };
@@ -21,11 +20,10 @@ export const readFileSyncUtf8 = (filePath) => {
  * @param {string} filePath - File name.
  * @returns {Promise<Buffer>} The buffer.
  */
-export const readFile = (filePath) => {
+export const readFile = async (filePath) => {
 	try {
-		return fs.readFile(filePath);
+		return await fs.readFile(filePath);
 	} catch (err) {
-		/* istanbul ignore next */
 		throw new Error(`Unable to read file "${filePath}"`);
 	}
 };
@@ -36,11 +34,10 @@ export const readFile = (filePath) => {
  * @param {string} filePath - File name.
  * @returns {Promise<void>}.
  */
-export const removeFile = (filePath) => {
+export const removeFile = async (filePath) => {
 	try {
-		return fs.unlink(filePath);
+		return await fs.unlink(filePath);
 	} catch (err) {
-		/* istanbul ignore next */
 		throw new Error(`Unable to remove file "${filePath}"`);
 	}
 };
@@ -52,9 +49,8 @@ export const removeFile = (filePath) => {
  * @returns {unknown} The json object.
  */
 export const getJsonFile = (filePath) => {
-	const fileContent = readFileSync(filePath, 'utf8');
-
 	try {
+		const fileContent = readFileSync(filePath, 'utf8');
 		return JSON.parse(fileContent);
 	} catch (err) {
 		throw new Error(`Unable to load file "${filePath}"`);

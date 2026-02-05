@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Changed
 - Migrated to vitest.
+- Improved unit tests.
 
 
 ## [0.17.1] - 2026-02-05

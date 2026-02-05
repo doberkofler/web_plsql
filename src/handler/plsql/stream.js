@@ -21,7 +21,7 @@ export const streamToBuffer = async (readable) => {
 		});
 
 		readable.on('error', (err) => {
-			// istanbul ignore next
+			/* v8 ignore next - error handler */
 			reject(err);
 		});
 	});

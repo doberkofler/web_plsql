@@ -154,7 +154,7 @@ const procedureGetPage = async (test, databaseConnection) => {
 
 	// Make sure that we have retrieved all the rows
 	if (irows > MAX_IROWS) {
-		/* istanbul ignore next */
+		/* v8 ignore next - defensive check for row limit */
 		throw new ProcedureError(`procedureGetPage: error when retrieving rows. irows="${irows}"`, {}, sqlStatement, bindParameter);
 	}
 

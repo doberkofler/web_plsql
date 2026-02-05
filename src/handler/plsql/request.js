@@ -98,16 +98,16 @@ const normalizeBody = (req) => {
 	/** @type {Record<string, string | string[]>} */
 	const args = {};
 
-	/* istanbul ignore else */
+	/* v8 ignore else - body validation */
 	if (typeof req.body === 'object' && req.body !== null) {
 		for (const key in req.body) {
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
 			const value = req.body[key];
-			/* istanbul ignore else */
+			/* v8 ignore else - type validation */
 			if (isStringOrArrayOfString(value)) {
 				args[key] = value;
 			} else {
-				/* istanbul ignore next */
+				/* v8 ignore next - invalid body type */
 				throw new RequestError(
 					`The element "${key}" in the body is not a string or an array of strings!\n${util.inspect(req.body, {showHidden: false, depth: null, colors: false})}`,
 				);

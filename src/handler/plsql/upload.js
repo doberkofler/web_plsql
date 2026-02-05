@@ -70,7 +70,7 @@ export const getFiles = (req) => {
 export const uploadFile = async (file, doctable, databaseConnection) => {
 	debug(`uploadFile`, file, doctable);
 
-	/* istanbul ignore next */
+	/* v8 ignore next - defensive validation */
 	if (typeof doctable !== 'string' || doctable.length === 0) {
 		throw new Error(`Unable to upload file "${file.filename}" because the option ""doctable" has not been defined`);
 	}

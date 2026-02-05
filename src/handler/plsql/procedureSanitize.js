@@ -128,9 +128,7 @@ const loadRequestValid = async (procName, requestValidationFunction, databaseCon
 		result = await databaseConnection.execute(SQL, bind);
 	} catch (err) {
 		debug('result', result);
-		/* istanbul ignore next */
 		const message = `Error when validating procedure name "${procName}"\n${SQL}\n${errorToString(err)}`;
-		/* istanbul ignore next */
 		throw new RequestError(message);
 	}
 
@@ -139,9 +137,7 @@ const loadRequestValid = async (procName, requestValidationFunction, databaseCon
 		return data.valid === 1;
 	} catch (err) {
 		debug('result', result.outBinds);
-		/* istanbul ignore next */
 		const message = `Internal error when parsing ${result.outBinds}\n${errorToString(err)}`;
-		/* istanbul ignore next */
 		throw new Error(message);
 	}
 };

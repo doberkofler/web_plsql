@@ -89,9 +89,7 @@ const loadArguments = async (procedure, databaseConnection) => {
 		result = await databaseConnection.execute(SQL_GET_ARGUMENT, bind);
 	} catch (err) {
 		debug('result', result);
-		/* istanbul ignore next */
 		const message = `Error when retrieving arguments\n${SQL_GET_ARGUMENT}\n${errorToString(err)}`;
-		/* istanbul ignore next */
 		throw new RequestError(message);
 	}
 
@@ -106,14 +104,11 @@ const loadArguments = async (procedure, databaseConnection) => {
 			.parse(result.outBinds);
 	} catch (err) {
 		debug('result.outBinds', result.outBinds);
-		/* istanbul ignore next */
 		const message = `Error when decoding arguments\n${SQL_GET_ARGUMENT}\n${errorToString(err)}`;
-		/* istanbul ignore next */
 		throw new RequestError(message);
 	}
 
 	if (data.names.length !== data.types.length) {
-		/* istanbul ignore next */
 		throw new RequestError('Error when decoding arguments. The number of names and types does not match');
 	}
 

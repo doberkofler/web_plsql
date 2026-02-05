@@ -36,30 +36,26 @@ const getError = (req, error) => {
 	// what type of Error did we receive
 	if (error instanceof ProcedureError) {
 		timestamp = error.timestamp;
-		/* istanbul ignore next */
 		message = error.stack ?? '';
 		environment = error.environment;
 		sql = error.sql;
 		bind = error.bind;
 	} else if (error instanceof RequestError) {
 		timestamp = error.timestamp;
-		/* istanbul ignore next */
 		message = error.stack ?? '';
 	} else if (error instanceof Error) {
-		/* istanbul ignore next */
 		message = errorToString(error);
 	} else {
 		if (typeof error === 'string') {
-			/* istanbul ignore next */
 			message = `${error}\n`;
 		}
+		/* v8 ignore start - unreachable code: creating Error without throwing */
 		try {
-			/* istanbul ignore next */
 			new Error();
 		} catch (err) {
-			/* istanbul ignore next */
 			message += errorToString(err);
 		}
+		/* v8 ignore stop */
 	}
 
 	return getFormattedMessage({type: 'error', timestamp, message, req, environment, sql, bind});

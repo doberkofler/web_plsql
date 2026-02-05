@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-
 import debugModule from 'debug';
 const debug = debugModule('webplsql:oracledb');
 

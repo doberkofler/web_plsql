@@ -55,7 +55,7 @@ export const parsePage = (text) => {
 					{
 						const cookie = parseCookie(header.value);
 						debug(`oracle header "set-cookie" with value "${header.value}" was received has been parsed to ${JSON.stringify(cookie)}`);
-						/* istanbul ignore else */
+						/* v8 ignore else - parseCookie validation ensures non-null */
 						if (cookie !== null) {
 							page.head.cookies.push(cookie);
 						} else {
@@ -72,7 +72,7 @@ export const parsePage = (text) => {
 				case 'x-db-content-length':
 					{
 						const contentLength = parseInt(header.value, 10);
-						/* istanbul ignore else */
+						/* v8 ignore else - parseInt validation */
 						if (!Number.isNaN(contentLength)) {
 							page.head.contentLength = contentLength;
 							debug(`oracle header "x-db-content-length" with value "${page.head.contentLength}" was parsed`);
@@ -85,12 +85,12 @@ export const parsePage = (text) => {
 				case 'status':
 					{
 						const statusCode = parseInt(header.value, 10);
-						/* istanbul ignore else */
+						/* v8 ignore else - parseInt validation */
 						if (!Number.isNaN(statusCode)) {
 							page.head.statusCode = statusCode;
 							debug(`oracle header "status" with value "${page.head.statusCode}" was parsed`);
 							const index = header.value.indexOf(' ');
-							/* istanbul ignore else */
+							/* v8 ignore else - status code may not have description */
 							if (index !== -1) {
 								page.head.statusDescription = header.value.substring(index + 1);
 							}
@@ -143,7 +143,7 @@ const getHeader = (line) => {
  */
 const parseCookie = (text) => {
 	// validate
-	/* istanbul ignore next */
+	/* v8 ignore next - input validation */
 	if (typeof text !== 'string' || text.trim().length === 0) {
 		return null;
 	}
@@ -156,7 +156,7 @@ const parseCookie = (text) => {
 
 	// get name and value
 	const index = cookieElements[0].indexOf('=');
-	/* istanbul ignore next */
+	/* v8 ignore next - cookie format validation */
 	if (index <= 0) {
 		// if the index is -1, there is no equal sign and if it's 0 the name is empty
 		return null;
@@ -179,7 +179,7 @@ const parseCookie = (text) => {
 		} else if (element.toLowerCase().startsWith('domain=')) {
 			cookie.options.domain = element.substring(7);
 		} else if (element.toLowerCase().startsWith('secure=')) {
-			/* istanbul ignore next */
+			/* v8 ignore next - secure cookie attribute */
 			cookie.options.secure = true;
 		} else if (element.toLowerCase().startsWith('expires=')) {
 			const date = tryDecodeDate(element.substring(8));
@@ -203,7 +203,7 @@ const tryDecodeDate = (value) => {
 	try {
 		return new Date(value);
 	} catch (err) {
-		/* istanbul ignore next */
+		/* v8 ignore next - invalid date format */
 		return null;
 	}
 };
