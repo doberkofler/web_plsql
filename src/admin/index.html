@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>web_plsql Admin Console</title>
+		<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+		<link rel="stylesheet" href="style.css" />
+	</head>
+	<body class="dark">
+		<div class="app-container">
+			<aside class="sidebar">
+				<div class="logo">
+					<span class="material-symbols-rounded">database</span>
+					web_plsql
+				</div>
+				<nav>
+					<button data-view="overview" class="active">
+						<span class="material-symbols-rounded">dashboard</span>
+						Overview
+					</button>
+					<button data-view="errors">
+						<span class="material-symbols-rounded">error</span>
+						Errors
+					</button>
+					<button data-view="access">
+						<span class="material-symbols-rounded">list_alt</span>
+						Access Log
+					</button>
+					<button data-view="cache">
+						<span class="material-symbols-rounded">cached</span>
+						Cache
+					</button>
+					<button data-view="pools">
+						<span class="material-symbols-rounded">database</span>
+						Pools
+					</button>
+					<button data-view="config">
+						<span class="material-symbols-rounded">settings</span>
+						Configuration
+					</button>
+					<button data-view="system">
+						<span class="material-symbols-rounded">terminal</span>
+						System
+					</button>
+				</nav>
+				<div class="theme-toggle">
+					<span>Dark Mode</span>
+					<label class="switch">
+						<input type="checkbox" id="theme-toggle-checkbox" checked />
+						<span class="slider"></span>
+					</label>
+				</div>
+				<div class="status-indicator">
+					<span id="server-status-dot" class="dot"></span>
+					<span id="server-status-text">Checking...</span>
+				</div>
+			</aside>
+			<main class="content">
+				<header class="main-header">
+					<h1 id="view-title">Overview</h1>
+					<div class="header-toolbar">
+						<div class="auto-refresh-group">
+							<label for="auto-refresh-toggle">Auto-refresh</label>
+							<input type="checkbox" id="auto-refresh-toggle" checked />
+							<select id="refresh-interval">
+								<option value="2000">2s</option>
+								<option value="5000">5s</option>
+								<option value="10000">10s</option>
+								<option value="30000">30s</option>
+							</select>
+						</div>
+						<button id="manual-refresh" class="icon-btn" title="Refresh Now">
+							<span class="material-symbols-rounded">refresh</span>
+						</button>
+					</div>
+				</header>
+
+				<section id="view-overview" class="view">
+					<div class="metrics-grid">
+						<div class="card">
+							<div class="card-header">
+								<span class="material-symbols-rounded">schedule</span>
+								<h3>Uptime</h3>
+							</div>
+							<p id="uptime-val">0s</p>
+							<small id="start-time-val">-</small>
+						</div>
+						<div class="card">
+							<div class="card-header">
+								<span class="material-symbols-rounded">swap_vert</span>
+								<h3>Requests</h3>
+							</div>
+							<p id="req-count">0</p>
+							<small id="req-per-sec">0 req/s</small>
+						</div>
+						<div class="card">
+							<div class="card-header">
+								<span class="material-symbols-rounded">report</span>
+								<h3>Errors</h3>
+							</div>
+							<p id="err-count">0</p>
+						</div>
+					</div>
+
+					<div class="metrics-grid">
+						<div class="card" style="grid-column: span 2">
+							<div class="card-header">
+								<span class="material-symbols-rounded">monitoring</span>
+								<h3>Traffic (req/s)</h3>
+							</div>
+							<div class="chart-container">
+								<canvas id="traffic-chart"></canvas>
+							</div>
+						</div>
+						<div class="card">
+							<div class="card-header">
+								<span class="material-symbols-rounded">analytics</span>
+								<h3>Error Rate</h3>
+							</div>
+							<div class="chart-container">
+								<canvas id="error-chart"></canvas>
+							</div>
+						</div>
+					</div>
+				</section>
+
+				<section id="view-pools" class="view" style="display: none">
+					<div id="pools-container" class="pools-grid"></div>
+					<div class="card">
+						<div class="card-header">
+							<span class="material-symbols-rounded">analytics</span>
+							<h3>Pool Usage History</h3>
+						</div>
+						<div class="chart-container">
+							<canvas id="pool-chart"></canvas>
+						</div>
+					</div>
+				</section>
+
+				<section id="view-errors" class="view" style="display: none">
+					<div class="table-container">
+						<table id="errors-table">
+							<thead>
+								<tr>
+									<th>Timestamp</th>
+									<th>Method</th>
+									<th>URL</th>
+									<th>Message</th>
+								</tr>
+							</thead>
+							<tbody></tbody>
+						</table>
+					</div>
+				</section>
+
+				<section id="view-access" class="view" style="display: none">
+					<div class="terminal-container">
+						<pre id="access-log-view" class="terminal"></pre>
+					</div>
+				</section>
+
+				<section id="view-cache" class="view" style="display: none">
+					<div id="cache-container" class="cache-grid"></div>
+				</section>
+
+				<section id="view-config" class="view" style="display: none">
+					<div id="config-view"></div>
+				</section>
+
+				<section id="view-system" class="view" style="display: none">
+					<div class="card warning">
+						<h3>Danger Zone</h3>
+						<p>Careful! These actions affect the production server state.</p>
+						<div class="control-group">
+							<button id="btn-pause" class="btn-warning">
+								<span class="material-symbols-rounded">pause</span>
+								Pause Server
+							</button>
+							<button id="btn-resume" class="btn-success" style="display: none">
+								<span class="material-symbols-rounded">play_arrow</span>
+								Resume Server
+							</button>
+							<button id="btn-stop" class="btn-danger">
+								<span class="material-symbols-rounded">stop</span>
+								Stop Server
+							</button>
+						</div>
+					</div>
+				</section>
+			</main>
+		</div>
+		<script type="module" src="lib/chart.bundle.js"></script>
+	</body>
+</html>

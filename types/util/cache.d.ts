@@ -14,6 +14,8 @@ export class Cache<T> {
     /** @type {Map<string, cacheEntryType<T>>} */
     cache: Map<string, cacheEntryType<T>>;
     maxSize: number;
+    hits: number;
+    misses: number;
     /**
      * Get an entry from the cache.
      * @param {string} key - The key.
@@ -45,6 +47,21 @@ export class Cache<T> {
      * @returns {number} - The size.
      */
     get size(): number;
+    /**
+     * Get all keys in the cache.
+     * @returns {string[]} - The keys.
+     */
+    keys(): string[];
+    /**
+     * Get cache statistics.
+     * @returns {{size: number, maxSize: number, hits: number, misses: number}} - The statistics.
+     */
+    getStats(): {
+        size: number;
+        maxSize: number;
+        hits: number;
+        misses: number;
+    };
 }
 export type cacheEntryType<T> = {
     hitCount: number;

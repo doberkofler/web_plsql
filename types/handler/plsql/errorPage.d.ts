@@ -8,3 +8,4 @@ export type outputType = {
     html: string;
     text: string;
 };
+export type messageType = import("../../util/trace.js").messageType;

@@ -107,6 +107,29 @@ The middleware enforces a **stateless model** as defined in the Oracle mod_plsql
 ### Known Issues & Security (See `ENHANCEMENTS.md`)
 *   **Character Sets**: The project currently hardcodes some charsets (`ascii`, `UTF8`). Aim for configuration-driven NLS settings.
 
+### Admin Console Chart.js
+The admin console uses **Vite** to bundle client-side JavaScript (including Chart.js) into a single file.
+
+**Architecture**:
+- Source code: `src/admin/client/` - Strictly typed, linted JavaScript
+- Entry point: `src/admin/client/main.js` - Imports from `js/` directory
+- Output: `lib/chart.bundle.js` - Bundled output served to browsers
+
+**Build Process**:
+1. Vite bundles `src/admin/client/` including Chart.js from npm
+2. Output is written to `lib/chart.bundle.js`
+3. Express serves the bundle from `lib/chart.bundle.js` via `/admin/lib/chart.bundle.js`
+
+**Commands**:
+- `npm run build:admin` - Build the admin client bundle
+- `npm run build` - Alias for build:admin
+- `npm run prepack` - Automatically builds before publishing
+- `npm run ci` - Runs full CI including build
+
+**Files Excluded from Linting/Type Checking**:
+- `lib/` - Build output directory
+- `src/admin/lib/**` - (deprecated, no longer used)
+
 ### Planned Enhancements
 Refer to `ENHANCEMENTS.md` for the full roadmap. Key priorities include:
 1.  **Hooks**: Adding `before`/`after` procedure hooks for session setup.

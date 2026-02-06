@@ -8,7 +8,7 @@ import globals from 'globals';
 
 export default defineConfig([
 	{
-		ignores: ['**/.*', 'examples/**', 'types/**', 'node_modules/**', 'coverage/**'],
+		ignores: ['**/.*', 'examples/**', 'types/**', 'node_modules/**', 'coverage/**', 'lib/**', 'src/admin/lib/**'],
 	},
 
 	{
@@ -21,6 +21,14 @@ export default defineConfig([
 	eslint.configs.recommended,
 	...tseslint.configs.strictTypeChecked,
 	...tseslint.configs.stylisticTypeChecked,
+	{
+		files: ['src/admin/**/*.js'],
+		languageOptions: {
+			globals: {
+				...globals.browser,
+			},
+		},
+	},
 	{
 		files: ['src/**/*.{js,ts}'],
 		plugins: {jsdoc},

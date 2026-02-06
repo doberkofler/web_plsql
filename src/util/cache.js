@@ -15,6 +15,8 @@ export class Cache {
 		/** @type {Map<string, cacheEntryType<T>>} */
 		this.cache = new Map();
 		this.maxSize = maxSize;
+		this.hits = 0;
+		this.misses = 0;
 	}
 
 	/**
@@ -26,8 +28,10 @@ export class Cache {
 		const entry = this.cache.get(key);
 		if (entry) {
 			entry.hitCount++;
+			this.hits++;
 			return entry.value;
 		}
+		this.misses++;
 		return undefined;
 	}
 
@@ -64,6 +68,8 @@ export class Cache {
 	 */
 	clear() {
 		this.cache.clear();
+		this.hits = 0;
+		this.misses = 0;
 	}
 
 	/**
@@ -92,5 +98,26 @@ export class Cache {
 	 */
 	get size() {
 		return this.cache.size;
+	}
+
+	/**
+	 * Get all keys in the cache.
+	 * @returns {string[]} - The keys.
+	 */
+	keys() {
+		return Array.from(this.cache.keys());
+	}
+
+	/**
+	 * Get cache statistics.
+	 * @returns {{size: number, maxSize: number, hits: number, misses: number}} - The statistics.
+	 */
+	getStats() {
+		return {
+			size: this.cache.size,
+			maxSize: this.maxSize,
+			hits: this.hits,
+			misses: this.misses,
+		};
 	}
 }

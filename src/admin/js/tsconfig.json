@@ -1,0 +1,19 @@
+{
+	"compilerOptions": {
+		"noEmit": true,
+		"target": "es2020",
+		"module": "es2020",
+		"moduleResolution": "node",
+		"esModuleInterop": true,
+		"skipLibCheck": true,
+		"allowSyntheticDefaultImports": true,
+		"allowJs": true,
+		"checkJs": true,
+		"strict": true,
+		"noImplicitAny": true,
+		"strictNullChecks": true,
+		"lib": ["es2020", "dom", "dom.iterable"]
+	},
+	"include": ["**/*.js", "**/*.d.ts"],
+	"exclude": ["lib/**"]
+}

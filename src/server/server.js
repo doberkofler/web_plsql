@@ -2,6 +2,8 @@ import debugModule from 'debug';
 const debug = debugModule('webplsql:server');
 import http from 'node:http';
 import https from 'node:https';
+import path from 'node:path';
+import {fileURLToPath} from 'node:url';
 import express from 'express';
 import cookieParser from 'cookie-parser';
 import compression from 'compression';
@@ -11,8 +13,13 @@ import {poolCreate, poolsClose} from '../util/oracle.js';
 import {handlerUpload} from '../handler/handlerUpload.js';
 import {handlerLogger} from '../handler/handlerLogger.js';
 import {handlerWebPlSql} from '../handler/plsql/handlerPlSql.js';
+import {handlerAdmin} from '../handler/handlerAdmin.js';
 import {readFileSyncUtf8, getJsonFile} from '../util/file.js';
 import {showConfig} from './config.js';
+import {Cache} from '../util/cache.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 /**
  * @typedef {import('node:net').Socket} Socket
@@ -23,7 +30,33 @@ import {showConfig} from './config.js';
  * @typedef {import('oracledb').Pool} Pool
  * @typedef {import('../types.js').environmentType} environmentType
  * @typedef {import('../types.js').configType} configType
+ * @typedef {import('../handler/plsql/procedureNamed.js').argsType} argsType
  */
+
+/**
+ * @typedef {import('express').RequestHandler & {
+ *   procedureNameCache: Cache<string>;
+ *   argumentCache: Cache<argsType>;
+ * }} ExtendedRequestHandler
+ */
+
+/**
+ * Global Admin Context
+ */
+export const AdminContext = {
+	startTime: new Date(),
+	/** @type {configType | null} */
+	config: null,
+	/** @type {Pool[]} */
+	pools: [],
+	/** @type {Array<{poolName: string, procedureNameCache: Cache<string>, argumentCache: Cache<argsType>}>} */
+	caches: [],
+	paused: false,
+	metrics: {
+		requestCount: 0,
+		errorCount: 0,
+	},
+};
 
 /**
  * @typedef {object} webServer - Web server interface.
@@ -39,6 +72,42 @@ import {showConfig} from './config.js';
  * @property {string} keyFilename - key filename.
  * @property {string} certFilename - cert filename.
  */
+
+/**
+ * Admin basic auth middleware
+ * @param {Request} req - The request.
+ * @param {Response} res - The response.
+ * @param {NextFunction} next - The next function.
+ */
+const adminAuth = (req, res, next) => {
+	const adminRoute = AdminContext.config?.adminRoute ?? '/admin';
+
+	// Simple pause check for all PL/SQL routes (not admin)
+	if (AdminContext.paused && !req.path.startsWith(adminRoute)) {
+		res.status(503).send('Server Paused');
+		return;
+	}
+
+	// Basic Auth for Admin Route
+	if (req.path.startsWith(adminRoute)) {
+		const user = AdminContext.config?.adminUser;
+		const pass = AdminContext.config?.adminPassword;
+
+		if (user && pass) {
+			const auth = {login: user, password: pass};
+			const b64auth = (req.headers.authorization ?? '').split(' ')[1] ?? '';
+			const [login, password] = Buffer.from(b64auth, 'base64').toString().split(':');
+
+			if (login !== auth.login || password !== auth.password) {
+				res.set('WWW-Authenticate', 'Basic realm="Admin Console"');
+				res.status(401).send('Authentication required.');
+				return;
+			}
+		}
+	}
+
+	next();
+};
 
 /**
  * Create HTTPS server.
@@ -67,16 +136,26 @@ export const startServer = async (config, ssl) => {
 	debug('startServer: BEGIN', config, ssl);
 
 	const internalConfig = /** @type {configType} */ (z$configType.parse(config));
+	AdminContext.config = internalConfig;
 
 	showConfig(internalConfig);
 
 	// Create express app
 	const app = express();
 
+	// Pause & Admin Auth middleware
+	app.use(adminAuth);
+
 	// Access log
 	if (internalConfig.loggerFilename.length > 0) {
 		app.use(handlerLogger(internalConfig.loggerFilename));
 	}
+
+	// Admin console
+	const adminRoute = internalConfig.adminRoute ?? '/admin';
+	const adminDirectory = path.resolve(__dirname, '../admin');
+	app.use(adminRoute, handlerAdmin);
+	app.use(adminRoute, express.static(adminDirectory));
 
 	// Serving static files
 	for (const i of internalConfig.routeStatic) {
@@ -92,6 +171,8 @@ export const startServer = async (config, ssl) => {
 
 	/** @type {Pool[]} */
 	const connectionPools = [];
+	AdminContext.pools = connectionPools;
+	AdminContext.caches = [];
 
 	// Oracle pl/sql express middleware
 	for (const i of internalConfig.routePlSql) {
@@ -99,7 +180,19 @@ export const startServer = async (config, ssl) => {
 		const pool = await poolCreate(i.user, i.password, i.connectString);
 		connectionPools.push(pool);
 
-		app.use([`${i.route}/:name`, i.route], handlerWebPlSql(pool, i));
+		const handler = handlerWebPlSql(pool, i);
+
+		// Capture caches for admin console
+		AdminContext.caches.push({
+			poolName: i.route,
+			procedureNameCache: handler.procedureNameCache,
+			argumentCache: handler.argumentCache,
+		});
+
+		app.use([`${i.route}/:name`, i.route], (req, res, next) => {
+			AdminContext.metrics.requestCount++;
+			handler(req, res, next);
+		});
 	}
 
 	// create server
@@ -150,7 +243,13 @@ export const startServer = async (config, ssl) => {
 					resolve();
 				})
 				.on('error', (err) => {
-					console.error(err);
+					if ('code' in err) {
+						if (err.code === 'EADDRINUSE') {
+							err.message = `Port ${internalConfig.port} is already in use`;
+						} else if (err.code === 'EACCES') {
+							err.message = `Port ${internalConfig.port} requires elevated privileges`;
+						}
+					}
 					reject(err);
 				});
 		})

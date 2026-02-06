@@ -27,7 +27,9 @@ describe('handler/plsql/errorPage', () => {
 	});
 
 	it('should send basic 404 page when errorStyle is basic', () => {
-		const req = {};
+		const req = {
+			get: vi.fn(),
+		};
 		const res = {
 			status: vi.fn().mockReturnThis(),
 			send: vi.fn(),
@@ -49,7 +51,9 @@ describe('handler/plsql/errorPage', () => {
 	});
 
 	it('should send detailed html page when errorStyle is debug', () => {
-		const req = {};
+		const req = {
+			get: vi.fn(),
+		};
 		const res = {
 			status: vi.fn().mockReturnThis(),
 			send: vi.fn(),
@@ -71,7 +75,9 @@ describe('handler/plsql/errorPage', () => {
 	});
 
 	it('should handle ProcedureError correctly', () => {
-		const req = {};
+		const req = {
+			get: vi.fn(),
+		};
 		const res = {
 			status: vi.fn().mockReturnThis(),
 			send: vi.fn(),
@@ -94,7 +100,9 @@ describe('handler/plsql/errorPage', () => {
 	});
 
 	it('should handle RequestError correctly', () => {
-		const req = {};
+		const req = {
+			get: vi.fn(),
+		};
 		const res = {
 			status: vi.fn().mockReturnThis(),
 			send: vi.fn(),
@@ -115,7 +123,9 @@ describe('handler/plsql/errorPage', () => {
 	});
 
 	it('should handle string error correctly', () => {
-		const req = {};
+		const req = {
+			get: vi.fn(),
+		};
 		const res = {
 			status: vi.fn().mockReturnThis(),
 			send: vi.fn(),

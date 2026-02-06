@@ -82,6 +82,9 @@ export const z$configPlSqlType = z.strictObject({
  * @property {configPlSqlType[]} routePlSql - The PL/SQL routes.
  * @property {number} [uploadFileSizeLimit] - Maximum size of each uploaded file in bytes or no limit if omitted.
  * @property {string} loggerFilename - name of the request logger filename or '' if not required.
+ * @property {string} [adminRoute] - Optional route for the admin console (defaults to /admin).
+ * @property {string} [adminUser] - Optional username for admin console basic auth.
+ * @property {string} [adminPassword] - Optional password for admin console basic auth.
  */
 export const z$configType = z.strictObject({
 	port: z.number(),
@@ -89,6 +92,9 @@ export const z$configType = z.strictObject({
 	routePlSql: z.array(z$configPlSqlType),
 	uploadFileSizeLimit: z.number().optional(),
 	loggerFilename: z.string(),
+	adminRoute: z.string().optional(),
+	adminUser: z.string().optional(),
+	adminPassword: z.string().optional(),
 });
 
 /**

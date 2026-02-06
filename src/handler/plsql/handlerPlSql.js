@@ -52,11 +52,18 @@ const requestHandler = async (req, res, next, connectionPool, options, procedure
 };
 
 /**
+ * @typedef {import('express').RequestHandler & {
+ *   procedureNameCache: Cache<string>;
+ *   argumentCache: Cache<import('./procedureNamed.js').argsType>;
+ * }} WebPlSqlRequestHandler
+ */
+
+/**
  * Express middleware.
  *
  * @param {Pool} connectionPool - The connection pool.
  * @param {configPlSqlHandlerType} config - The configuration options.
- * @returns {RequestHandler} - The handler.
+ * @returns {WebPlSqlRequestHandler} - The handler.
  */
 export const handlerWebPlSql = (connectionPool, config) => {
 	debug('options', config);
@@ -66,7 +73,18 @@ export const handlerWebPlSql = (connectionPool, config) => {
 	/** @type {Cache<import('./procedureNamed.js').argsType>} */
 	const argumentCache = new Cache();
 
-	return (req, res, next) => {
+	/**
+	 * @param {Request} req - The request.
+	 * @param {Response} res - The response.
+	 * @param {NextFunction} next - The next function.
+	 */
+	const handler = (req, res, next) => {
 		void requestHandler(req, res, next, connectionPool, config, procedureNameCache, argumentCache);
 	};
+
+	// Expose caches for Admin Console
+	handler.procedureNameCache = procedureNameCache;
+	handler.argumentCache = argumentCache;
+
+	return handler;
 };

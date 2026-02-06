@@ -2,4 +2,4 @@
  * Returns the current library version
  * @returns {string} - Version.
  */
-export const getVersion = () => '0.19.0';
+export const getVersion = () => '0.20.0';

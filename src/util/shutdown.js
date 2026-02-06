@@ -12,8 +12,12 @@ export const installShutdown = (handler) => {
 	/*
 	 *	The 'unhandledRejection' event is emitted whenever a Promise is rejected and no error handler is attached to the promise within a turn of the event loop.
 	 */
-	process.on('unhandledRejection', (reason, p) => {
-		console.log('\nUnhandled promise rejection. Graceful shutdown...', reason, p);
+	process.on('unhandledRejection', (reason) => {
+		if (reason instanceof Error) {
+			console.error(`\n${reason.message}. Graceful shutdown...`);
+		} else {
+			console.error('\nUnhandled promise rejection. Graceful shutdown...', reason);
+		}
 		void handler();
 	});
 

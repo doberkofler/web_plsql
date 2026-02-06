@@ -7,6 +7,8 @@ import {RequestError} from './requestError.js';
 import {getFormattedMessage, logToFile} from '../../util/trace.js';
 import {errorToString} from '../../util/errorToString.js';
 import {getHtmlPage} from '../../util/html.js';
+import {jsonLogger} from '../../util/jsonLogger.js';
+import {AdminContext} from '../../server/server.js';
 
 /**
  * @typedef {import('express').Request} Request
@@ -15,15 +17,16 @@ import {getHtmlPage} from '../../util/html.js';
  * @typedef {import('../../types.js').environmentType} environmentType
  * @typedef {import('../../types.js').configPlSqlHandlerType} configPlSqlHandlerType
  * @typedef {{html: string; text: string}} outputType
+ * @typedef {import('../../util/trace.js').messageType} messageType
  */
 
 /**
- *	Show an error page
+ *	Get error data
  *	@param {Request} req - The req object represents the HTTP request.
  *	@param {unknown} error - The error.
- *	@returns {outputType} - The output.
+ *	@returns {messageType} - The output.
  */
-const getError = (req, error) => {
+const getErrorData = (req, error) => {
 	let timestamp = new Date();
 	let message = '';
 	/** @type {environmentType | null} */
@@ -58,7 +61,7 @@ const getError = (req, error) => {
 		/* v8 ignore stop */
 	}
 
-	return getFormattedMessage({type: 'error', timestamp, message, req, environment, sql, bind});
+	return {type: 'error', timestamp, message, req, environment, sql, bind};
 };
 
 /**
@@ -70,11 +73,36 @@ const getError = (req, error) => {
  * @param {unknown} error - The error.
  */
 export const errorPage = (req, res, options, error) => {
-	// get error message
-	const {html, text} = getError(req, error);
+	// get error data
+	const errorData = getErrorData(req, error);
+
+	// Update metrics
+	AdminContext.metrics.errorCount++;
+
+	// get formatted message
+	const {html, text} = getFormattedMessage(errorData);
 
 	// trace to file
 	logToFile(text);
+
+	// json log
+	jsonLogger.log({
+		timestamp: errorData.timestamp?.toISOString() ?? new Date().toISOString(),
+		type: 'error',
+		message: errorData.message.split('\n')[0], // First line as summary
+		req: {
+			method: req.method,
+			url: req.originalUrl,
+			ip: req.ip,
+			userAgent: req.get('user-agent'),
+		},
+		details: {
+			fullMessage: errorData.message,
+			sql: errorData.sql,
+			bind: errorData.bind,
+			environment: errorData.environment,
+		},
+	});
 
 	// console
 	console.error(text);

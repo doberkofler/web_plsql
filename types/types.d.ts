@@ -92,6 +92,9 @@ export const z$configPlSqlType: z.ZodObject<{
  * @property {configPlSqlType[]} routePlSql - The PL/SQL routes.
  * @property {number} [uploadFileSizeLimit] - Maximum size of each uploaded file in bytes or no limit if omitted.
  * @property {string} loggerFilename - name of the request logger filename or '' if not required.
+ * @property {string} [adminRoute] - Optional route for the admin console (defaults to /admin).
+ * @property {string} [adminUser] - Optional username for admin console basic auth.
+ * @property {string} [adminPassword] - Optional password for admin console basic auth.
  */
 export const z$configType: z.ZodObject<{
     port: z.ZodNumber;
@@ -118,6 +121,9 @@ export const z$configType: z.ZodObject<{
     }, z.core.$strict>>;
     uploadFileSizeLimit: z.ZodOptional<z.ZodNumber>;
     loggerFilename: z.ZodString;
+    adminRoute: z.ZodOptional<z.ZodString>;
+    adminUser: z.ZodOptional<z.ZodString>;
+    adminPassword: z.ZodOptional<z.ZodString>;
 }, z.core.$strict>;
 export type BindParameter = import("oracledb").BindParameter;
 export type Connection = import("oracledb").Connection;
@@ -217,6 +223,18 @@ export type configType = {
      * - name of the request logger filename or '' if not required.
      */
     loggerFilename: string;
+    /**
+     * - Optional route for the admin console (defaults to /admin).
+     */
+    adminRoute?: string;
+    /**
+     * - Optional username for admin console basic auth.
+     */
+    adminUser?: string;
+    /**
+     * - Optional password for admin console basic auth.
+     */
+    adminPassword?: string;
 };
 /**
  * Environment variables as string key-value pairs

@@ -17,6 +17,7 @@ export const showConfig = (config) => {
 	console.log(LINE);
 
 	console.log(`Server port:            ${config.port}`);
+	console.log(`Admin route:            ${config.adminRoute ?? '/admin'}${config.adminUser ? ' (authenticated)' : ''}`);
 	console.log(`Access log:             ${config.loggerFilename.length > 0 ? config.loggerFilename : ''}`);
 	console.log(`Upload file size limit: ${typeof config.uploadFileSizeLimit === 'number' ? `${config.uploadFileSizeLimit} bytes` : 'any'}`);
 

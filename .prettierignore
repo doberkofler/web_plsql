@@ -2,3 +2,5 @@
 *.md
 node_modules
 types
+lib
+src/admin/lib
