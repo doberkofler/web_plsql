@@ -12,6 +12,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 
 
+## [0.19.0] - 2026-02-06
+
+### Added
+- Scoped Caching: Implemented per-handler caches to prevent conflicts.
+- Security: Added dbms_utility.name_resolve for safer procedure name handling.
+- Robustness: Added automatic cache invalidation on specific ORA errors.
+- Utilities: Added new cache utility and test files.
+
+
 ## [0.18.0] - 2026-02-06
 
 ### Added
