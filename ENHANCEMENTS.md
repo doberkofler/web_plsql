@@ -64,3 +64,15 @@ The following enhancements are proposed based on the competitive analysis and id
 | **Enhanced Path Alias Parameters** | **Medium** | Increases flexibility for dispatcher-style procedures by optionally forwarding all request parameters. |
 | **Atomic Transactional Uploads** | **Medium** | Ensures that file uploads and the main procedure call happen in the same transaction. |
 | **SOAP/WSDL Support** | **Low** | Useful for legacy enterprise service integrations. |
+
+---
+
+## 5. Non-Goals / Out of Scope
+
+The following features are explicitly **excluded** from the roadmap to maintain architectural simplicity and security.
+
+*   **Stateful Mode (`StatelessWithPreservePackageState`)**:
+    *   Legacy `mod_plsql` allowed preserving package state between requests.
+    *   **Decision**: This will **not** be implemented.
+    *   **Reasoning**: It introduces severe "state leakage" risks in a pooled environment and complicates the architecture. The project is strictly **Stateless**.
+
