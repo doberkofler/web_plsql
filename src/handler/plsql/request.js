@@ -19,6 +19,8 @@ import {isStringOrArrayOfString} from '../../util/type.js';
  * @typedef {import('oracledb').Connection} Connection
  * @typedef {import('../../types.js').argObjType} argObjType
  * @typedef {import('../../types.js').configPlSqlHandlerType} configPlSqlHandlerType
+ * @typedef {import('../../util/cache.js').Cache<string>} ProcedureNameCache
+ * @typedef {import('../../util/cache.js').Cache<import('./procedureNamed.js').argsType>} ArgumentCache
  */
 
 /**
@@ -28,9 +30,11 @@ import {isStringOrArrayOfString} from '../../util/type.js';
  * @param {Response} res - The res object represents the HTTP response that an Express app sends when it gets an HTTP request.
  * @param {configPlSqlHandlerType} options - the options for the middleware.
  * @param {Pool} connectionPool - The connection pool.
+ * @param {ProcedureNameCache} procedureNameCache - The procedure name cache.
+ * @param {ArgumentCache} argumentCache - The argument cache.
  * @returns {Promise<void>} - Promise resolving to th page
  */
-export const processRequest = async (req, res, options, connectionPool) => {
+export const processRequest = async (req, res, options, connectionPool, procedureNameCache, argumentCache) => {
 	debug('processRequest: ENTER');
 
 	//
@@ -65,7 +69,7 @@ export const processRequest = async (req, res, options, connectionPool) => {
 	debug('processRequest: argObj=', argObj);
 
 	// invoke the Oracle procedure and get the page contenst
-	await invokeProcedure(req, res, argObj, cgiObj, filesToUpload, options, connection);
+	await invokeProcedure(req, res, argObj, cgiObj, filesToUpload, options, connection, procedureNameCache, argumentCache);
 
 	// transaction mode
 	if (options.transactionMode === 'rollback') {

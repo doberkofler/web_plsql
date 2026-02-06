@@ -199,7 +199,7 @@ export const serverStop = async (config) => {
 
 /**
  *	Set the proxy for the next sql procedure to be executed
- *	@param {{proc: string; para?: paraType; lines: string[]}} config - The configuration.
+ *	@param {{proc: string; para?: paraType; lines?: string[]; error?: string}} config - The configuration.
  */
 export const sqlExecuteProxy = (config) => {
 	/**
@@ -209,6 +209,18 @@ export const sqlExecuteProxy = (config) => {
 	 *	@returns {unknown}
 	 */
 	const sqlExecuteProxyCallback = (sql, bindParams) => {
+		// New Check for Name Resolution (procedureSanitize.js)
+		if (sql.toLowerCase().includes('dbms_utility.name_resolve') && bindParams && 'resolved' in bindParams) {
+			// Extract the input name to return it as resolved (mocking success)
+			// bindParams.name.val holds the input procedure name
+			const procName = /** @type {string} */ (bindParams.name.val).toLowerCase();
+			return {
+				outBinds: {
+					resolved: procName,
+				},
+			};
+		}
+
 		if (sql.toLowerCase().includes('dbms_utility.name_resolve')) {
 			/** @type {{outBinds: {names: string[], types: string[]}}} */
 			const noPara = {
@@ -238,6 +250,11 @@ export const sqlExecuteProxy = (config) => {
 
 		// this is the proxy for the sql statement in the function "procedureExecute" in "procedure.js"
 		if (sql.toLowerCase().includes(config.proc.toLowerCase())) {
+			// Simulate error if configured
+			if (config.error) {
+				throw new Error(config.error);
+			}
+
 			if (typeof config.para !== 'undefined') {
 				if (!parameterEqual(sql, bindParams, config.para)) {
 					proxyError('parameter mismatch', util.inspect(bindParams));
@@ -252,8 +269,8 @@ export const sqlExecuteProxy = (config) => {
 		if (sql.toLowerCase().includes('owa.get_page(thepage=>:lines, irows=>:irows)')) {
 			return {
 				outBinds: {
-					lines: config.lines,
-					irows: config.lines.length,
+					lines: config.lines ?? [],
+					irows: config.lines ? config.lines.length : 0,
 				},
 			};
 		}

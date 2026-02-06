@@ -1,14 +1,9 @@
-import {assert, describe, it, beforeAll, afterAll, beforeEach, vi} from 'vitest';
+import {assert, describe, it, beforeAll, afterAll, beforeEach} from 'vitest';
 import request from 'supertest';
 import * as oracledb from './mock/oracledb.js';
 import {serverStart, serverStop, sqlExecuteProxy, PATH, DEFAULT_PAGE} from './server.js';
 
 /** @typedef {import('./server.js').serverConfigType} serverConfigType */
-
-// Mock console.warn
-vi.spyOn(console, 'warn').mockImplementation(() => {
-	/* mock implementation */
-});
 
 describe('middleware', () => {
 	/** @type {serverConfigType} */
@@ -195,5 +190,37 @@ describe('middleware', () => {
 		});
 
 		await request(serverConfig.app).get(`${PATH}/alias`).expect(200, new RegExp('.*<html><body><p>static</p></body></html>.*'));
+	});
+
+	it('should invalidate cache on database error', async () => {
+		const procName = 'sample.pageIndex';
+
+		// 1. First call: Populate Cache
+		sqlExecuteProxy({
+			proc: `${procName}();`,
+			lines: ['Content-type: text/html\n', '\n', '<html>OK</html>\n'],
+		});
+		await request(serverConfig.app).get(`${PATH}/${procName}`).expect(200);
+
+		// 2. Second call: Simulate ORA-06550 (Signature Change/Recompile)
+		sqlExecuteProxy({
+			proc: `${procName}();`,
+			error: "ORA-06550: line 1, column 7:\nPLS-00306: wrong number or types of arguments in call to 'PAGEINDEX'",
+		});
+		// This should fail with 404 (due to errorPage implementation), but crucially it should trigger the cache clear
+		await request(serverConfig.app).get(`${PATH}/${procName}`).expect(404);
+
+		// 3. Third call: Recover with New Signature
+
+		// We simulate that the procedure now takes a parameter 'c'
+		sqlExecuteProxy({
+			proc: `${procName}(c=>:p_c);`,
+			para: [{name: 'c', value: '3'}],
+			lines: ['Content-type: text/html\n', '\n', '<html>OK</html>\n'],
+		});
+
+		// If cache was NOT cleared, this would fail because it would try to call it without parameters (stale cache)
+		// If cache WAS cleared, it will reload arguments (find 'c') and succeed
+		await request(serverConfig.app).get(`${PATH}/${procName}?c=3`).expect(200);
 	});
 });

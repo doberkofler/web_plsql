@@ -2,11 +2,7 @@ import assert from 'node:assert';
 import {describe, it, vi, afterEach} from 'vitest';
 import oracledb from 'oracledb';
 import {getBinding, getProcedureNamed} from '../src/handler/plsql/procedureNamed.js';
-
-// Mock console.warn
-vi.spyOn(console, 'warn').mockImplementation(() => {
-	/* mock implementation */
-});
+import {Cache} from '../src/util/cache.js';
 
 describe('handler/plsql/procedureNamed', () => {
 	afterEach(() => {
@@ -96,8 +92,9 @@ describe('handler/plsql/procedureNamed', () => {
 			const argObj = {P1: 'test', P2: '42'};
 			/** @type {any} */
 			const req = {};
+			const cache = new Cache();
 
-			const result = await getProcedureNamed(req, 'my_proc', argObj, connection);
+			const result = await getProcedureNamed(req, 'my_proc', argObj, connection, cache);
 
 			assert.strictEqual(result.sql, 'my_proc(P1=>:p_P1, P2=>:p_P2)');
 			assert.strictEqual(result.bind.p_P1.val, 'test');
@@ -117,8 +114,9 @@ describe('handler/plsql/procedureNamed', () => {
 			const argObj = {P1: 'test', P2: 'val'};
 			/** @type {any} */
 			const req = {};
+			const cache = new Cache();
 
-			const result = await getProcedureNamed(req, 'my_proc_unknown', argObj, connection);
+			const result = await getProcedureNamed(req, 'my_proc_unknown', argObj, connection, cache);
 
 			// Should include P2 in SQL
 			assert.ok(result.sql.includes('P2=>:p_P2'));

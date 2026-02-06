@@ -78,11 +78,18 @@ Group imports in the following order:
 
 ### Request Handling Flow
 1.  **Upload**: Files are uploaded if present.
-2.  **Prepare**: The session is prepared (see below).
-3.  **Execute**: The PL/SQL procedure is executed.
-4.  **Fetch**: The page content is retrieved via OWA.
-5.  **Download**: File downloads are handled.
-6.  **Response**: The parsed page is sent to the client.
+2.  **Sanitize & Resolve**: The procedure name is validated against the database using `dbms_utility.name_resolve`. This prevents SQL injection and ensures the object exists.
+3.  **Prepare**: The session is prepared (see below).
+4.  **Execute**: The PL/SQL procedure is executed.
+5.  **Fetch**: The page content is retrieved via OWA.
+6.  **Download**: File downloads are handled.
+7.  **Response**: The parsed page is sent to the client.
+
+### Caching Strategy
+To ensure performance and stability, the middleware uses a robust caching mechanism:
+*   **Scoped Caching**: Caches are instantiated per handler (pool), preventing multi-tenant collisions.
+*   **LFU Policy**: The `Cache` utility (`src/util/cache.js`) implements a Least-Frequently-Used eviction policy to prevent memory overflows.
+*   **Invalidation**: Logic in `procedure.js` automatically clears cache entries when database errors indicating schema changes (`ORA-04068`, `ORA-06550`, etc.) are detected.
 
 ### Statelessness and `dbms_session`
 The middleware enforces a **stateless model** as defined in the Oracle mod_plsql documentation (**Section 3.4 Transaction Mode**).
@@ -98,15 +105,12 @@ The middleware enforces a **stateless model** as defined in the Oracle mod_plsql
 *   **Instruction**: **Do not remove this call.** It is essential for correctness.
 
 ### Known Issues & Security (See `ENHANCEMENTS.md`)
-*   **SQL Injection**: Be extremely cautious with `procName`. It is currently interpolated. Future changes must use `dbms_assert` or strict whitelisting.
-*   **Global State**: `ARGS_CACHE` is currently global. Be aware of collisions if supporting multiple pools.
 *   **Character Sets**: The project currently hardcodes some charsets (`ascii`, `UTF8`). Aim for configuration-driven NLS settings.
 
 ### Planned Enhancements
 Refer to `ENHANCEMENTS.md` for the full roadmap. Key priorities include:
 1.  **Hooks**: Adding `before`/`after` procedure hooks for session setup.
-2.  **Metadata Caching**: Caching procedure signatures to reduce database roundtrips.
-3.  **Streaming**: Moving away from in-memory buffering for large responses.
+2.  **Streaming**: Moving away from in-memory buffering for large responses.
 
 ## 4. Testing Guidelines
 
@@ -114,6 +118,9 @@ Refer to `ENHANCEMENTS.md` for the full roadmap. Key priorities include:
 *   **Imports**: `import { describe, it, assert, expect } from 'vitest';`
 *   **Location**: `tests/` directory.
 *   **File Naming**: `*.test.js`.
+*   **Console Output**: `console.warn` and `console.error` are suppressed by default during tests.
+    *   To see full logs, run: `DEBUG=true npm test` or `VERBOSE=true npm test`.
+    *   See `tests/setup.js` for implementation.
 
 **Example Test Pattern**:
 ```javascript

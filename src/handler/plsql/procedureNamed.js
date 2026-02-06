@@ -21,7 +21,7 @@ import {toTable, warningMessage} from '../../util/trace.js';
  * @typedef {import('../../types.js').BindParameterConfig} BindParameterConfig
  * @typedef {import('../../types.js').BindParameter} BindParameter
  * @typedef {Record<string, string>} argsType
- * @typedef {{hitCount: number, args: argsType}} cacheEntryType
+ * @typedef {import('../../util/cache.js').Cache<argsType>} ArgumentCache
  */
 
 const SQL_GET_ARGUMENT = [
@@ -59,11 +59,6 @@ const DATA_TYPES = Object.freeze({
 	//	VARRAY
 	//	REF CURSOR
 });
-
-// NOTE: Consider using a separate cache for each database pool to avoid possible conflicts.
-/** @type {Map<string, cacheEntryType>} */
-const ARGS_CACHE = new Map();
-const ARGS_CACHE_MAX_COUNT = 10000;
 
 /**
  *	Retrieve the argument types for a given procedure to be executed.
@@ -122,54 +117,25 @@ const loadArguments = async (procedure, databaseConnection) => {
 };
 
 /**
- *	Remove the cache entries with the lowest hitCount.
- *	@param {number} count - Number of entries to remove
- *	@returns {void}
- */
-const removeLowestHitCountEntries = (count) => {
-	// Convert cache entries to an array
-	const entries = Array.from(ARGS_CACHE.entries());
-
-	// Sort entries by hitCount in ascending order
-	entries.sort((a, b) => a[1].hitCount - b[1].hitCount);
-
-	// Get the keys of the `count` entries with the lowest hitCount
-	const keysToRemove = entries.slice(0, count).map(([key]) => key);
-
-	// Remove these entries from the cache
-	for (const key of keysToRemove) {
-		ARGS_CACHE.delete(key);
-	}
-};
-
-/**
  *	Find the argument types for a given procedure to be executed.
  *	As the arguments are cached, we first look up the cache and only if not yet available we load them.
  *	@param {string} procedure - The procedure
  *	@param {Connection} databaseConnection - The database connection
+ *	@param {ArgumentCache} argumentCache - The argument cache.
  *	@returns {Promise<argsType>} - The argument types
  */
-const findArguments = async (procedure, databaseConnection) => {
+const findArguments = async (procedure, databaseConnection, argumentCache) => {
 	const key = procedure.toUpperCase();
 
 	// lookup in the cache
-	const cacheEntry = ARGS_CACHE.get(key);
+	const cachedArgs = argumentCache.get(key);
 
-	// if we fount the procedure in the cache, we increase the hit cound and return
-	if (cacheEntry) {
-		cacheEntry.hitCount++;
+	// if we found the procedure in the cache, we return it
+	if (cachedArgs) {
 		if (debug.enabled) {
-			debug(`findArguments: procedure "${procedure}" found in cache with "${cacheEntry.hitCount}" hits`);
+			debug(`findArguments: procedure "${procedure}" found in cache`);
 		}
-		return cacheEntry.args;
-	}
-
-	// if the cache is full, we remove the 1000 least used cache entries
-	if (ARGS_CACHE.size > ARGS_CACHE_MAX_COUNT) {
-		if (debug.enabled) {
-			debug(`findArguments: cache is full. size=${ARGS_CACHE.size} max=${ARGS_CACHE_MAX_COUNT}`);
-		}
-		removeLowestHitCountEntries(1000);
+		return cachedArgs;
 	}
 
 	// load from database
@@ -179,7 +145,7 @@ const findArguments = async (procedure, databaseConnection) => {
 	const args = await loadArguments(procedure, databaseConnection);
 
 	// add to the cache
-	ARGS_CACHE.set(key, {hitCount: 0, args});
+	argumentCache.set(key, args);
 
 	return args;
 };
@@ -252,13 +218,14 @@ const inspectBindings = (argObj, argTypes) => {
  *	@param {string} procName - The procedure to execute
  *	@param {argObjType} argObj - The arguments to pass to the procedure
  *	@param {Connection} databaseConnection - The database connection
+ *	@param {ArgumentCache} argumentCache - The argument cache.
  *	@returns {Promise<{sql: string; bind: BindParameterConfig}>} - The SQL statement and bindings for the procedure to execute
  */
-export const getProcedureNamed = async (req, procName, argObj, databaseConnection) => {
+export const getProcedureNamed = async (req, procName, argObj, databaseConnection, argumentCache) => {
 	debug(`getProcedureNamed: ${procName} arguments=`, argObj);
 
 	// get the types of the arguments
-	const argTypes = await findArguments(procName, databaseConnection);
+	const argTypes = await findArguments(procName, databaseConnection, argumentCache);
 
 	/** @type {string[]} */
 	const sqlParameter = [];

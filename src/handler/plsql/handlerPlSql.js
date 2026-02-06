@@ -9,6 +9,7 @@ import url from 'node:url';
 import {processRequest} from './request.js';
 import {RequestError} from './requestError.js';
 import {errorPage} from './errorPage.js';
+import {Cache} from '../../util/cache.js';
 
 /**
  * @typedef {import('express').RequestHandler} RequestHandler
@@ -27,8 +28,10 @@ import {errorPage} from './errorPage.js';
  * @param {NextFunction} next - The next function.
  * @param {Pool} connectionPool - The connection pool.
  * @param {configPlSqlHandlerType} options - the options for the middleware.
+ * @param {Cache<string>} procedureNameCache - The procedure name cache.
+ * @param {Cache<import('./procedureNamed.js').argsType>} argumentCache - The argument cache.
  */
-const requestHandler = async (req, res, next, connectionPool, options) => {
+const requestHandler = async (req, res, next, connectionPool, options, procedureNameCache, argumentCache) => {
 	try {
 		// should we switch to the default page if there is one defined
 		if (typeof req.params.name !== 'string' || req.params.name.length === 0) {
@@ -41,7 +44,7 @@ const requestHandler = async (req, res, next, connectionPool, options) => {
 			}
 		} else {
 			// request handler
-			await processRequest(req, res, options, connectionPool);
+			await processRequest(req, res, options, connectionPool, procedureNameCache, argumentCache);
 		}
 	} catch (err) {
 		errorPage(req, res, options, err);
@@ -58,7 +61,12 @@ const requestHandler = async (req, res, next, connectionPool, options) => {
 export const handlerWebPlSql = (connectionPool, config) => {
 	debug('options', config);
 
+	/** @type {Cache<string>} */
+	const procedureNameCache = new Cache();
+	/** @type {Cache<import('./procedureNamed.js').argsType>} */
+	const argumentCache = new Cache();
+
 	return (req, res, next) => {
-		void requestHandler(req, res, next, connectionPool, config);
+		void requestHandler(req, res, next, connectionPool, config, procedureNameCache, argumentCache);
 	};
 };

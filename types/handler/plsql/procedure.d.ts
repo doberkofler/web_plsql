@@ -1,4 +1,4 @@
-export function invokeProcedure(req: Request, res: Response, argObj: argObjType, cgiObj: environmentType, filesToUpload: fileUploadType[], options: configPlSqlHandlerType, databaseConnection: Connection): Promise<void>;
+export function invokeProcedure(req: Request, res: Response, argObj: argObjType, cgiObj: environmentType, filesToUpload: fileUploadType[], options: configPlSqlHandlerType, databaseConnection: Connection, procedureNameCache: ProcedureNameCache, argumentCache: ArgumentCache): Promise<void>;
 export type Request = import("express").Request;
 export type Response = import("express").Response;
 export type Connection = import("oracledb").Connection;
@@ -8,3 +8,5 @@ export type fileUploadType = import("../../types.js").fileUploadType;
 export type environmentType = import("../../types.js").environmentType;
 export type configPlSqlHandlerType = import("../../types.js").configPlSqlHandlerType;
 export type BindParameterConfig = import("../../types.js").BindParameterConfig;
+export type ProcedureNameCache = import("../../util/cache.js").Cache<string>;
+export type ArgumentCache = import("../../util/cache.js").Cache<import("./procedureNamed.js").argsType>;

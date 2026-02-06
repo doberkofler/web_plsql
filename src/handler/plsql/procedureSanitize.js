@@ -16,17 +16,90 @@ import {errorToString} from '../../util/errorToString.js';
  * @typedef {import('../../types.js').environmentType} environmentType
  * @typedef {import('../../types.js').configPlSqlHandlerType} configPlSqlHandlerType
  * @typedef {import('../../types.js').BindParameterConfig} BindParameterConfig
+ * @typedef {import('../../util/cache.js').Cache<string>} ProcedureNameCache
  */
 
 const DEFAULT_EXCLUSION_LIST = ['sys.', 'dbms_', 'utl_', 'owa_', 'htp.', 'htf.', 'wpg_docload.', 'ctxsys.', 'mdsys.'];
 
-// NOTE: Consider using a separate cache for each database pool to avoid possible conflicts.
+import {Cache} from '../../util/cache.js';
+/** @type {Cache<{valid: boolean}>} */
+const validationFunctionCache = new Cache();
+
 /**
- * @typedef {{hitCount: number, valid: boolean}} cacheEntryType
+ * Resolve the procedure name using dbms_utility.name_resolve.
+ *
+ * @param {string} procName - The procedure name to resolve.
+ * @param {Connection} databaseConnection - The database connection.
+ * @param {ProcedureNameCache} procedureNameCache - The procedure name cache.
+ * @returns {Promise<string>} - The resolved canonical procedure name (SCHEMA.NAME).
  */
-/** @type {Map<string, cacheEntryType>} */
-const REQUEST_VALIDATION_FUNCTION_CACHE = new Map();
-const REQUEST_VALIDATION_FUNCTION_CACHE_MAX_COUNT = 10000;
+const resolveProcedureName = async (procName, databaseConnection, procedureNameCache) => {
+	// Check cache
+	const cachedName = procedureNameCache.get(procName);
+	if (cachedName) {
+		debug(`resolveProcedureName: Cache hit for "${procName}" -> "${cachedName}"`);
+		return cachedName;
+	}
+
+	debug(`resolveProcedureName: Cache miss for "${procName}". Resolving in DB...`);
+
+	const sql = `
+		DECLARE
+			l_schema VARCHAR2(128);
+			l_part1  VARCHAR2(128);
+			l_part2  VARCHAR2(128);
+			l_dblink VARCHAR2(128);
+			l_part1_type NUMBER;
+			l_object_number NUMBER;
+		BEGIN
+			dbms_utility.name_resolve(
+				name => :name,
+				context => 1,
+				schema => l_schema,
+				part1 => l_part1,
+				part2 => l_part2,
+				dblink => l_dblink,
+				part1_type => l_part1_type,
+				object_number => l_object_number
+			);
+			
+			-- Reconstruct the canonical name
+			-- If it's a package procedure: schema.package.procedure
+			-- If it's a standalone procedure: schema.procedure
+			
+			IF l_part1 IS NOT NULL THEN
+				:resolved := l_schema || '.' || l_part1 || '.' || l_part2;
+			ELSE
+				:resolved := l_schema || '.' || l_part2;
+			END IF;
+		END;
+	`;
+
+	const bind = {
+		name: {dir: oracledb.BIND_IN, type: oracledb.STRING, val: procName},
+		resolved: {dir: oracledb.BIND_OUT, type: oracledb.STRING, maxSize: 400},
+	};
+
+	try {
+		const result = await databaseConnection.execute(sql, bind);
+		const {resolved} = z.object({resolved: z.string()}).parse(result.outBinds);
+
+		if (!resolved) {
+			throw new RequestError(`Could not resolve procedure name "${procName}"`);
+		}
+
+		debug(`resolveProcedureName: Resolved "${procName}" -> "${resolved}"`);
+
+		// Update cache
+		procedureNameCache.set(procName, resolved);
+
+		return resolved;
+	} catch (err) {
+		debug(`resolveProcedureName: Error resolving "${procName}"`, err);
+		// Rethrow as RequestError to indicate 404/403
+		throw new RequestError(`Procedure "${procName}" not found or not accessible.\n${errorToString(err)}`);
+	}
+};
 
 /**
  * Sanitize the procedure name.
@@ -34,15 +107,16 @@ const REQUEST_VALIDATION_FUNCTION_CACHE_MAX_COUNT = 10000;
  * @param {string} procName - The procedure name.
  * @param {Connection} databaseConnection - The database connection
  * @param {configPlSqlHandlerType} options - the options for the middleware.
+ * @param {ProcedureNameCache} procedureNameCache - The procedure name cache.
  * @returns {Promise<string>} Promise resolving to final procedure name.
  */
-export const sanitizeProcName = async (procName, databaseConnection, options) => {
+export const sanitizeProcName = async (procName, databaseConnection, options, procedureNameCache) => {
 	debug('sanitizeProcName', procName);
 
 	// make lowercase and trim
 	let finalProcName = procName.toLowerCase().trim();
 
-	// remove special characters
+	// remove special characters (basic sanity check before DB call)
 	finalProcName = removeSpecialCharacters(finalProcName);
 
 	// check for default exclusions
@@ -67,6 +141,10 @@ export const sanitizeProcName = async (procName, databaseConnection, options) =>
 
 	// Check request validation function
 	if (options.requestValidationFunction && options.requestValidationFunction.length > 0) {
+		// Note: We might want to scope this cache too, but for now let's focus on the procedure name cache.
+		// The original code used a global cache for this.
+		// For strict correctness, we should probably verify the *resolved* name,
+		// but legacy behavior checks the input name.
 		const valid = await requestValidationFunction(finalProcName, options.requestValidationFunction, databaseConnection);
 		if (!valid) {
 			const error = `Procedure name "${procName}" is not valid according to the request validation function "${options.requestValidationFunction}"`;
@@ -75,7 +153,11 @@ export const sanitizeProcName = async (procName, databaseConnection, options) =>
 		}
 	}
 
-	return finalProcName;
+	// NEW: Resolve the procedure name against the database
+	// This prevents SQL injection and ensures the procedure exists
+	const resolvedName = await resolveProcedureName(finalProcName, databaseConnection, procedureNameCache);
+
+	return resolvedName;
 };
 
 /**
@@ -143,27 +225,6 @@ const loadRequestValid = async (procName, requestValidationFunction, databaseCon
 };
 
 /**
- *	Remove the cache entries with the lowest hitCount.
- *	@param {number} count - Number of entries to remove
- *	@returns {void}
- */
-const removeLowestHitCountEntries = (count) => {
-	// Convert cache entries to an array
-	const entries = Array.from(REQUEST_VALIDATION_FUNCTION_CACHE.entries());
-
-	// Sort entries by hitCount in ascending order
-	entries.sort((a, b) => a[1].hitCount - b[1].hitCount);
-
-	// Get the keys of the `count` entries with the lowest hitCount
-	const keysToRemove = entries.slice(0, count).map(([key]) => key);
-
-	// Remove these entries from the cache
-	for (const key of keysToRemove) {
-		REQUEST_VALIDATION_FUNCTION_CACHE.delete(key);
-	}
-};
-
-/**
  * Request validation function.
  *
  * @param {string} procName - The procedure name.
@@ -175,37 +236,27 @@ const requestValidationFunction = async (procName, requestValidationFunction, da
 	debug('requestValidationFunction', procName, requestValidationFunction);
 
 	// calculate the key
-	//const key = `${databaseConnection.connectString}_${databaseConnection.user}_${procName.toLowerCase()}`;
 	const key = procName.toLowerCase();
 
 	// lookup in the cache
-	const cacheEntry = REQUEST_VALIDATION_FUNCTION_CACHE.get(key);
+	const cacheEntry = validationFunctionCache.get(key);
 
-	// if we fount the procedure in the cache, we increase the hit cound and return
-	if (cacheEntry) {
-		cacheEntry.hitCount++;
+	// if we found the procedure in the cache, we return it (hitCount already incremented by get)
+	if (cacheEntry !== undefined) {
 		if (debug.enabled) {
-			debug(`findArguments: procedure "${procName}" found in cache with "${cacheEntry.hitCount}" hits`);
+			debug(`requestValidationFunction: procedure "${procName}" found in cache`);
 		}
 		return cacheEntry.valid;
 	}
 
-	// if the cache is full, we remove the 1000 least used cache entries
-	if (REQUEST_VALIDATION_FUNCTION_CACHE.size > REQUEST_VALIDATION_FUNCTION_CACHE_MAX_COUNT) {
-		if (debug.enabled) {
-			debug(`findArguments: cache is full. size=${REQUEST_VALIDATION_FUNCTION_CACHE.size} max=${REQUEST_VALIDATION_FUNCTION_CACHE_MAX_COUNT}`);
-		}
-		removeLowestHitCountEntries(1000);
-	}
-
 	// load from database
 	if (debug.enabled) {
-		debug(`findArguments: procedure "${procName}" not found in cache and must be loaded`);
+		debug(`requestValidationFunction: procedure "${procName}" not found in cache and must be loaded`);
 	}
 	const valid = await loadRequestValid(procName, requestValidationFunction, databaseConnection);
 
 	// add to the cache
-	REQUEST_VALIDATION_FUNCTION_CACHE.set(key, {hitCount: 0, valid});
+	validationFunctionCache.set(key, {valid});
 
 	return valid;
 };

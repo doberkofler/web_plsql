@@ -2,9 +2,15 @@ import assert from 'node:assert';
 import {describe, it, vi} from 'vitest';
 import {sanitizeProcName} from '../src/handler/plsql/procedureSanitize.js';
 import {RequestError} from '../src/handler/plsql/requestError.js';
+import {Cache} from '../src/util/cache.js';
 
 describe('handler/plsql/procedureSanitize', () => {
-	const mockConnection = {};
+	const mockExecute = vi.fn().mockResolvedValue({
+		outBinds: {resolved: 'myproc'},
+	});
+	/** @type {any} */
+	const mockConnection = {execute: mockExecute};
+
 	/** @type {any} */
 	const defaultOptions = {
 		exclusionList: [],
@@ -14,14 +20,16 @@ describe('handler/plsql/procedureSanitize', () => {
 	it('should return sanitized procedure name', async () => {
 		/** @type {any} */
 		const conn = mockConnection;
-		const result = await sanitizeProcName('MyProc', conn, defaultOptions);
+		const cache = new Cache();
+		const result = await sanitizeProcName('MyProc', conn, defaultOptions, cache);
 		assert.strictEqual(result, 'myproc');
 	});
 
 	it('should remove special characters', async () => {
 		/** @type {any} */
 		const conn = mockConnection;
-		const result = await sanitizeProcName('My-Proc!', conn, defaultOptions);
+		const cache = new Cache();
+		const result = await sanitizeProcName('My-Proc!', conn, defaultOptions, cache);
 		assert.strictEqual(result, 'myproc');
 	});
 
@@ -29,9 +37,10 @@ describe('handler/plsql/procedureSanitize', () => {
 		const procName = 'sys.evil';
 		/** @type {any} */
 		const conn = mockConnection;
+		const cache = new Cache();
 		await assert.rejects(
 			async () => {
-				await sanitizeProcName(procName, conn, defaultOptions);
+				await sanitizeProcName(procName, conn, defaultOptions, cache);
 			},
 			(err) => {
 				assert.ok(err instanceof RequestError);
@@ -47,9 +56,10 @@ describe('handler/plsql/procedureSanitize', () => {
 		const procName = 'custom.evil';
 		/** @type {any} */
 		const conn = mockConnection;
+		const cache = new Cache();
 		await assert.rejects(
 			async () => {
-				await sanitizeProcName(procName, conn, options);
+				await sanitizeProcName(procName, conn, options, cache);
 			},
 			(err) => {
 				assert.ok(err instanceof RequestError);
@@ -60,31 +70,36 @@ describe('handler/plsql/procedureSanitize', () => {
 	});
 
 	it('should call request validation function if provided', async () => {
-		const mockExecute = vi.fn().mockResolvedValue({
-			outBinds: {valid: 1},
-		});
+		// Mock needs to handle both validation check (first call) and name resolve (second call)
+		const mockExecuteSeq = vi
+			.fn()
+			.mockResolvedValueOnce({outBinds: {valid: 1}}) // requestValidationFunction
+			.mockResolvedValueOnce({outBinds: {resolved: 'myproc'}}); // resolveProcedureName
+
 		/** @type {any} */
-		const connection = {execute: mockExecute};
+		const connection = {execute: mockExecuteSeq};
 		/** @type {any} */
 		const options = {...defaultOptions, requestValidationFunction: 'check_valid'};
+		const cache = new Cache();
 
-		const result = await sanitizeProcName('myproc', connection, options);
+		const result = await sanitizeProcName('myproc', connection, options, cache);
 		assert.strictEqual(result, 'myproc');
-		assert.strictEqual(mockExecute.mock.calls.length, 1);
+		assert.strictEqual(mockExecuteSeq.mock.calls.length, 2);
 	});
 
 	it('should throw error if request validation function returns invalid', async () => {
-		const mockExecute = vi.fn().mockResolvedValue({
+		const mockExecuteSeq = vi.fn().mockResolvedValueOnce({
 			outBinds: {valid: 0},
 		});
 		/** @type {any} */
-		const connection = {execute: mockExecute};
+		const connection = {execute: mockExecuteSeq};
 		/** @type {any} */
 		const options = {...defaultOptions, requestValidationFunction: 'check_valid'};
+		const cache = new Cache();
 
 		await assert.rejects(
 			async () => {
-				await sanitizeProcName('myproc_invalid', connection, options);
+				await sanitizeProcName('myproc_invalid', connection, options, cache);
 			},
 			(err) => {
 				assert.ok(err instanceof RequestError);
