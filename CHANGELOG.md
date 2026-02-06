@@ -12,7 +12,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 
 
-## [?.?.?] - ????-??-??
+## [0.18.0] - 2026-02-06
+
+### Added
+- Refactored how file downloads are handled moving from buffering streams into memory to directly piping the stream to the response.
 
 ### Changed
 - Migrated to vitest.

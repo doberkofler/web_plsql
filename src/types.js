@@ -140,5 +140,5 @@ export const z$configType = z.strictObject({
  * @property {object} file - The file.
  * @property {string | null} file.fileType - The file type.
  * @property {number | null} file.fileSize - The file size.
- * @property {Buffer | null} file.fileBlob - The file blob.
+ * @property {import('node:stream').Readable | Buffer | null} file.fileBlob - The file blob.
  */

@@ -1,4 +1,4 @@
-export function sendResponse(req: Request, res: Response, page: pageType): void;
+export function sendResponse(req: Request, res: Response, page: pageType): Promise<void>;
 export type Request = import("express").Request;
 export type Response = import("express").Response;
 export type CookieOptions = import("express").CookieOptions;

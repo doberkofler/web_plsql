@@ -5,6 +5,7 @@
 import debugModule from 'debug';
 const debug = debugModule('webplsql:sendResponse');
 
+import stream from 'node:stream';
 import {getBlock} from '../../util/trace.js';
 
 /**
@@ -20,9 +21,9 @@ import {getBlock} from '../../util/trace.js';
  *	@param {Request} req - The req object represents the HTTP request.
  *	@param {Response} res - The res object represents the HTTP response that an Express app sends when it gets an HTTP request.
  *	@param {pageType} page - The page to send.
- *	@returns {void}
+ *	@returns {Promise<void>}
  */
-export const sendResponse = (req, res, page) => {
+export const sendResponse = async (req, res, page) => {
 	/** @type {string[]} */
 	const debugText = [];
 
@@ -57,20 +58,51 @@ export const sendResponse = (req, res, page) => {
 
 	// If this is a file download, we eventually set the "Content-Type" and the file content and then return.
 	if (page.file.fileType === 'B' || page.file.fileType === 'F') {
+		/** @type {Record<string, string>} */
+		const headers = {};
+
 		if (typeof page.head.contentType === 'string' && page.head.contentType.length > 0) {
+			headers['Content-Type'] = page.head.contentType;
+		}
+
+		if (typeof page.file.fileSize === 'number' && page.file.fileSize > 0) {
+			headers['Content-Length'] = page.file.fileSize.toString();
+		}
+
+		if (Object.keys(headers).length > 0) {
 			if (debug.enabled) {
-				debugText.push(`res.writeHead("Content-Type", "${page.head.contentType}")`);
+				debugText.push(`res.writeHead(200, ${JSON.stringify(headers)})`);
+			}
+			res.writeHead(200, headers);
+		}
+
+		// Check if fileBlob is a stream
+		if (page.file.fileBlob instanceof stream.Readable) {
+			if (debug.enabled) {
+				debugText.push(`res.pipe("${page.file.fileType}") - streaming`);
+				debug(getBlock('RESPONSE', debugText.join('\n')));
 			}
 
-			res.writeHead(200, {'Content-Type': page.head.contentType});
-		}
+			/** @type {Promise<void>} */
+			const streamComplete = new Promise((resolve, reject) => {
+				if (page.file.fileBlob instanceof stream.Readable) {
+					page.file.fileBlob.pipe(res);
+					page.file.fileBlob.on('end', () => resolve());
+					/* v8 ignore next - error handler */
+					page.file.fileBlob.on('error', (/** @type {Error} */ err) => reject(err));
+					/* v8 ignore next - error handler */
+					res.on('close', () => resolve());
+				}
+			});
+			await streamComplete;
+		} else {
+			if (debug.enabled) {
+				debugText.push(`res.end("${page.file.fileType}") - buffer`);
+				debug(getBlock('RESPONSE', debugText.join('\n')));
+			}
 
-		if (debug.enabled) {
-			debugText.push(`res.end("${page.file.fileType}")`);
-			debug(getBlock('RESPONSE', debugText.join('\n')));
+			res.end(page.file.fileBlob, 'binary');
 		}
-
-		res.end(page.file.fileBlob, 'binary');
 		return;
 	}
 

@@ -304,7 +304,7 @@ export type pageType = {
     file: {
         fileType: string | null;
         fileSize: number | null;
-        fileBlob: Buffer | null;
+        fileBlob: import("node:stream").Readable | Buffer | null;
     };
 };
 import z from 'zod';

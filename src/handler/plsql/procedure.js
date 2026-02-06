@@ -9,7 +9,6 @@ import oracledb from 'oracledb';
 import stream from 'node:stream';
 import z from 'zod';
 
-import {streamToBuffer} from './stream.js';
 import {uploadFile} from './upload.js';
 import {getProcedureVariable} from './procedureVariable.js';
 import {getProcedureNamed} from './procedureNamed.js';
@@ -274,35 +273,38 @@ export const invokeProcedure = async (req, res, argObj, cgiObj, filesToUpload, o
 
 	debug('invokeProcedure: download files');
 	const fileBlob = await databaseConnection.createLob(oracledb.BLOB);
-	const fileDownload = await procedureDownloadFiles(fileBlob, databaseConnection);
-	if (debug.enabled) {
-		debug(getBlock('fileDownload', inspect({fileType: fileDownload.fileType, fileSize: fileDownload.fileSize})));
+
+	try {
+		const fileDownload = await procedureDownloadFiles(fileBlob, databaseConnection);
+		if (debug.enabled) {
+			debug(getBlock('fileDownload', inspect({fileType: fileDownload.fileType, fileSize: fileDownload.fileSize})));
+		}
+
+		// 7) parse the page
+
+		debug('invokeProcedure: parse the page');
+		const pageComponents = parsePage(lines);
+
+		// add "Server" header
+		pageComponents.head.server = cgiObj.SERVER_SOFTWARE;
+
+		// add file download information
+		if (fileDownload.fileType !== '' && fileDownload.fileSize > 0 && fileDownload.fileBlob !== null) {
+			pageComponents.file.fileType = fileDownload.fileType;
+			pageComponents.file.fileSize = fileDownload.fileSize;
+			pageComponents.file.fileBlob = fileDownload.fileBlob;
+		}
+
+		// 8) send the page to browser
+
+		debug('invokeProcedure: send the page to browser');
+		await sendResponse(req, res, pageComponents);
+	} finally {
+		// 9) cleanup
+
+		debug('invokeProcedure: cleanup');
+		fileBlob.destroy();
 	}
-
-	// 7) parse the page
-
-	debug('invokeProcedure: parse the page');
-	const pageComponents = parsePage(lines);
-
-	// add "Server" header
-	pageComponents.head.server = cgiObj.SERVER_SOFTWARE;
-
-	// add file download information
-	if (fileDownload.fileType !== '' && fileDownload.fileSize > 0 && fileDownload.fileBlob !== null) {
-		pageComponents.file.fileType = fileDownload.fileType;
-		pageComponents.file.fileSize = fileDownload.fileSize;
-		pageComponents.file.fileBlob = await streamToBuffer(fileDownload.fileBlob);
-	}
-
-	// 8) send the page to browser
-
-	debug('invokeProcedure: send the page to browser');
-	sendResponse(req, res, pageComponents);
-
-	// 9) cleanup
-
-	debug('invokeProcedure: cleanup');
-	fileBlob.destroy();
 
 	debug('invokeProcedure: end');
 };
