@@ -2,7 +2,7 @@ import {typedApi} from './api.js';
 import {initCharts, updateCharts} from '../client/charts.js';
 import {formatDuration, formatDateTime} from './util/format.js';
 import {initTheme} from './ui/theme.js';
-import {refreshErrors, refreshAccess, refreshCache, refreshConfig, refreshPools, refreshSystem} from './ui/views.js';
+import {refreshErrors, refreshAccess, refreshConfig, refreshPools, refreshSystem} from './ui/views.js';
 import type {State} from './types.js';
 
 /**
@@ -24,6 +24,7 @@ const viewIcons: Record<string, string> = {
 const state: State = {
 	currentView: 'overview',
 	status: {},
+	maxHistoryPoints: 30,
 	lastRequestCount: 0,
 	lastErrorCount: 0,
 	lastUpdateTime: Date.now(),
@@ -41,11 +42,10 @@ const state: State = {
  * Clear cache for a pool.
  *
  * @param poolName - The pool name.
- * @param type - The cache type to clear.
  */
-export async function clearCache(poolName: string, type: string): Promise<void> {
-	await typedApi.post('api/cache/clear', {poolName, cacheType: type});
-	await refreshCache();
+export async function clearCache(poolName: string): Promise<void> {
+	await typedApi.post('api/cache/clear', {poolName});
+	await updateStatus();
 }
 
 /**
@@ -87,6 +87,27 @@ async function updateStatus(): Promise<void> {
 	const errCount = document.getElementById('err-count');
 	if (errCount) errCount.textContent = newStatus.metrics.errorCount.toLocaleString();
 
+	// Update Cache Overview
+	const caches = await typedApi.getCache();
+	let totalHits = 0;
+	let totalMisses = 0;
+	caches.forEach((c) => {
+		totalHits += c.procedureNameCache.stats.hits + c.argumentCache.stats.hits;
+		totalMisses += c.procedureNameCache.stats.misses + c.argumentCache.stats.misses;
+	});
+	const totalRequests = totalHits + totalMisses;
+	const hitRate = totalRequests > 0 ? Math.round((totalHits / totalRequests) * 100) : 0;
+
+	const cacheHitRateVal = document.getElementById('cache-hit-rate-val');
+	if (cacheHitRateVal) {
+		cacheHitRateVal.textContent = `${hitRate}%`;
+		cacheHitRateVal.style.color = hitRate > 80 ? 'var(--success)' : hitRate > 50 ? 'var(--warning)' : 'var(--danger)';
+	}
+	const cacheHitsVal = document.getElementById('cache-hits-val');
+	if (cacheHitsVal) cacheHitsVal.textContent = totalHits.toLocaleString();
+	const cacheMissesVal = document.getElementById('cache-misses-val');
+	if (cacheMissesVal) cacheMissesVal.textContent = totalMisses.toLocaleString();
+
 	const dot = document.getElementById('server-status-dot');
 	const text = document.getElementById('server-status-text');
 	if (dot) dot.className = 'dot ' + newStatus.status;
@@ -100,7 +121,6 @@ async function updateStatus(): Promise<void> {
 
 	if (state.currentView === 'errors') await refreshErrors();
 	if (state.currentView === 'access') await refreshAccess();
-	if (state.currentView === 'cache') await refreshCache();
 	if (state.currentView === 'pools') refreshPools(newStatus);
 	if (state.currentView === 'config') refreshConfig(state);
 	if (state.currentView === 'system') refreshSystem(newStatus);
@@ -131,6 +151,35 @@ function stopRefreshTimer(): void {
 	}
 }
 
+/**
+ * Update history points labels to be time-based.
+ */
+function updateHistoryLabels(): void {
+	const intervalSelect = document.getElementById('refresh-interval') as HTMLSelectElement | null;
+	const historySelect = document.getElementById('chart-history-points') as HTMLSelectElement | null;
+	if (!intervalSelect || !historySelect) return;
+
+	const intervalMs = parseInt(intervalSelect.value);
+	const points = [30, 60, 120];
+
+	points.forEach((pts, idx) => {
+		const option = historySelect.options[idx];
+		if (!option) return;
+
+		const totalSeconds = (pts * intervalMs) / 1000;
+		let timeStr = '';
+		if (totalSeconds < 60) {
+			timeStr = `${totalSeconds}s`;
+		} else if (totalSeconds < 3600) {
+			timeStr = `${Math.round(totalSeconds / 60)} min`;
+		} else {
+			const hours = totalSeconds / 3600;
+			timeStr = hours === Math.round(hours) ? `${hours} hours` : `${hours.toFixed(1)} hours`;
+		}
+		option.textContent = `Last ${timeStr}`;
+	});
+}
+
 // Navigation
 document.querySelectorAll('nav button').forEach((btnEl) => {
 	const btn = btnEl as HTMLButtonElement;
@@ -157,7 +206,6 @@ document.querySelectorAll('nav button').forEach((btnEl) => {
 
 		if (view === 'errors') await refreshErrors();
 		if (view === 'access') await refreshAccess();
-		if (view === 'cache') await refreshCache();
 		if (view === 'pools') refreshPools(state.status);
 		if (view === 'config') refreshConfig(state);
 		if (view === 'system') refreshSystem(state.status);
@@ -177,6 +225,23 @@ const refreshIntervalSelect = document.getElementById('refresh-interval') as HTM
 if (refreshIntervalSelect) {
 	refreshIntervalSelect.onchange = () => {
 		startRefreshTimer();
+		updateHistoryLabels();
+		refreshSystem(state.status);
+	};
+}
+
+const chartHistorySelect = document.getElementById('chart-history-points') as HTMLSelectElement | null;
+if (chartHistorySelect) {
+	chartHistorySelect.onchange = () => {
+		state.maxHistoryPoints = parseInt(chartHistorySelect.value);
+		// Trim history if needed
+		while (state.history.labels.length > state.maxHistoryPoints) {
+			state.history.labels.shift();
+			state.history.requests.shift();
+			state.history.errors.shift();
+			Object.values(state.history.poolUsage).forEach((u) => u.shift());
+		}
+		void updateStatus();
 	};
 }
 
@@ -215,9 +280,20 @@ if (btnStop) {
 	};
 }
 
+const btnClearAllCache = document.getElementById('btn-clear-all-cache');
+if (btnClearAllCache) {
+	btnClearAllCache.onclick = async () => {
+		if (confirm('Are you sure you want to clear all caches in all pools? This action cannot be undone.')) {
+			await typedApi.post('api/cache/clear', {});
+			await updateStatus();
+		}
+	};
+}
+
 // Initialize
 initTheme(state);
 initCharts(state);
+updateHistoryLabels();
 void updateStatus()
 	.then(() => {
 		startRefreshTimer();

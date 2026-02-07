@@ -1,9 +1,8 @@
 import {typedApi} from '../api.js';
 import {formatDuration, formatDateTime} from '../util/format.js';
-import {clearCache} from '../app.js';
-import {errorRow, cacheCard, poolCard} from '../templates/index.js';
-import {renderConfigValue} from '../templates/config.js';
-import type {State} from '../types.js';
+import {errorRow, poolCard} from '../templates/index.js';
+import {renderConfig} from '../templates/config.js';
+import type {State, ServerConfig} from '../types.js';
 
 /**
  * Refresh the error logs view.
@@ -38,36 +37,6 @@ export async function refreshAccess(): Promise<void> {
 }
 
 /**
- * Refresh the cache view.
- */
-export async function refreshCache(): Promise<void> {
-	const caches = await typedApi.getCache();
-	const cont = document.getElementById('cache-container');
-
-	if (!cont) return;
-	cont.innerHTML = caches.map((c) => cacheCard(c)).join('');
-
-	cont.querySelectorAll('.cache-clear-btn').forEach((btn) => {
-		btn.addEventListener('click', () => {
-			const card = btn.closest('.card');
-			const poolName = card?.getAttribute('data-pool') ?? '';
-			confirmClearCache(poolName);
-		});
-	});
-}
-
-/**
- * Confirm clearing cache for a pool.
- *
- * @param poolName - The pool name.
- */
-export function confirmClearCache(poolName: string): void {
-	if (confirm(`Are you sure you want to clear the cache for pool "${poolName}"? This action cannot be undone.`)) {
-		void clearCache(poolName, 'all');
-	}
-}
-
-/**
  * Refresh the pools view.
  *
  * @param status - The status data.
@@ -78,42 +47,6 @@ export function refreshPools(status: Partial<State['status']>): void {
 
 	poolsCont.innerHTML = status.pools.map((p) => poolCard(p)).join('');
 }
-
-type ConfigField = {
-	label: string;
-	description: string;
-};
-
-const configFieldInfo: Record<string, ConfigField> = {
-	port: {
-		label: 'Port',
-		description: 'The port number the server listens on',
-	},
-	adminRoute: {
-		label: 'Admin Route',
-		description: 'URL path for the admin interface',
-	},
-	adminUser: {
-		label: 'Admin User',
-		description: 'Username for admin authentication',
-	},
-	loggerFilename: {
-		label: 'Logger Filename',
-		description: 'Path to the log file',
-	},
-	uploadFileSizeLimit: {
-		label: 'Upload Size Limit',
-		description: 'Maximum file upload size in bytes',
-	},
-	routePlSql: {
-		label: 'PL/SQL Route',
-		description: 'URL path prefix for PL/SQL procedures',
-	},
-	routeStatic: {
-		label: 'Static Route',
-		description: 'URL path prefix for static file serving',
-	},
-};
 
 /**
  * Refresh the config view.
@@ -126,46 +59,9 @@ export function refreshConfig(state: State): void {
 
 	const cont = document.getElementById('config-view');
 	if (!cont) return;
-	cont.className = 'config-container';
 
-	let html = '<div class="config-view-content"><table class="config-table">';
-
-	html += `<tr><td colspan="2" class="config-section-header">Server</td></tr>`;
-	if (configFieldInfo.port) html += renderConfigRow(config.port, configFieldInfo.port);
-	if (configFieldInfo.adminRoute) html += renderConfigRow(config.adminRoute, configFieldInfo.adminRoute);
-	if (configFieldInfo.adminUser) html += renderConfigRow(config.adminUser, configFieldInfo.adminUser);
-	if (configFieldInfo.loggerFilename) html += renderConfigRow(config.loggerFilename, configFieldInfo.loggerFilename);
-	if (configFieldInfo.uploadFileSizeLimit) html += renderConfigRow(config.uploadFileSizeLimit, configFieldInfo.uploadFileSizeLimit);
-
-	html += `<tr><td colspan="2" class="config-section-header">Database</td></tr>`;
-	if (configFieldInfo.routePlSql) html += renderConfigRow(config.routePlSql, configFieldInfo.routePlSql);
-
-	html += `<tr><td colspan="2" class="config-section-header">Static</td></tr>`;
-	if (configFieldInfo.routeStatic) html += renderConfigRow(config.routeStatic, configFieldInfo.routeStatic);
-
-	html += '</table></div>';
-	cont.innerHTML = html;
-}
-
-/**
- * Render a config row.
- *
- * @param value - The config value.
- * @param fieldInfo - The field info.
- * @param fieldInfo.label - The field label.
- * @param fieldInfo.description - The field description.
- * @returns The HTML string.
- */
-function renderConfigRow(value: unknown, fieldInfo: {label: string; description: string}): string {
-	return `
-        <tr>
-            <td class="config-label">
-                <div>${fieldInfo.label}</div>
-                <div style="font-weight: 400; font-size: 0.75rem; color: var(--text-main); margin-top: 4px">${fieldInfo.description}</div>
-            </td>
-            <td class="config-value">${renderConfigValue(value)}</td>
-        </tr>
-    `;
+	// Use type assertion to bypass exactOptionalPropertyTypes check if needed
+	cont.innerHTML = renderConfig(config as Partial<ServerConfig>);
 }
 
 /**
@@ -199,6 +95,9 @@ function formatCpuTime(microseconds: number): string {
  * @param status - The status data.
  */
 export function refreshSystem(status: Partial<State['status']>): void {
+	const middlewareVersion = document.getElementById('middleware-version');
+	if (middlewareVersion && status.version) middlewareVersion.textContent = status.version;
+
 	const nodeVersion = document.getElementById('node-version');
 	if (nodeVersion && status.system) nodeVersion.textContent = status.system.nodeVersion;
 
@@ -254,10 +153,12 @@ export function refreshSystem(status: Partial<State['status']>): void {
 		if (autoRefreshToggle.checked) {
 			const intervalSec = parseInt(refreshInterval.value) / 1000;
 			systemRefreshStatus.textContent = `Active (${intervalSec}s)`;
-			systemRefreshStatus.style.color = 'var(--success)';
+			systemRefreshStatus.classList.add('text-success');
+			systemRefreshStatus.classList.remove('text-accent');
 		} else {
 			systemRefreshStatus.textContent = 'Paused';
-			systemRefreshStatus.style.color = 'var(--text-main)';
+			systemRefreshStatus.classList.remove('text-success');
+			systemRefreshStatus.classList.add('text-accent');
 		}
 	}
 }

@@ -2,6 +2,9 @@ import express from 'express';
 import fs from 'node:fs';
 import readline from 'node:readline';
 import {AdminContext} from '../server/server.js';
+import {getVersion} from '../version.js';
+
+const version = getVersion();
 import {forceShutdown} from '../util/shutdown.js';
 
 /**
@@ -59,6 +62,7 @@ handlerAdmin.get('/api/status', (_req, res) => {
 	const cpuUsage = process.cpuUsage();
 
 	res.json({
+		version,
 		status: AdminContext.paused ? 'paused' : 'running',
 		uptime,
 		startTime: AdminContext.startTime,
@@ -156,19 +160,14 @@ handlerAdmin.get('/api/cache', (_req, res) => {
 handlerAdmin.post('/api/cache/clear', (req, res) => {
 	const body = /** @type {unknown} */ (req.body);
 	const poolName = body && typeof body === 'object' && 'poolName' in body && typeof body.poolName === 'string' ? body.poolName : undefined;
-	const cacheType = body && typeof body === 'object' && 'cacheType' in body && typeof body.cacheType === 'string' ? body.cacheType : undefined;
 
 	let cleared = 0;
 	AdminContext.caches.forEach((c) => {
 		if (!poolName || c.poolName === poolName) {
-			if (!cacheType || cacheType === 'procedure' || cacheType === 'all') {
-				c.procedureNameCache.clear();
-				cleared++;
-			}
-			if (!cacheType || cacheType === 'argument' || cacheType === 'all') {
-				c.argumentCache.clear();
-				cleared++;
-			}
+			c.procedureNameCache.clear();
+			cleared++;
+			c.argumentCache.clear();
+			cleared++;
 		}
 	});
 

@@ -34,6 +34,7 @@ describe('Admin Zod Schemas', () => {
 	describe('statusSchema', () => {
 		it('should validate full status response', () => {
 			const valid = {
+				version: '0.20.0',
 				status: 'running',
 				uptime: 3600,
 				startTime: new Date().toISOString(),
@@ -71,6 +72,7 @@ describe('Admin Zod Schemas', () => {
 
 		it('should allow partial config', () => {
 			const valid = {
+				version: '0.20.0',
 				status: 'paused',
 				uptime: 100,
 				startTime: new Date().toISOString(),
@@ -98,11 +100,27 @@ describe('Admin Zod Schemas', () => {
 
 		it('should fail on invalid status enum', () => {
 			const invalid = {
+				version: '0.20.0',
 				status: 'invalid_status',
 				uptime: 100,
 				startTime: new Date().toISOString(),
 				metrics: {requestCount: 0, errorCount: 0},
 				pools: [],
+				system: {
+					nodeVersion: 'v22.0.0',
+					platform: 'darwin',
+					arch: 'x64',
+					memory: {
+						rss: 100000000,
+						heapTotal: 50000000,
+						heapUsed: 30000000,
+						external: 5000000,
+					},
+					cpu: {
+						user: 1000000,
+						system: 500000,
+					},
+				},
 				config: {},
 			};
 			expect(() => statusSchema.parse(invalid)).toThrow();

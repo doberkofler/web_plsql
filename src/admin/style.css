@@ -328,6 +328,8 @@ tr:last-child td {
 
 .config-view-content {
 	padding: 0;
+	max-width: 900px;
+	margin: 0 auto;
 }
 
 .config-table {
@@ -383,6 +385,46 @@ tr:last-child td {
 .inner-config-table td {
 	padding: 4px 8px;
 	border: none;
+}
+
+/* Cache card specific enhancements */
+.cache-card .badge {
+	align-self: center;
+}
+
+/* PL/SQL Route card enhancements */
+.card-header h4 {
+	color: var(--accent);
+}
+
+.stat-row-label {
+	flex: 0 0 180px;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.stat-row-value {
+	flex: 1;
+	text-align: right;
+}
+
+@media (max-width: 640px) {
+	.stat-row {
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 4px;
+	}
+	.stat-row-label {
+		flex: none;
+		opacity: 0.7;
+		font-size: 0.75rem;
+		text-align: left;
+	}
+	.stat-row-value {
+		text-align: left;
+		width: 100%;
+	}
 }
 
 /* Theme Toggle */

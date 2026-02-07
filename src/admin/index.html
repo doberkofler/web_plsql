@@ -27,10 +27,6 @@
 						<span class="material-symbols-rounded">list_alt</span>
 						Access Log
 					</button>
-					<button data-view="cache">
-						<span class="material-symbols-rounded">cached</span>
-						Cache
-					</button>
 					<button data-view="pools">
 						<span class="material-symbols-rounded">database</span>
 						Pools
@@ -62,12 +58,17 @@
 								<option value="30000" selected>30s</option>
 								<option value="60000">60s</option>
 							</select>
+							<button
+								id="manual-refresh"
+								class="icon-btn icon-sm"
+								title="Refresh Now"
+								style="border: none; background: none; padding: 0; min-width: auto; min-height: auto; margin-left: 4px"
+							>
+								<span class="material-symbols-rounded" style="font-size: 20px">refresh</span>
+							</button>
 						</div>
 						<button id="theme-toggle-btn" class="icon-btn" title="Toggle Theme">
 							<span class="material-symbols-rounded">dark_mode</span>
-						</button>
-						<button id="manual-refresh" class="icon-btn" title="Refresh Now">
-							<span class="material-symbols-rounded">refresh</span>
 						</button>
 					</div>
 				</header>
@@ -97,12 +98,38 @@
 							</div>
 							<p id="err-count">0</p>
 						</div>
+						<div class="card">
+							<div class="card-header">
+								<span class="material-symbols-rounded">cached</span>
+								<h3>Cache Hit Rate</h3>
+							</div>
+							<p id="cache-hit-rate-val">0%</p>
+							<small><span id="cache-hits-val">0</span> hits, <span id="cache-misses-val">0</span> misses</small>
+						</div>
 					</div>
 
 					<div class="card" style="grid-column: span 2">
 						<div class="card-header">
 							<span class="material-symbols-rounded">monitoring</span>
 							<h3>Traffic & Errors</h3>
+							<div class="header-toolbar ml-auto">
+								<select
+									id="chart-history-points"
+									class="btn-sm"
+									style="
+										background: var(--bg-hover);
+										border: 1px solid var(--border);
+										border-radius: 4px;
+										color: var(--text-main);
+										font-size: 0.75rem;
+										padding: 2px 4px;
+									"
+								>
+									<option value="30">Last 30 pts</option>
+									<option value="60">Last 60 pts</option>
+									<option value="120">Last 120 pts</option>
+								</select>
+							</div>
 						</div>
 						<div class="chart-container">
 							<canvas id="traffic-chart"></canvas>
@@ -145,10 +172,6 @@
 					</div>
 				</section>
 
-				<section id="view-cache" class="view" style="display: none">
-					<div id="cache-container" class="cache-grid"></div>
-				</section>
-
 				<section id="view-config" class="view" style="display: none">
 					<div id="config-view"></div>
 				</section>
@@ -162,12 +185,16 @@
 							</div>
 							<div class="text-sm text-main">
 								<div class="stat-row">
+									<span>Middleware Version</span>
+									<span id="middleware-version" class="font-mono text-accent font-bold">-</span>
+								</div>
+								<div class="stat-row">
 									<span>Node.js Version</span>
-									<span id="node-version" class="font-mono text-bright">-</span>
+									<span id="node-version" class="font-mono text-accent font-bold">-</span>
 								</div>
 								<div class="stat-row">
 									<span>Platform</span>
-									<span id="platform-info" class="text-bright">-</span>
+									<span id="platform-info" class="text-accent font-bold">-</span>
 								</div>
 							</div>
 						</div>
@@ -179,22 +206,22 @@
 							<div class="text-sm text-main">
 								<div class="stat-row">
 									<span>Server Uptime</span>
-									<span id="system-uptime" class="font-semibold text-bright">-</span>
+									<span id="system-uptime" class="text-accent font-bold">-</span>
 								</div>
 								<div class="stat-row">
 									<span>Start Time</span>
-									<span id="system-start-time" class="text-bright">-</span>
+									<span id="system-start-time" class="text-accent font-bold">-</span>
 								</div>
 								<div class="stat-row">
 									<span>Status</span>
 									<span id="system-status" class="status-dot">
 										<span class="dot running"></span>
-										<span id="system-status-text">-</span>
+										<span id="system-status-text" class="text-accent font-bold">-</span>
 									</span>
 								</div>
 								<div class="stat-row">
 									<span>Auto-refresh</span>
-									<span id="system-refresh-status" class="text-bright">Active (30s)</span>
+									<span id="system-refresh-status" class="text-accent font-bold">Active (30s)</span>
 								</div>
 							</div>
 						</div>
@@ -206,15 +233,15 @@
 							<div class="text-sm text-main">
 								<div class="stat-row">
 									<span>Total Requests</span>
-									<span id="total-requests" class="font-semibold text-bright">-</span>
+									<span id="total-requests" class="font-mono text-accent font-bold">-</span>
 								</div>
 								<div class="stat-row">
 									<span>Total Errors</span>
-									<span id="total-errors" class="text-danger">-</span>
+									<span id="total-errors" class="font-mono text-danger font-bold">-</span>
 								</div>
 								<div class="stat-row">
 									<span>Active Pools</span>
-									<span id="active-pools" class="text-bright">-</span>
+									<span id="active-pools" class="font-mono text-accent font-bold">-</span>
 								</div>
 							</div>
 						</div>
@@ -229,19 +256,19 @@
 							<div class="text-sm text-main">
 								<div class="stat-row">
 									<span>Heap Used</span>
-									<span id="memory-heap-used" class="font-mono text-bright">-</span>
+									<span id="memory-heap-used" class="font-mono text-accent font-bold">-</span>
 								</div>
 								<div class="stat-row">
 									<span>Heap Total</span>
-									<span id="memory-heap-total" class="font-mono text-bright">-</span>
+									<span id="memory-heap-total" class="font-mono text-accent font-bold">-</span>
 								</div>
 								<div class="stat-row">
 									<span>RSS</span>
-									<span id="memory-rss" class="font-mono text-bright">-</span>
+									<span id="memory-rss" class="font-mono text-accent font-bold">-</span>
 								</div>
 								<div class="stat-row">
 									<span>External</span>
-									<span id="memory-external" class="font-mono text-bright">-</span>
+									<span id="memory-external" class="font-mono text-accent font-bold">-</span>
 								</div>
 							</div>
 						</div>
@@ -253,11 +280,11 @@
 							<div class="text-sm text-main">
 								<div class="stat-row">
 									<span>User</span>
-									<span id="cpu-user" class="font-mono text-bright">-</span>
+									<span id="cpu-user" class="font-mono text-accent font-bold">-</span>
 								</div>
 								<div class="stat-row">
 									<span>System</span>
-									<span id="cpu-system" class="font-mono text-bright">-</span>
+									<span id="cpu-system" class="font-mono text-accent font-bold">-</span>
 								</div>
 							</div>
 						</div>
@@ -267,6 +294,7 @@
 						<h3 class="danger-zone-title">Danger Zone</h3>
 						<p class="danger-zone-text">Careful! These actions affect the production server state.</p>
 						<div style="display: flex; gap: 12px; margin-top: 16px">
+							<button id="btn-clear-all-cache" class="btn btn-sm btn-warning">Clear All Caches</button>
 							<button id="btn-pause" class="btn btn-sm btn-warning">Pause Server</button>
 							<button id="btn-resume" class="btn btn-sm btn-success" style="display: none">Resume Server</button>
 							<button id="btn-stop" class="btn btn-sm btn-danger">Stop Server</button>

@@ -57,8 +57,20 @@ export type Metrics = {
  */
 export type RouteConfig = {
 	route: string;
+	// PL/SQL specific
 	user?: string;
 	password?: string;
+	connectString?: string;
+	defaultPage?: string;
+	pathAlias?: string;
+	pathAliasProcedure?: string;
+	documentTable?: string;
+	exclusionList?: string[];
+	requestValidationFunction?: string;
+	transactionMode?: unknown;
+	errorStyle?: string;
+	// Static specific
+	directoryPath?: string;
 };
 
 /**
@@ -66,10 +78,11 @@ export type RouteConfig = {
  */
 export type ServerConfig = {
 	port: number;
-	adminRoute: string;
-	adminUser: string;
+	adminRoute?: string;
+	adminUser?: string;
+	adminPassword?: string;
 	loggerFilename: string;
-	uploadFileSizeLimit: number;
+	uploadFileSizeLimit?: number;
 	routePlSql: RouteConfig[];
 	routeStatic: RouteConfig[];
 };
@@ -78,6 +91,7 @@ export type ServerConfig = {
  * Server status response.
  */
 export type Status = {
+	version: string;
 	status: 'running' | 'paused' | 'stopped';
 	uptime: number;
 	startTime: string;
@@ -198,6 +212,7 @@ import type {StatusResponse} from './schemas.js';
 export type State = {
 	currentView: string;
 	status: Partial<StatusResponse>;
+	maxHistoryPoints: number;
 	lastRequestCount: number;
 	lastErrorCount: number;
 	lastUpdateTime: number;

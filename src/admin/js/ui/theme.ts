@@ -70,15 +70,14 @@ function updateChartForTheme(chart: ChartInstance, colors: ChartColors): void {
  */
 export function initTheme(state: State): void {
 	const theme = localStorage.getItem('theme') ?? 'dark';
-	const checkbox = document.getElementById('theme-toggle-checkbox') as HTMLInputElement | null;
-	if (!checkbox) return;
+	const btn = document.getElementById('theme-toggle-btn');
+	if (!btn) return;
 
 	document.body.className = theme;
-	checkbox.checked = theme === 'dark';
 
-	checkbox.onchange = (e: Event): void => {
-		const target = e.target as HTMLInputElement;
-		const newTheme = target.checked ? 'dark' : 'light';
+	btn.onclick = (): void => {
+		const isDark = document.body.classList.contains('dark');
+		const newTheme = isDark ? 'light' : 'dark';
 		document.body.className = newTheme;
 		localStorage.setItem('theme', newTheme);
 

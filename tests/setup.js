@@ -3,6 +3,7 @@ import {vi, afterEach} from 'vitest';
 // Global console mock
 const originalWarn = console.warn;
 const originalError = console.error;
+const originalLog = console.log;
 
 const shouldLog = () => process.env.DEBUG ?? process.env.VERBOSE;
 
@@ -20,6 +21,7 @@ const mockConsole = (originalImpl) => {
 
 vi.spyOn(console, 'warn').mockImplementation(mockConsole(originalWarn));
 vi.spyOn(console, 'error').mockImplementation(mockConsole(originalError));
+vi.spyOn(console, 'log').mockImplementation(mockConsole(originalLog));
 
 afterEach(() => {
 	// We don't restore mocks here because we want them to persist across all tests

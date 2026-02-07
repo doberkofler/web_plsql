@@ -5,6 +5,11 @@ import type {StatusResponse} from '../js/schemas.js';
 // Register Chart.js components
 Chart.register(...registerables);
 
+/**
+ * Cache pie chart instances.
+ */
+const cachePieInstances = new Map<HTMLCanvasElement, Chart>();
+
 type PoolInfo = StatusResponse['pools'][number];
 
 /**
@@ -67,7 +72,17 @@ export function initCharts(state: State): void {
 			scales: {
 				x: {
 					grid: {color: colors.gridColor},
-					ticks: {color: colors.textColor, display: false},
+					ticks: {
+						color: colors.textColor,
+						maxRotation: 0,
+						autoSkip: true,
+						maxTicksLimit: 10,
+					},
+					title: {
+						display: true,
+						text: 'Time',
+						color: colors.textColor,
+					},
 				},
 				y: {
 					type: 'linear' as const,
@@ -129,7 +144,17 @@ export function initCharts(state: State): void {
 			scales: {
 				x: {
 					grid: {color: colors.gridColor},
-					ticks: {color: colors.textColor, display: false},
+					ticks: {
+						color: colors.textColor,
+						maxRotation: 0,
+						autoSkip: true,
+						maxTicksLimit: 10,
+					},
+					title: {
+						display: true,
+						text: 'Time',
+						color: colors.textColor,
+					},
 				},
 				y: {
 					grid: {color: colors.gridColor},
@@ -172,7 +197,7 @@ export function initCharts(state: State): void {
  * @param pools - Pool information.
  */
 export function updateCharts(state: State, timeLabel: string, reqPerSec: number, errPerSec: number, pools: PoolInfo[]): void {
-	const maxPoints = 30;
+	const maxPoints = state.maxHistoryPoints;
 
 	state.history.labels.push(timeLabel);
 	state.history.requests.push(reqPerSec);
@@ -222,4 +247,53 @@ export function updateCharts(state: State, timeLabel: string, reqPerSec: number,
 		});
 		poolChart.update();
 	}
+}
+
+/**
+ * Create or update a pie chart for cache statistics.
+ * @param canvas - The canvas element.
+ */
+export function renderCachePie(canvas: HTMLCanvasElement): void {
+	const hits = parseInt(canvas.dataset.hits ?? '0');
+	const misses = parseInt(canvas.dataset.misses ?? '0');
+
+	const existingChart = cachePieInstances.get(canvas);
+	if (existingChart?.data.datasets[0]) {
+		existingChart.data.datasets[0].data = [hits, misses];
+		existingChart.update();
+		return;
+	}
+
+	const chart = new Chart(canvas, {
+		type: 'pie',
+		data: {
+			labels: ['Hits', 'Misses'],
+			datasets: [
+				{
+					data: [hits, misses],
+					backgroundColor: ['#10b981', '#ef4444'],
+					borderColor: 'transparent',
+				},
+			],
+		},
+		options: {
+			responsive: true,
+			maintainAspectRatio: true,
+			plugins: {
+				legend: {display: false},
+				tooltip: {
+					callbacks: {
+						label: (context) => {
+							const value = context.raw as number;
+							const total = hits + misses;
+							const pct = total > 0 ? ((value / total) * 100).toFixed(1) : '0';
+							return `${context.label}: ${value} (${pct}%)`;
+						},
+					},
+				},
+			},
+		},
+	});
+
+	cachePieInstances.set(canvas, chart);
 }

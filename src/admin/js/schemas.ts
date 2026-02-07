@@ -59,8 +59,20 @@ export const metricsSchema = z.object({
  */
 export const routeConfigSchema = z.object({
 	route: z.string(),
+	// PL/SQL specific
 	user: z.string().optional(),
 	password: z.string().optional(),
+	connectString: z.string().optional(),
+	defaultPage: z.string().optional(),
+	pathAlias: z.string().optional(),
+	pathAliasProcedure: z.string().optional(),
+	documentTable: z.string().optional(),
+	exclusionList: z.array(z.string()).optional(),
+	requestValidationFunction: z.string().optional(),
+	transactionMode: z.unknown().optional(),
+	errorStyle: z.string().optional(),
+	// Static specific
+	directoryPath: z.string().optional(),
 });
 
 /**
@@ -68,10 +80,11 @@ export const routeConfigSchema = z.object({
  */
 export const serverConfigSchema = z.object({
 	port: z.number(),
-	adminRoute: z.string(),
-	adminUser: z.string(),
+	adminRoute: z.string().optional(),
+	adminUser: z.string().optional(),
+	adminPassword: z.string().optional(),
 	loggerFilename: z.string(),
-	uploadFileSizeLimit: z.number(),
+	uploadFileSizeLimit: z.number().optional(),
 	routePlSql: z.array(routeConfigSchema),
 	routeStatic: z.array(routeConfigSchema),
 });
@@ -99,6 +112,7 @@ export const systemInfoSchema = z.object({
  * Server status response schema.
  */
 export const statusSchema = z.object({
+	version: z.string(),
 	status: z.enum(['running', 'paused', 'stopped']),
 	uptime: z.number(),
 	startTime: z.string(),
