@@ -40,7 +40,11 @@ describe('JsonLogger', () => {
 
 		logger.log(entry);
 
-		await new Promise((resolve) => setTimeout(resolve, 100));
+		// Wait and close to ensure it's written
+		await new Promise((resolve) => {
+			logger.stream.on('finish', () => resolve(undefined));
+			logger.close();
+		});
 
 		const content = fs.readFileSync(filename, 'utf8');
 		const lines = content.trim().split('\n');
@@ -54,8 +58,6 @@ describe('JsonLogger', () => {
 		});
 		expect(parsed.timestamp).toBeDefined();
 		expect(parsed.details.stack).toBe('Error: Test error');
-
-		logger.close();
 	});
 
 	it('should add timestamp if missing', async () => {
@@ -70,7 +72,11 @@ describe('JsonLogger', () => {
 
 		logger.log(entry);
 
-		await new Promise((resolve) => setTimeout(resolve, 100));
+		// Wait and close to ensure it's written
+		await new Promise((resolve) => {
+			logger.stream.on('finish', () => resolve(undefined));
+			logger.close();
+		});
 
 		const content = fs.readFileSync(filename, 'utf8');
 		const lines = content.trim().split('\n');
@@ -80,8 +86,6 @@ describe('JsonLogger', () => {
 
 		expect(parsed.timestamp).toBeDefined();
 		expect(parsed.message).toBe('No timestamp');
-
-		logger.close();
 	});
 
 	it('should handle circular structures safely if JSON.stringify throws (caught internally)', () => {

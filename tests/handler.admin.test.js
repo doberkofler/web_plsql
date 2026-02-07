@@ -12,14 +12,6 @@ import fs from 'node:fs';
  */
 
 vi.mock('../src/util/shutdown.js');
-vi.mock('node:fs', () => ({
-	default: {
-		existsSync: vi.fn(),
-		createReadStream: vi.fn(),
-	},
-	existsSync: vi.fn(),
-	createReadStream: vi.fn(),
-}));
 
 // Mock readline here
 vi.mock('node:readline', () => ({
@@ -40,6 +32,10 @@ describe('handler/handlerAdmin', () => {
 
 	beforeEach(() => {
 		vi.clearAllMocks();
+		// Spy on fs methods instead of global mock
+		vi.spyOn(fs, 'existsSync').mockReturnValue(false);
+		vi.spyOn(fs, 'createReadStream').mockReturnValue(/** @type {any} */ ({}));
+
 		app = express();
 		app.use(express.json());
 		app.use('/admin', handlerAdmin);
@@ -88,12 +84,53 @@ describe('handler/handlerAdmin', () => {
 		});
 
 		it('should return logs when enabled', async () => {
-			const fsMock = /** @type {{existsSync: Mock}} */ (/** @type {unknown} */ (fs));
-			fsMock.existsSync.mockReturnValue(true);
+			vi.spyOn(fs, 'existsSync').mockReturnValue(true);
 
 			const res = await request(app).get('/admin/api/logs/access');
 			expect(res.status).toBe(200);
 			expect(res.body).toEqual(['line 2', 'line 1']);
+		});
+
+		it('should return 500 on error', async () => {
+			vi.spyOn(fs, 'existsSync').mockImplementation(() => {
+				throw new Error('fs error');
+			});
+
+			const res = await request(app).get('/admin/api/logs/access');
+			expect(res.status).toBe(500);
+			expect(res.body.error).toBe('Error: fs error');
+		});
+	});
+
+	describe('GET /api/logs/error', () => {
+		it('should return parsed error logs', async () => {
+			vi.spyOn(fs, 'existsSync').mockReturnValue(true);
+
+			// Mock readline to return valid and invalid JSON lines
+			const readline = await import('node:readline');
+			// @ts-expect-error - mock createInterface implementation for testing
+			readline.default.createInterface.mockReturnValueOnce({
+				[Symbol.asyncIterator]: async function* () {
+					await Promise.resolve();
+					yield '{"type":"error","message":"valid"}';
+					yield 'invalid json';
+				},
+			});
+
+			const res = await request(app).get('/admin/api/logs/error');
+			expect(res.status).toBe(200);
+			expect(res.body).toHaveLength(1);
+			expect(res.body[0].message).toBe('valid');
+		});
+
+		it('should return 500 on error', async () => {
+			vi.spyOn(fs, 'existsSync').mockImplementation(() => {
+				throw new Error('fs error');
+			});
+
+			const res = await request(app).get('/admin/api/logs/error');
+			expect(res.status).toBe(500);
+			expect(res.body.error).toBe('Error: fs error');
 		});
 	});
 
@@ -159,11 +196,14 @@ describe('handler/handlerAdmin', () => {
 
 		it('should trigger shutdown on stop', async () => {
 			vi.useFakeTimers();
-			const res = await request(app).post('/admin/api/server/stop');
-			expect(res.status).toBe(200);
-			vi.runAllTimers();
-			expect(shutdownUtils.forceShutdown).toHaveBeenCalled();
-			vi.useRealTimers();
+			try {
+				const res = await request(app).post('/admin/api/server/stop');
+				expect(res.status).toBe(200);
+				vi.runAllTimers();
+				expect(shutdownUtils.forceShutdown).toHaveBeenCalled();
+			} finally {
+				vi.useRealTimers();
+			}
 		});
 
 		it('should return 400 for invalid action', async () => {

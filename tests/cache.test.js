@@ -84,4 +84,18 @@ describe('Cache', () => {
 		assert.strictEqual(cache.size, 19);
 		assert.strictEqual(cache.get('new'), 999);
 	});
+
+	it('should return keys and stats', () => {
+		const cache = new Cache(100);
+		cache.set('k1', 'v1');
+		cache.get('k1'); // hit
+		cache.get('k2'); // miss
+
+		assert.deepStrictEqual(cache.keys(), ['k1']);
+		const stats = cache.getStats();
+		assert.strictEqual(stats.size, 1);
+		assert.strictEqual(stats.maxSize, 100);
+		assert.strictEqual(stats.hits, 1);
+		assert.strictEqual(stats.misses, 1);
+	});
 });

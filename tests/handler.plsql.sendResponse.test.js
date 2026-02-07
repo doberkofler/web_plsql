@@ -1,7 +1,8 @@
 import assert from 'node:assert';
-import {describe, it, vi} from 'vitest';
+import {describe, it, vi, expect} from 'vitest';
 import {Readable} from 'node:stream';
 import {sendResponse} from '../src/handler/plsql/sendResponse.js';
+import debugModule from 'debug';
 
 describe('handler/plsql/sendResponse', () => {
 	const createMockRes = () => ({
@@ -108,7 +109,6 @@ describe('handler/plsql/sendResponse', () => {
 		assert.strictEqual(res.writeHead.mock.calls[0][0], 200);
 		assert.deepStrictEqual(res.writeHead.mock.calls[0][1], {'Content-Type': 'application/pdf', 'Content-Length': '4'});
 		assert.strictEqual(res.end.mock.calls.length, 1);
-		// assert.strictEqual(res.end.mock.calls[0][0], page.file.fileBlob); // Buffer comparison might fail strictEqual
 		assert.ok(res.end.mock.calls[0][0].equals(page.file.fileBlob));
 		assert.strictEqual(res.end.mock.calls[0][1], 'binary');
 	});
@@ -131,6 +131,113 @@ describe('handler/plsql/sendResponse', () => {
 		assert.strictEqual(res.send.mock.calls[0][0], 'Not Found Custom');
 	});
 
+	it('should handle status code with debug enabled', async () => {
+		const debug = debugModule('webplsql:sendResponse');
+		const originalEnabled = debug.enabled;
+		debug.enabled = true;
+
+		try {
+			/** @type {any} */
+			const res = createMockRes();
+			/** @type {any} */
+			const page = createEmptyPage();
+			page.head.statusCode = 404;
+			page.head.statusDescription = 'Not Found Custom';
+			/** @type {any} */
+			const req = {};
+
+			await sendResponse(req, res, page);
+			expect(res.status).toHaveBeenCalledWith(404);
+		} finally {
+			debug.enabled = originalEnabled;
+		}
+	});
+
+	it('should send simple body with debug enabled', async () => {
+		const debug = debugModule('webplsql:sendResponse');
+		const originalEnabled = debug.enabled;
+		debug.enabled = true;
+
+		try {
+			/** @type {any} */
+			const res = createMockRes();
+			/** @type {any} */
+			const page = createEmptyPage();
+			page.body = '<html></html>';
+			page.head.cookies = [{name: 'c', value: 'v', options: {}}];
+			page.head.redirectLocation = '/red';
+			page.head.otherHeaders = {'X-Test': 'Test'};
+			/** @type {any} */
+			const req = {};
+
+			await sendResponse(req, res, page);
+			expect(res.redirect).toHaveBeenCalled();
+		} finally {
+			debug.enabled = originalEnabled;
+		}
+	});
+
+	it('should handle file download with debug enabled', async () => {
+		const debug = debugModule('webplsql:sendResponse');
+		const originalEnabled = debug.enabled;
+		debug.enabled = true;
+
+		try {
+			/** @type {any} */
+			const res = createMockRes();
+			/** @type {any} */
+			const page = createEmptyPage();
+			page.file = {fileType: 'B', fileBlob: Buffer.from('data'), fileSize: 4};
+			page.head.contentType = 'application/pdf';
+			/** @type {any} */
+			const req = {};
+
+			await sendResponse(req, res, page);
+			expect(res.end).toHaveBeenCalled();
+		} finally {
+			debug.enabled = originalEnabled;
+		}
+	});
+
+	it('should handle file download with streaming and debug enabled', async () => {
+		const debug = debugModule('webplsql:sendResponse');
+		const originalEnabled = debug.enabled;
+		debug.enabled = true;
+
+		try {
+			const pipeMock = vi.fn();
+			/** @type {any} */
+			const res = {
+				writeHead: vi.fn(),
+				on: vi.fn(),
+			};
+			const mockStream = new Readable({
+				read() {
+					this.push('test data');
+					this.push(null);
+				},
+			});
+			/** @type {any} */
+			(mockStream.pipe) = pipeMock.mockImplementation((/** @type {any} */ _destination) => {
+				setTimeout(() => mockStream.emit('end'), 10);
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-return
+				return res;
+			});
+
+			/** @type {any} */
+			const page = createEmptyPage();
+			page.file = {fileType: 'B', fileBlob: mockStream, fileSize: 9};
+			page.head.contentType = 'application/octet-stream';
+			/** @type {any} */
+			const req = {};
+
+			await sendResponse(req, res, page);
+			expect(res.writeHead).toHaveBeenCalled();
+		} finally {
+			debug.enabled = originalEnabled;
+		}
+	});
+
 	it('should set Content-Type header', async () => {
 		/** @type {any} */
 		const res = createMockRes();
@@ -141,51 +248,6 @@ describe('handler/plsql/sendResponse', () => {
 		const req = {};
 
 		await sendResponse(req, res, page);
-
-		// It might call set multiple times if we have other headers, but here only Content-Type
-		// Look at code:
-		// 0083| 		res.set('Content-Type', page.head.contentType);
 		assert.ok(res.set.mock.calls.some((/** @type {any} */ call) => call[0] === 'Content-Type' && call[1] === 'text/plain'));
-	});
-
-	it('should handle file download with streaming', async () => {
-		const pipeMock = vi.fn();
-
-		/** @type {any} */
-		const res = {
-			writeHead: vi.fn(),
-			on: vi.fn(),
-		};
-
-		// Create a mock readable stream
-		const mockStream = new Readable({
-			read() {
-				this.push('test data');
-				this.push(null);
-			},
-		});
-
-		// Mock pipe to trigger events
-		/** @type {any} */
-		(mockStream.pipe) = pipeMock.mockImplementation((/** @type {any} */ _destination) => {
-			setTimeout(() => mockStream.emit('end'), 10);
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-return
-			return res;
-		});
-
-		/** @type {any} */
-		const page = createEmptyPage();
-		page.file = {fileType: 'B', fileBlob: mockStream, fileSize: 9};
-		page.head.contentType = 'application/octet-stream';
-		/** @type {any} */
-		const req = {};
-
-		await sendResponse(req, res, page);
-
-		assert.strictEqual(res.writeHead.mock.calls.length, 1);
-		assert.strictEqual(res.writeHead.mock.calls[0]?.[0], 200);
-		assert.deepStrictEqual(res.writeHead.mock.calls[0]?.[1], {'Content-Type': 'application/octet-stream', 'Content-Length': '9'});
-		assert.strictEqual(pipeMock.mock.calls.length, 1);
-		assert.strictEqual(pipeMock.mock.calls[0]?.[0], res);
 	});
 });

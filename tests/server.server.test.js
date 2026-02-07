@@ -187,5 +187,108 @@ describe('server/server', () => {
 
 			await webServer.shutdown();
 		});
+
+		it('should require authentication if configured', async () => {
+			const configWithAuth = {
+				...validConfig,
+				adminUser: 'admin',
+				adminPassword: 'password',
+			};
+			const oracleUtilsMock = /** @type {{poolCreate: Mock}} */ (/** @type {unknown} */ (oracleUtils));
+			oracleUtilsMock.poolCreate.mockResolvedValue({close: vi.fn()});
+
+			const webServer = await startServer(configWithAuth);
+			const request = (await import('supertest')).default;
+
+			// Unauthorized
+			const res1 = await request(webServer.app).get('/admin/api/status');
+			expect(res1.status).toBe(401);
+
+			// Authorized
+			const res2 = await request(webServer.app)
+				.get('/admin/api/status')
+				.set('Authorization', 'Basic ' + Buffer.from('admin:password').toString('base64'));
+			expect(res2.status).toBe(200);
+
+			await webServer.shutdown();
+		});
+	});
+
+	describe('startServer error handling', () => {
+		it('should reject if listen fails', async () => {
+			const server = createMockServer();
+			const oracleUtilsMock = /** @type {{poolCreate: Mock}} */ (/** @type {unknown} */ (oracleUtils));
+			oracleUtilsMock.poolCreate.mockResolvedValue({close: vi.fn()});
+
+			// Mock listen to emit error
+			server.listen = vi.fn().mockImplementation(function () {
+				setTimeout(() => {
+					const onMock = /** @type {Mock} */ (/** @type {unknown} */ (server.on));
+					const errorCall = onMock.mock.calls.find((call) => call[0] === 'error');
+					if (errorCall) {
+						const err = new Error('EADDRINUSE');
+						// @ts-expect-error - mock code
+						err.code = 'EADDRINUSE';
+						errorCall[1](err);
+					}
+				}, 10);
+				return server;
+			});
+
+			vi.mocked(http.createServer).mockReturnValue(server);
+
+			await expect(startServer(validConfig)).rejects.toThrow('Port 0 is already in use');
+		});
+
+		it('should reject on other listen errors', async () => {
+			const server = createMockServer();
+			const oracleUtilsMock = /** @type {{poolCreate: Mock}} */ (/** @type {unknown} */ (oracleUtils));
+			oracleUtilsMock.poolCreate.mockResolvedValue({close: vi.fn()});
+
+			server.listen = vi.fn().mockImplementation(function () {
+				setTimeout(() => {
+					const onMock = /** @type {Mock} */ (/** @type {unknown} */ (server.on));
+					const errorCall = onMock.mock.calls.find((call) => call[0] === 'error');
+					if (errorCall) {
+						const err = new Error('EACCES');
+						// @ts-expect-error - mock code
+						err.code = 'EACCES';
+						errorCall[1](err);
+					}
+				}, 10);
+				return server;
+			});
+
+			vi.mocked(http.createServer).mockReturnValue(server);
+
+			await expect(startServer(validConfig)).rejects.toThrow('Port 0 requires elevated privileges');
+		});
+	});
+
+	describe('shutdown and connection tracking', () => {
+		it('should track and close connections', async () => {
+			const server = createMockServer();
+			const oracleUtilsMock = /** @type {{poolCreate: Mock, poolsClose: Mock}} */ (/** @type {unknown} */ (oracleUtils));
+			oracleUtilsMock.poolCreate.mockResolvedValue({close: vi.fn()});
+			oracleUtilsMock.poolsClose.mockResolvedValue(undefined);
+
+			vi.mocked(http.createServer).mockReturnValue(server);
+
+			const webServer = await startServer(validConfig);
+
+			// Simulate a connection
+			const mockSocket = {destroy: vi.fn(), on: vi.fn()};
+			const onMock = /** @type {Mock} */ (/** @type {unknown} */ (server.on));
+			const connectionCall = onMock.mock.calls.find((call) => call[0] === 'connection');
+			if (connectionCall) {
+				connectionCall[1](mockSocket);
+			}
+
+			// Trigger shutdown
+			await webServer.shutdown();
+
+			expect(mockSocket.destroy).toHaveBeenCalled();
+			expect(oracleUtils.poolsClose).toHaveBeenCalled();
+		});
 	});
 });
