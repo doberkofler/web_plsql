@@ -31,10 +31,29 @@ Please visit the [node-oracledb](https://node-oracledb.readthedocs.io/en/latest/
 * Start server using `node examples/config-native.js` after having set the WEB_PLSQL_ORACLE_SERVER environment variable to the database where you just installed the sample schema.
 * Invoke a browser and open the page `http://localhost/sample`.
 
-## Container
-* Build the image using `npm run image-build`.
-* Adapt the `examples/config-docker.json` configuration file. Typically only the `connectString` property must be changed.
-* Start the container using `docker compose up -d`.
+# Admin Console
+
+`web_plsql` includes a built-in Admin Console for real-time monitoring and management of your gateway.
+
+## Features
+- **Dashboard**: Real-time charts showing requests per second and error rates.
+- **Pool Monitoring**: Visual representation of database connection pool usage.
+- **Cache Management**: View and manage the metadata cache.
+- **Access & Error Logs**: Interactive viewers for the server logs.
+- **System Info**: Overview of the server environment and configuration.
+
+## Configuration
+The admin console is enabled by default in the `startServer` API. You can configure it via the `admin` property in the main configuration object.
+
+```typescript
+/**
+ * @typedef {object} configAdminType
+ * @property {boolean} [enabled=true] - Whether the admin console is enabled.
+ * @property {string} [route='/admin'] - The route path for the admin console.
+ */
+```
+
+Access the console at `http://localhost:<port>/admin` (e.g., `http://localhost:8080/admin`).
 
 # Configuration
 
@@ -93,6 +112,7 @@ The `startServer` api uses the following configuration object:
 /**
  * @typedef {object} configType
  * @property {number} port - The server port number.
+ * @property {configAdminType} [admin] - The admin console configuration.
  * @property {configStaticType[]} routeStatic - The static routes.
  * @property {configPlSqlType[]} routePlSql - The PL/SQL routes.
  * @property {number} [uploadFileSizeLimit] - Maximum size of each uploaded file in bytes or no limit if omitted.

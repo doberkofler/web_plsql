@@ -121,31 +121,25 @@ The middleware enforces a **stateless model** as defined in the Oracle mod_plsql
 *   **Character Sets**: The project currently hardcodes some charsets (`ascii`, `UTF8`). Aim for configuration-driven NLS settings.
 
 ### Admin Console
-The admin console uses **Vite** to bundle client-side JavaScript (including Chart.js) into a single file.
+The admin console is a Single Page Application (SPA) built with modern web technologies and served via an internal API.
 
 **Architecture**:
-- Source code: `src/admin/js/` and `src/admin/client/` - TypeScript files compiled to JavaScript
-- Entry point: `src/admin/client/main.js` - Imports from `../js/` directory
-- Charts: `src/admin/client/charts.ts` - Chart.js initialization and updates
-- Output: `src/admin/lib/chart.bundle.js` - Bundled output served to browsers
-- HTML: `src/admin/index.html` - Admin console UI
+- **Backend**: Express routes under `/admin/api` serve JSON data for traffic, pools, logs, and cache.
+- **Frontend**: TypeScript-based SPA bundled with **Vite**.
+- **Styling**: **Tailwind CSS** for a responsive and modern UI.
+- **Charts**: **Chart.js** for real-time data visualization.
+- **Icons**: Heroicons (SVG).
+
+**Key Components**:
+- `src/admin/js/api.ts`: Typed client for the internal Admin API.
+- `src/admin/js/ui/views.ts`: View-specific rendering and refresh logic.
+- `src/admin/client/charts.ts`: Chart.js lifecycle management and real-time updates.
+- `src/admin/js/app.ts`: Main application logic and state management.
 
 **Build Process**:
-1. Vite bundles `src/admin/client/main.js` which imports:
-   - `../js/api.js` - API client
-   - `../js/app.js` - Application logic
-   - `./tailwind.css` - Styles
-2. The entry point transitively imports Chart.js from npm via `charts.ts`
-3. Output is written to `src/admin/lib/chart.bundle.js`
-4. Express serves the bundle from `/admin/lib/chart.bundle.js`
-
-**Chart.js Integration**:
-- Chart.js is imported and initialized in `src/admin/client/charts.ts`
-- The `initCharts()` function creates actual Chart.js instances (not just data structures)
-- Charts are stored in the application state and updated via `updateCharts()`
-- Two charts are used:
-  - Traffic chart: Dual-axis line chart showing requests/sec and errors/sec
-  - Pool chart: Line chart showing database connection pool usage over time
+- `npm run build:admin`: Compiles TS, processes Tailwind CSS, and bundles all assets into `src/admin/lib/chart.bundle.js`.
+- The bundle includes Chart.js and all required logic, making the frontend self-contained.
+- **Note**: Always run this command after modifying any file in `src/admin/js/` or `src/admin/client/`.
 
 **View Refresh Logic**:
 - Each view (errors, access, cache, pools, config, system) has a refresh function in `src/admin/js/ui/views.ts`

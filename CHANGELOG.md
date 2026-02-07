@@ -12,9 +12,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 
 
-## [0.20.0] - 2026-02-06
+## [1.0.0] - 2026-02-07
 
 ### Added
+- Introduced the new admin console middleware that allows to control and manage the web_plsql middleware.
 
 
 ## [0.19.0] - 2026-02-06
