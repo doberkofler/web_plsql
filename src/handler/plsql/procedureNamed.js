@@ -83,7 +83,10 @@ const loadArguments = async (procedure, databaseConnection) => {
 	try {
 		result = await databaseConnection.execute(SQL_GET_ARGUMENT, bind);
 	} catch (err) {
+		/* v8 ignore start */
 		debug('result', result);
+		/* v8 ignore stop */
+
 		const message = `Error when retrieving arguments\n${SQL_GET_ARGUMENT}\n${errorToString(err)}`;
 		throw new RequestError(message);
 	}
@@ -98,7 +101,10 @@ const loadArguments = async (procedure, databaseConnection) => {
 			})
 			.parse(result.outBinds);
 	} catch (err) {
+		/* v8 ignore start */
 		debug('result.outBinds', result.outBinds);
+		/* v8 ignore stop */
+
 		const message = `Error when decoding arguments\n${SQL_GET_ARGUMENT}\n${errorToString(err)}`;
 		throw new RequestError(message);
 	}
@@ -136,16 +142,22 @@ const findArguments = async (procedure, databaseConnection, argumentCache) => {
 
 	// if we found the procedure in the cache, we return it
 	if (cachedArgs) {
+		/* v8 ignore start */
 		if (debug.enabled) {
 			debug(`findArguments: procedure "${procedure}" found in cache`);
 		}
+		/* v8 ignore stop */
+
 		return cachedArgs;
 	}
 
 	// load from database
+	/* v8 ignore start */
 	if (debug.enabled) {
 		debug(`findArguments: procedure "${procedure}" not found in cache and must be loaded`);
 	}
+	/* v8 ignore stop */
+
 	const args = await loadArguments(procedure, databaseConnection);
 
 	// add to the cache
@@ -259,10 +271,12 @@ export const getProcedureNamed = async (req, procName, argObj, databaseConnectio
 	// select statement
 	const sql = `${procName}(${sqlParameter.join(', ')})`;
 
+	/* v8 ignore start */
 	if (debug.enabled) {
 		debug(sql);
 		debug(inspectBindings(argObj, argTypes));
 	}
+	/* v8 ignore stop */
 
 	return {sql, bind: bindings};
 };

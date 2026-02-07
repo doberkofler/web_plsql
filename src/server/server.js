@@ -73,42 +73,6 @@ export const AdminContext = {
  */
 
 /**
- * Admin basic auth middleware
- * @param {Request} req - The request.
- * @param {Response} res - The response.
- * @param {NextFunction} next - The next function.
- */
-const adminAuth = (req, res, next) => {
-	const adminRoute = AdminContext.config?.adminRoute ?? '/admin';
-
-	// Simple pause check for all PL/SQL routes (not admin)
-	if (AdminContext.paused && !req.path.startsWith(adminRoute)) {
-		res.status(503).send('Server Paused');
-		return;
-	}
-
-	// Basic Auth for Admin Route
-	if (req.path.startsWith(adminRoute)) {
-		const user = AdminContext.config?.adminUser;
-		const pass = AdminContext.config?.adminPassword;
-
-		if (user && pass) {
-			const auth = {login: user, password: pass};
-			const b64auth = (req.headers.authorization ?? '').split(' ')[1] ?? '';
-			const [login, password] = Buffer.from(b64auth, 'base64').toString().split(':');
-
-			if (login !== auth.login || password !== auth.password) {
-				res.set('WWW-Authenticate', 'Basic realm="Admin Console"');
-				res.status(401).send('Authentication required.');
-				return;
-			}
-		}
-	}
-
-	next();
-};
-
-/**
  * Create HTTPS server.
  * @param {Express} app - express application
  * @param {sslConfig} [ssl] - ssl configuration.
@@ -143,7 +107,35 @@ export const startServer = async (config, ssl) => {
 	const app = express();
 
 	// Pause & Admin Auth middleware
-	app.use(adminAuth);
+	app.use((req, res, next) => {
+		const adminRoute = internalConfig.adminRoute ?? '/admin';
+
+		// Simple pause check for all PL/SQL routes (not admin)
+		if (AdminContext.paused && !req.path.startsWith(adminRoute)) {
+			res.status(503).send('Server Paused');
+			return;
+		}
+
+		// Basic Auth for Admin Route
+		if (req.path.startsWith(adminRoute)) {
+			const user = internalConfig.adminUser;
+			const pass = internalConfig.adminPassword;
+
+			if (user && pass) {
+				const auth = {login: user, password: pass};
+				const b64auth = (req.headers.authorization ?? '').split(' ')[1] ?? '';
+				const [login, password] = Buffer.from(b64auth, 'base64').toString().split(':');
+
+				if (login !== auth.login || password !== auth.password) {
+					res.set('WWW-Authenticate', 'Basic realm="Admin Console"');
+					res.status(401).send('Authentication required.');
+					return;
+				}
+			}
+		}
+
+		next();
+	});
 
 	// Access log
 	if (internalConfig.loggerFilename.length > 0) {

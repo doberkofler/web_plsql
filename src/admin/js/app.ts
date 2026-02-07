@@ -1,9 +1,10 @@
 import {typedApi} from './api.js';
 import {initCharts, updateCharts, hydrateHistory} from '../client/charts.js';
 import {formatDuration, formatDateTime} from './util/format.js';
+import {updateMinMaxMetrics} from './util/metrics.js';
 import {initTheme} from './ui/theme.js';
 import {refreshErrors, refreshAccess, refreshConfig, refreshPools, refreshSystem, refreshStats} from './ui/views.js';
-import type {State} from './types.js';
+import type {State, SystemMetrics} from './types.js';
 
 /**
  * View icons mapping.
@@ -85,6 +86,21 @@ async function updateStatus(): Promise<void> {
 	state.lastRequestCount = newStatus.metrics.requestCount;
 	state.lastErrorCount = newStatus.metrics.errorCount;
 	state.lastUpdateTime = now;
+
+	// Update Min/Max metrics
+	if (newStatus.system) {
+		const sys = newStatus.system;
+		const metrics: SystemMetrics = {
+			heapUsed: sys.memory.heapUsed,
+			heapTotal: sys.memory.heapTotal,
+			rss: sys.memory.rss,
+			external: sys.memory.external,
+			cpuUser: sys.cpu.user,
+			cpuSystem: sys.cpu.system,
+		};
+
+		updateMinMaxMetrics(metrics, state.metricsMin, state.metricsMax);
+	}
 
 	const timeLabel = new Date().toLocaleTimeString();
 	updateCharts(state, timeLabel, reqPerSec, avgResponseTime, newStatus.pools);

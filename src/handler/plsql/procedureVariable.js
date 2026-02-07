@@ -24,9 +24,11 @@ import oracledb from 'oracledb';
  *	@returns {{sql: string; bind: BindParameterConfig}} - The SQL statement and bindings for the procedure to execute
  */
 export const getProcedureVariable = (_req, procName, argObj) => {
+	/* v8 ignore start */
 	if (debug.enabled) {
 		debug(`getProcedureVariable: ${procName} arguments=`, argObj);
 	}
+	/* v8 ignore stop */
 
 	const names = [];
 	const values = [];

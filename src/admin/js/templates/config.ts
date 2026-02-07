@@ -122,7 +122,7 @@ export function renderConfig(config: Partial<ServerConfig>): string {
 		const mb = (limit / (1024 * 1024)).toFixed(2);
 		html += renderStatRow('Upload Size Limit', `${mb} MB (${limit.toLocaleString()} bytes)`, true, 'text-accent', 'Maximum allowed size for file uploads');
 	} else {
-		html += renderStatRow('Upload Size Limit', 'No limit', true, 'text-accent', 'Maximum allowed size for file uploads');
+		html += renderStatRow('Upload Size Limit', 'No limit', false, 'text-accent', 'Maximum allowed size for file uploads');
 	}
 	html += '</div>';
 

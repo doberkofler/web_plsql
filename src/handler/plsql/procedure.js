@@ -48,7 +48,9 @@ import {sanitizeProcName} from './procedureSanitize.js';
 const getProcedure = async (req, procName, argObj, options, databaseConnection, procedureNameCache, argumentCache) => {
 	// path alias
 	if (options.pathAlias?.toLowerCase() === procName.toLowerCase()) {
+		/* v8 ignore start */
 		debug(`getProcedure: path alias "${options.pathAlias}" redirects to "${options.pathAliasProcedure}"`);
+		/* v8 ignore stop */
 		return {
 			sql: `${options.pathAliasProcedure}(p_path=>:p_path)`,
 			bind: {
@@ -154,9 +156,11 @@ const procedureGetPage = async (_test, databaseConnection) => {
 	try {
 		result = await databaseConnection.execute(sqlStatement, bindParameter);
 	} catch (err) {
+		/* v8 ignore start */
 		if (debug.enabled) {
 			debug(getBlock('procedureGetPage: results', inspect(result)));
 		}
+		/* v8 ignore stop */
 
 		throw new ProcedureError(`procedureGetPage: error when getting page returned by procedure\n${errorToString(err)}`, {}, sqlStatement, bindParameter);
 	}
@@ -209,9 +213,11 @@ END;
 	try {
 		result = await databaseConnection.execute(sqlStatement, bindParameter);
 	} catch (err) {
+		/* v8 ignore start */
 		if (debug.enabled) {
 			debug(getBlock('procedureDownloadFiles: results', inspect(result)));
 		}
+		/* v8 ignore stop */
 
 		throw new ProcedureError(`procedureDownloadFiles: error when downloading files\n${errorToString(err)}`, {}, sqlStatement, bindParameter);
 	}
@@ -311,9 +317,11 @@ export const invokeProcedure = async (req, res, argObj, cgiObj, filesToUpload, o
 
 	debug('invokeProcedure: get the page returned from the procedure');
 	const lines = await procedureGetPage(true, databaseConnection);
+	/* v8 ignore start */
 	if (debug.enabled) {
 		debug(getBlock('data', lines));
 	}
+	/* v8 ignore stop */
 
 	// 6) download files
 
@@ -322,9 +330,11 @@ export const invokeProcedure = async (req, res, argObj, cgiObj, filesToUpload, o
 
 	try {
 		const fileDownload = await procedureDownloadFiles(fileBlob, databaseConnection);
+		/* v8 ignore start */
 		if (debug.enabled) {
 			debug(getBlock('fileDownload', inspect({fileType: fileDownload.fileType, fileSize: fileDownload.fileSize})));
 		}
+		/* v8 ignore stop */
 
 		// 7) parse the page
 

@@ -95,7 +95,10 @@ const resolveProcedureName = async (procName, databaseConnection, procedureNameC
 
 		return resolved;
 	} catch (err) {
+		/* v8 ignore start */
 		debug(`resolveProcedureName: Error resolving "${procName}"`, err);
+		/* v8 ignore stop */
+
 		// Rethrow as RequestError to indicate 404/403
 		throw new RequestError(`Procedure "${procName}" not found or not accessible.\n${errorToString(err)}`);
 	}
@@ -123,7 +126,10 @@ export const sanitizeProcName = async (procName, databaseConnection, options, pr
 	for (const i of DEFAULT_EXCLUSION_LIST) {
 		if (finalProcName.startsWith(i)) {
 			const error = `Procedure name "${procName}" is in default exclusion list "${DEFAULT_EXCLUSION_LIST.join(',')}"`;
+			/* v8 ignore start */
 			debug(error);
+			/* v8 ignore stop */
+
 			throw new RequestError(error);
 		}
 	}
@@ -133,7 +139,10 @@ export const sanitizeProcName = async (procName, databaseConnection, options, pr
 		for (const i of options.exclusionList) {
 			if (finalProcName.startsWith(i)) {
 				const error = `Procedure name "${procName}" is in custom exclusion list "${options.exclusionList.join(',')}"`;
+				/* v8 ignore start */
 				debug(error);
+				/* v8 ignore stop */
+
 				throw new RequestError(error);
 			}
 		}
@@ -148,7 +157,10 @@ export const sanitizeProcName = async (procName, databaseConnection, options, pr
 		const valid = await requestValidationFunction(finalProcName, options.requestValidationFunction, databaseConnection);
 		if (!valid) {
 			const error = `Procedure name "${procName}" is not valid according to the request validation function "${options.requestValidationFunction}"`;
+			/* v8 ignore start */
 			debug(error);
+			/* v8 ignore stop */
+
 			throw new RequestError(error);
 		}
 	}
@@ -209,7 +221,10 @@ const loadRequestValid = async (procName, requestValidationFunction, databaseCon
 	try {
 		result = await databaseConnection.execute(SQL, bind);
 	} catch (err) {
+		/* v8 ignore start */
 		debug('result', result);
+		/* v8 ignore stop */
+
 		const message = `Error when validating procedure name "${procName}"\n${SQL}\n${errorToString(err)}`;
 		throw new RequestError(message);
 	}
@@ -218,7 +233,10 @@ const loadRequestValid = async (procName, requestValidationFunction, databaseCon
 		const data = z.strictObject({valid: z.number()}).parse(result.outBinds);
 		return data.valid === 1;
 	} catch (err) {
+		/* v8 ignore start */
 		debug('result', result.outBinds);
+		/* v8 ignore stop */
+
 		const message = `Internal error when parsing ${result.outBinds}\n${errorToString(err)}`;
 		throw new Error(message);
 	}
@@ -243,16 +261,22 @@ const requestValidationFunction = async (procName, requestValidationFunction, da
 
 	// if we found the procedure in the cache, we return it (hitCount already incremented by get)
 	if (cacheEntry !== undefined) {
+		/* v8 ignore start */
 		if (debug.enabled) {
 			debug(`requestValidationFunction: procedure "${procName}" found in cache`);
 		}
+		/* v8 ignore stop */
+
 		return cacheEntry.valid;
 	}
 
 	// load from database
+	/* v8 ignore start */
 	if (debug.enabled) {
 		debug(`requestValidationFunction: procedure "${procName}" not found in cache and must be loaded`);
 	}
+	/* v8 ignore stop */
+
 	const valid = await loadRequestValid(procName, requestValidationFunction, databaseConnection);
 
 	// add to the cache

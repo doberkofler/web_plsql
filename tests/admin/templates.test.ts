@@ -11,19 +11,111 @@ describe('Admin Templates', () => {
 			expect(result).toContain('/admin');
 		});
 
+		it('should render upload size limit when number', () => {
+			const result = renderConfig({uploadFileSizeLimit: 1024 * 1024}); // 1 MB
+			expect(result).toContain('1.00 MB');
+			expect(result).toContain('1,048,576 bytes');
+		});
+
+		it('should render default values for missing optional server config', () => {
+			const result = renderConfig({}); // Port is undefined here
+			expect(result).toContain('(Not authenticated)'); // adminUser
+			expect(result).toContain('(None)'); // adminPassword
+			expect(result).toContain('(Logging disabled)'); // loggerFilename
+			expect(result).toContain('No limit'); // uploadFileSizeLimit
+		});
+
 		it('should render PL/SQL routes', () => {
 			const result = renderConfig({
-				routePlSql: [{route: '/plsql', user: 'scott'}],
+				routePlSql: [
+					{
+						route: '/plsql',
+						user: 'scott',
+						password: 'pwd',
+						connectString: 'conn',
+						defaultPage: 'home',
+						documentTable: 'docs',
+						errorStyle: 'debug',
+						pathAlias: 'alias',
+						pathAliasProcedure: 'proc',
+						requestValidationFunction: 'valFunc',
+						transactionMode: 'commit',
+					},
+				],
 			});
 			expect(result).toContain('/plsql');
 			expect(result).toContain('scott');
+			expect(result).toContain('pwd');
+			expect(result).toContain('conn');
+			expect(result).toContain('home');
+			expect(result).toContain('docs');
+			expect(result).toContain('debug');
+			expect(result).toContain('alias');
+			expect(result).toContain('proc');
+			expect(result).toContain('valFunc');
+			expect(result).toContain('commit');
+		});
+
+		it('should render PL/SQL routes with exclusion list', () => {
+			const result = renderConfig({
+				routePlSql: [{route: '/plsql', exclusionList: ['ex1', 'ex2']}],
+			});
+			expect(result).toContain('ex1, ex2');
+		});
+
+		it('should render PL/SQL routes with custom transaction mode', () => {
+			const result = renderConfig({
+				routePlSql: [
+					{
+						route: '/plsql',
+						transactionMode: () => {
+							return;
+						},
+					},
+				],
+			});
+			expect(result).toContain('Custom');
+		});
+
+		it('should render PL/SQL routes with default transaction mode (undefined)', () => {
+			const result = renderConfig({
+				routePlSql: [{route: '/plsql'}],
+			});
+			expect(result).toContain('commit');
+		});
+
+		it('should render PL/SQL routes with missing optional fields', () => {
+			const result = renderConfig({
+				routePlSql: [{route: '/plsql'}],
+			});
+			expect(result).toContain('(Not set)'); // user, connectString
+			expect(result).toContain('(None)'); // password, exclusionList, etc
+			expect(result).toContain('index'); // defaultPage default
+			expect(result).toContain('table'); // errorStyle default
 		});
 
 		it('should render static routes', () => {
 			const result = renderConfig({
-				routeStatic: [{route: '/static'}],
+				routeStatic: [{route: '/static', directoryPath: '/path'}],
 			});
 			expect(result).toContain('/static');
+			expect(result).toContain('/path');
+		});
+
+		it('should render static routes with missing directory path', () => {
+			const result = renderConfig({
+				routeStatic: [{route: '/static'}],
+			});
+			expect(result).toContain('(Not set)');
+		});
+
+		it('should render empty states', () => {
+			const result = renderConfig({
+				routePlSql: [],
+				routeStatic: [],
+			});
+			expect(result).toContain('No PL/SQL routes configured');
+			expect(result).toContain('No static routes configured');
 		});
 	});
 
