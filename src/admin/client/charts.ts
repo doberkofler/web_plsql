@@ -1,5 +1,5 @@
 import {Chart, registerables} from 'chart.js';
-import type {State, ChartInstance} from '../js/types.js';
+import type {State, ChartInstance, HistoryBucket} from '../js/types.js';
 import type {StatusResponse} from '../js/schemas.js';
 
 // Register Chart.js components
@@ -189,6 +189,70 @@ export function initCharts(state: State): void {
 }
 
 /**
+ * Hydrate charts and state from server history.
+ * @param state - Application state.
+ * @param history - Server history buffer.
+ */
+export function hydrateHistory(state: State, history: HistoryBucket[]): void {
+	state.history.labels = [];
+	state.history.requests = [];
+	state.history.avgResponseTimes = [];
+	state.history.p95ResponseTimes = [];
+	state.history.p99ResponseTimes = [];
+	state.history.poolUsage = {};
+
+	history.forEach((b) => {
+		const timeLabel = new Date(b.timestamp).toLocaleTimeString();
+		state.history.labels.push(timeLabel);
+		state.history.requests.push(b.requests); // Total requests in bucket
+		state.history.avgResponseTimes.push(b.durationAvg);
+		state.history.p95ResponseTimes ??= [];
+		state.history.p95ResponseTimes.push(b.durationP95);
+		state.history.p99ResponseTimes ??= [];
+		state.history.p99ResponseTimes.push(b.durationP99);
+
+		b.pools.forEach((p) => {
+			state.history.poolUsage[p.name] ??= [];
+			state.history.poolUsage[p.name]?.push(p.connectionsInUse);
+		});
+	});
+
+	const trafficChart = state.charts.traffic;
+	if (trafficChart) {
+		trafficChart.data.labels = state.history.labels;
+		const ds0 = trafficChart.data.datasets[0];
+		const ds1 = trafficChart.data.datasets[1];
+		if (ds0) ds0.data = state.history.requests;
+		if (ds1) ds1.data = state.history.avgResponseTimes;
+		trafficChart.update();
+	}
+
+	const poolChart = state.charts.pool;
+	if (poolChart) {
+		poolChart.data.labels = state.history.labels;
+		Object.entries(state.history.poolUsage).forEach(([name, usage], i) => {
+			let dataset = poolChart.data.datasets.find((ds) => ds.label === name);
+			if (!dataset) {
+				const colors = ['#10b981', '#f59e0b', '#3b82f6', '#8b5cf6', '#ec4899'];
+				const color = colors[i % colors.length] ?? '#3b82f6';
+				dataset = {
+					label: name,
+					data: usage,
+					borderColor: color,
+					backgroundColor: undefined,
+					fill: undefined,
+					tension: 0.4,
+				};
+				poolChart.data.datasets.push(dataset);
+			} else {
+				dataset.data = usage;
+			}
+		});
+		poolChart.update();
+	}
+}
+
+/**
  * Update charts with new data.
  * @param state - Application state.
  * @param timeLabel - Time label for the data point.
@@ -228,7 +292,7 @@ export function updateCharts(state: State, timeLabel: string, reqPerSec: number,
 				usage = [];
 				history.poolUsage[poolName] = usage;
 				const colors = ['#10b981', '#f59e0b', '#3b82f6', '#8b5cf6', '#ec4899'];
-				const color = colors[i % colors.length];
+				const color = colors[i % colors.length] ?? '#3b82f6';
 				if (color) {
 					poolChart.data.datasets.push({
 						label: poolName,
@@ -250,7 +314,8 @@ export function updateCharts(state: State, timeLabel: string, reqPerSec: number,
 }
 
 /**
- * Create or update a pie chart for cache statistics.
+ * Render a cache statistics pie chart.
+ *
  * @param canvas - The canvas element.
  */
 export function renderCachePie(canvas: HTMLCanvasElement): void {
@@ -287,7 +352,7 @@ export function renderCachePie(canvas: HTMLCanvasElement): void {
 							const value = context.raw as number;
 							const total = hits + misses;
 							const pct = total > 0 ? ((value / total) * 100).toFixed(1) : '0';
-							return `${context.label}: ${value} (${pct}%)`;
+							return `${context.label ?? ''}: ${value} (${pct}%)`;
 						},
 					},
 				},

@@ -1,14 +1,5 @@
 import {z} from 'zod';
-import {
-	statusSchema,
-	cacheDataSchema,
-	errorLogSchema,
-	accessLogResponseSchema,
-	type StatusResponse,
-	type CacheDataResponse,
-	type ErrorLogResponse,
-	type AccessLogResponse,
-} from './schemas.js';
+import {statusSchema, errorLogSchema, accessLogResponseSchema, type StatusResponse, type ErrorLogResponse, type AccessLogResponse} from './schemas.js';
 
 /**
  * Validates response data against a Zod schema.
@@ -40,18 +31,6 @@ export const typedApi = {
 		if (!res.ok) throw new Error(`GET api/status failed: ${res.statusText}`);
 		const data: unknown = await res.json();
 		return validate(data, statusSchema, 'api/status');
-	},
-
-	/**
-	 * Get cache data with validation.
-	 *
-	 * @returns The validated cache data response.
-	 */
-	async getCache(): Promise<CacheDataResponse[]> {
-		const res = await fetch('api/cache');
-		if (!res.ok) throw new Error(`GET api/cache failed: ${res.statusText}`);
-		const data: unknown = await res.json();
-		return validate(data, z.array(cacheDataSchema), 'api/cache');
 	},
 
 	/**

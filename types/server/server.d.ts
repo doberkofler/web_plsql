@@ -8,11 +8,7 @@ export namespace AdminContext {
         argumentCache: Cache<argsType>;
     }>;
     let paused: boolean;
-    namespace metrics {
-        let requestCount: number;
-        let errorCount: number;
-        let totalDuration: number;
-    }
+    let statsManager: StatsManager;
 }
 export function createServer(app: Express, ssl?: sslConfig): http.Server | https.Server;
 export function startServer(config: configType, ssl?: sslConfig): Promise<webServer>;
@@ -70,5 +66,6 @@ export type sslConfig = {
     certFilename: string;
 };
 import { Cache } from '../util/cache.js';
+import { StatsManager } from '../util/statsManager.js';
 import http from 'node:http';
 import https from 'node:https';

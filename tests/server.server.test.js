@@ -19,14 +19,25 @@ vi.mock('../src/util/shutdown.js');
 
 /**
  * Interface for the mocked plsql handler
- * @typedef {import('express').RequestHandler & {procedureNameCache: {clear: Mock}, argumentCache: {clear: Mock}}} MockHandler
+ * @typedef {import('express').RequestHandler & {
+ *   procedureNameCache: {clear: Mock, keys: Mock, getStats: Mock},
+ *   argumentCache: {clear: Mock, keys: Mock, getStats: Mock}
+ * }} MockHandler
  */
 
 vi.mock('../src/handler/plsql/handlerPlSql.js', () => ({
 	handlerWebPlSql: vi.fn(() => {
 		const handler = /** @type {MockHandler} */ (/** @type {unknown} */ (vi.fn()));
-		handler.procedureNameCache = {clear: vi.fn()};
-		handler.argumentCache = {clear: vi.fn()};
+		handler.procedureNameCache = {
+			clear: vi.fn(),
+			keys: vi.fn(() => []),
+			getStats: vi.fn(() => ({hits: 0, misses: 0})),
+		};
+		handler.argumentCache = {
+			clear: vi.fn(),
+			keys: vi.fn(() => []),
+			getStats: vi.fn(() => ({hits: 0, misses: 0})),
+		};
 		return handler;
 	}),
 }));
@@ -113,7 +124,6 @@ describe('server/server', () => {
 		AdminContext.pools = [];
 		AdminContext.caches = [];
 		AdminContext.paused = false;
-		AdminContext.metrics = {requestCount: 0, errorCount: 0, totalDuration: 0};
 	});
 
 	describe('createServer', () => {

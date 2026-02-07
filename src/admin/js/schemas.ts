@@ -4,25 +4,17 @@ import {z} from 'zod';
  * Cache statistics schema.
  */
 export const cacheStatsSchema = z.object({
+	size: z.number(),
 	hits: z.number(),
 	misses: z.number(),
 });
 
 /**
- * Cache information schema.
+ * Pool cache snapshot schema.
  */
-export const cacheInfoSchema = z.object({
-	size: z.number(),
-	stats: cacheStatsSchema,
-});
-
-/**
- * Cache data schema for a connection pool.
- */
-export const cacheDataSchema = z.object({
-	poolName: z.string(),
-	procedureNameCache: cacheInfoSchema,
-	argumentCache: cacheInfoSchema,
+export const poolCacheSnapshotSchema = z.object({
+	procedureName: cacheStatsSchema,
+	argument: cacheStatsSchema,
 });
 
 /**
@@ -44,6 +36,7 @@ export const poolInfoSchema = z.object({
 	connectionsInUse: z.number(),
 	connectionsOpen: z.number(),
 	stats: poolStatsSchema.nullable(),
+	cache: poolCacheSnapshotSchema.optional(),
 });
 
 /**
@@ -53,6 +46,37 @@ export const metricsSchema = z.object({
 	requestCount: z.number(),
 	errorCount: z.number(),
 	avgResponseTime: z.number(),
+	minResponseTime: z.number(),
+	maxResponseTime: z.number(),
+});
+
+/**
+ * Historical bucket schema.
+ */
+export const bucketSchema = z.object({
+	timestamp: z.number(),
+	requests: z.number(),
+	errors: z.number(),
+	durationMin: z.number(),
+	durationMax: z.number(),
+	durationAvg: z.number(),
+	durationP95: z.number(),
+	durationP99: z.number(),
+	system: z.object({
+		cpu: z.number(),
+		heapUsed: z.number(),
+		heapTotal: z.number(),
+		rss: z.number(),
+		external: z.number(),
+	}),
+	pools: z.array(
+		z.object({
+			name: z.string(),
+			connectionsInUse: z.number(),
+			connectionsOpen: z.number(),
+			cache: poolCacheSnapshotSchema.optional(),
+		}),
+	),
 });
 
 /**
@@ -102,10 +126,15 @@ export const systemInfoSchema = z.object({
 		heapTotal: z.number(),
 		heapUsed: z.number(),
 		external: z.number(),
+		rssMax: z.number().optional(),
+		heapTotalMax: z.number().optional(),
+		heapUsedMax: z.number().optional(),
+		externalMax: z.number().optional(),
 	}),
 	cpu: z.object({
 		user: z.number(),
 		system: z.number(),
+		max: z.number().optional(),
 	}),
 });
 
@@ -118,6 +147,7 @@ export const statusSchema = z.object({
 	uptime: z.number(),
 	startTime: z.string(),
 	metrics: metricsSchema,
+	history: z.array(bucketSchema).optional(),
 	pools: z.array(poolInfoSchema),
 	system: systemInfoSchema,
 	config: serverConfigSchema.partial(),
@@ -148,6 +178,5 @@ export const accessLogResponseSchema = z.union([z.array(z.string()), z.object({m
  * API response type helpers.
  */
 export type StatusResponse = z.infer<typeof statusSchema>;
-export type CacheDataResponse = z.infer<typeof cacheDataSchema>;
 export type ErrorLogResponse = z.infer<typeof errorLogSchema>;
 export type AccessLogResponse = z.infer<typeof accessLogResponseSchema>;

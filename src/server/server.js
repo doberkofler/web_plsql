@@ -18,6 +18,8 @@ import {readFileSyncUtf8, getJsonFile} from '../util/file.js';
 import {showConfig} from './config.js';
 import {Cache} from '../util/cache.js';
 
+import {StatsManager} from '../util/statsManager.js';
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -52,11 +54,7 @@ export const AdminContext = {
 	/** @type {Array<{poolName: string, procedureNameCache: Cache<string>, argumentCache: Cache<argsType>}>} */
 	caches: [],
 	paused: false,
-	metrics: {
-		requestCount: 0,
-		errorCount: 0,
-		totalDuration: 0,
-	},
+	statsManager: new StatsManager(),
 };
 
 /**
@@ -191,16 +189,45 @@ export const startServer = async (config, ssl) => {
 		});
 
 		app.use([`${i.route}/:name`, i.route], (req, res, next) => {
-			AdminContext.metrics.requestCount++;
 			const start = process.hrtime();
 			res.on('finish', () => {
 				const diff = process.hrtime(start);
 				const duration = diff[0] * 1000 + diff[1] / 1_000_000;
-				AdminContext.metrics.totalDuration += duration;
+				AdminContext.statsManager.recordRequest(duration, res.statusCode >= 400);
 			});
 			handler(req, res, next);
 		});
 	}
+
+	// Update pools in StatsManager on each rotation
+	const originalRotate = AdminContext.statsManager.rotateBucket.bind(AdminContext.statsManager);
+	AdminContext.statsManager.rotateBucket = () => {
+		const poolSnapshots = AdminContext.pools.map((pool, index) => {
+			const cache = AdminContext.caches[index];
+			const name = cache?.poolName ?? `pool-${index}`;
+			const procStats = cache?.procedureNameCache.getStats();
+			const argStats = cache?.argumentCache.getStats();
+
+			return {
+				name,
+				connectionsOpen: pool.connectionsOpen,
+				connectionsInUse: pool.connectionsInUse,
+				cache: {
+					procedureName: {
+						size: cache?.procedureNameCache.keys().length ?? 0,
+						hits: procStats?.hits ?? 0,
+						misses: procStats?.misses ?? 0,
+					},
+					argument: {
+						size: cache?.argumentCache.keys().length ?? 0,
+						hits: argStats?.hits ?? 0,
+						misses: argStats?.misses ?? 0,
+					},
+				},
+			};
+		});
+		originalRotate(poolSnapshots);
+	};
 
 	// create server
 	debug('startServer: createServer');
@@ -225,6 +252,8 @@ export const startServer = async (config, ssl) => {
 
 	const shutdown = async () => {
 		debug('startServer: onShutdown');
+
+		AdminContext.statsManager.stop();
 
 		await poolsClose(connectionPools);
 

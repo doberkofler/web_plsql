@@ -1,8 +1,8 @@
 import {typedApi} from '../api.js';
-import {formatDuration, formatDateTime} from '../util/format.js';
+import {formatDuration, formatDateTime, formatMs} from '../util/format.js';
 import {errorRow, poolCard} from '../templates/index.js';
 import {renderConfig} from '../templates/config.js';
-import type {State, ServerConfig} from '../types.js';
+import type {State, ServerConfig, SystemMetrics} from '../types.js';
 
 /**
  * Refresh the error logs view.
@@ -10,9 +10,80 @@ import type {State, ServerConfig} from '../types.js';
 export async function refreshErrors(): Promise<void> {
 	const logs = await typedApi.getErrorLogs();
 	const tbody = document.querySelector('#errors-table tbody');
+	const filterInput = document.getElementById('error-filter') as HTMLInputElement | null;
 	if (!tbody) return;
 
-	tbody.innerHTML = logs.map((l) => errorRow(l)).join('');
+	const filter = filterInput?.value.toLowerCase() ?? '';
+	const filteredLogs = logs.filter((l) => {
+		if (!filter) return true;
+		return (
+			l.message.toLowerCase().includes(filter) ||
+			(l.req?.url?.toLowerCase().includes(filter) ?? false) ||
+			(l.req?.method?.toLowerCase().includes(filter) ?? false) ||
+			(l.details?.fullMessage?.toLowerCase().includes(filter) ?? false)
+		);
+	});
+
+	tbody.innerHTML = filteredLogs.map((l) => errorRow(l)).join('');
+
+	// Add click listeners for detail view
+	tbody.querySelectorAll('tr').forEach((row, idx) => {
+		row.classList.add('errors-table-row');
+		row.onclick = () => {
+			const log = filteredLogs[idx];
+			if (!log) return;
+			const modal = document.getElementById('error-modal');
+			const content = document.getElementById('error-detail-content');
+			if (modal && content) {
+				content.textContent = JSON.stringify(log, null, 2);
+				modal.style.display = 'flex';
+			}
+		};
+	});
+}
+
+/**
+ * Refresh the statistical history view.
+ *
+ * @param status - The status data.
+ */
+export function refreshStats(status: Partial<State['status']>): void {
+	const tbody = document.querySelector('#stats-table tbody');
+	const limitSelect = document.getElementById('stats-row-limit') as HTMLSelectElement | null;
+	const infoEl = document.getElementById('stats-history-info');
+	if (!tbody || !status.history) return;
+
+	const limit = limitSelect ? parseInt(limitSelect.value) : 50;
+	const history = [...status.history].reverse();
+	const displayed = limit > 0 ? history.slice(0, limit) : history;
+
+	if (infoEl) {
+		infoEl.textContent = `Showing latest ${displayed.length} of ${history.length} data points`;
+	}
+
+	tbody.innerHTML = displayed
+		.map((b) => {
+			const time = new Date(b.timestamp).toLocaleTimeString();
+			const rss = (b.system.rss / 1024 / 1024).toFixed(1);
+			const heap = (b.system.heapUsed / 1024 / 1024).toFixed(1);
+
+			return `
+			<tr>
+				<td class="font-mono text-xs">${time}</td>
+				<td class="text-center font-bold text-bright">${b.requests}</td>
+				<td class="text-center font-bold ${b.errors > 0 ? 'text-danger' : 'text-success'}">${b.errors}</td>
+				<td class="text-right font-mono">${b.durationMin.toFixed(1)}</td>
+				<td class="text-right font-mono text-accent font-bold">${b.durationAvg.toFixed(1)}</td>
+				<td class="text-right font-mono text-warning">${b.durationP95.toFixed(1)}</td>
+				<td class="text-right font-mono text-danger">${b.durationP99.toFixed(1)}</td>
+				<td class="text-right font-mono">${b.durationMax.toFixed(1)}</td>
+				<td class="text-right font-mono">${b.system.cpu.toFixed(1)}%</td>
+				<td class="text-right font-mono">${rss}</td>
+				<td class="text-right font-mono">${heap}</td>
+			</tr>
+		`;
+		})
+		.join('');
 }
 
 /**
@@ -21,14 +92,23 @@ export async function refreshErrors(): Promise<void> {
 export async function refreshAccess(): Promise<void> {
 	const result = await typedApi.getAccessLogs();
 	const el = document.getElementById('access-log-view');
+	const rangeEl = document.getElementById('access-log-range');
 	if (!el) return;
 
+	let logCount = 0;
 	if (Array.isArray(result)) {
 		el.textContent = result.join('\n');
+		logCount = result.length;
 	} else if (result && typeof result === 'object' && 'message' in result) {
 		el.textContent = result.message;
+		logCount = 0;
 	} else {
 		el.textContent = 'No logs available';
+		logCount = 0;
+	}
+
+	if (rangeEl) {
+		rangeEl.textContent = logCount > 0 ? `Showing last ${logCount} log entries` : 'No logs available';
 	}
 
 	if (el.parentElement) {
@@ -79,30 +159,39 @@ function formatBytes(bytes: number): string {
 }
 
 /**
- * Format microseconds to milliseconds.
+ * Format microseconds to a human-readable duration.
  *
  * @param microseconds - CPU time in microseconds.
  * @returns Formatted string.
  */
 function formatCpuTime(microseconds: number): string {
-	const milliseconds = microseconds / 1000;
-	return `${milliseconds.toFixed(2)} ms`;
+	return formatMs(microseconds / 1000);
 }
 
 /**
  * Refresh the system info view.
  *
  * @param status - The status data.
+ * @param _state - The application state.
  */
-export function refreshSystem(status: Partial<State['status']>): void {
+export function refreshSystem(status: Partial<State['status']>, _state?: State): void {
 	const middlewareVersion = document.getElementById('middleware-version');
-	if (middlewareVersion && status.version) middlewareVersion.textContent = status.version;
+	if (middlewareVersion && status.version) {
+		middlewareVersion.textContent = status.version;
+		middlewareVersion.title = 'The version of the web_plsql gateway';
+	}
 
 	const nodeVersion = document.getElementById('node-version');
-	if (nodeVersion && status.system) nodeVersion.textContent = status.system.nodeVersion;
+	if (nodeVersion && status.system) {
+		nodeVersion.textContent = status.system.nodeVersion;
+		nodeVersion.title = 'The version of the Node.js runtime';
+	}
 
 	const platform = document.getElementById('platform-info');
-	if (platform && status.system) platform.textContent = `${status.system.platform} (${status.system.arch})`;
+	if (platform && status.system) {
+		platform.textContent = `${status.system.platform} (${status.system.arch})`;
+		platform.title = 'The operating system and architecture';
+	}
 
 	const systemUptime = document.getElementById('system-uptime');
 	if (systemUptime && status.uptime) systemUptime.textContent = formatDuration(status.uptime);
@@ -114,36 +203,61 @@ export function refreshSystem(status: Partial<State['status']>): void {
 	if (systemStatusText) systemStatusText.textContent = status.status?.toUpperCase() ?? '-';
 
 	const totalRequests = document.getElementById('total-requests');
-	if (totalRequests && status.metrics) totalRequests.textContent = status.metrics.requestCount.toLocaleString();
-
-	const totalErrors = document.getElementById('total-errors');
-	if (totalErrors && status.metrics) totalErrors.textContent = status.metrics.errorCount.toLocaleString();
-
-	const activePools = document.getElementById('active-pools');
-	if (activePools && status.pools) activePools.textContent = status.pools.length.toString();
-
-	// Memory usage
-	if (status.system?.memory) {
-		const memHeapUsed = document.getElementById('memory-heap-used');
-		if (memHeapUsed) memHeapUsed.textContent = formatBytes(status.system.memory.heapUsed);
-
-		const memHeapTotal = document.getElementById('memory-heap-total');
-		if (memHeapTotal) memHeapTotal.textContent = formatBytes(status.system.memory.heapTotal);
-
-		const memRss = document.getElementById('memory-rss');
-		if (memRss) memRss.textContent = formatBytes(status.system.memory.rss);
-
-		const memExternal = document.getElementById('memory-external');
-		if (memExternal) memExternal.textContent = formatBytes(status.system.memory.external);
+	if (totalRequests && status.metrics) {
+		totalRequests.textContent = status.metrics.requestCount.toLocaleString();
+		totalRequests.title = 'Cumulative number of requests handled by the server';
 	}
 
-	// CPU usage
-	if (status.system?.cpu) {
-		const cpuUser = document.getElementById('cpu-user');
-		if (cpuUser) cpuUser.textContent = formatCpuTime(status.system.cpu.user);
+	const totalErrors = document.getElementById('total-errors');
+	if (totalErrors && status.metrics) {
+		totalErrors.textContent = status.metrics.errorCount.toLocaleString();
+		totalErrors.title = 'Cumulative number of failed requests';
+	}
 
-		const cpuSystem = document.getElementById('cpu-system');
-		if (cpuSystem) cpuSystem.textContent = formatCpuTime(status.system.cpu.system);
+	const activePools = document.getElementById('active-pools');
+	if (activePools && status.pools) {
+		activePools.textContent = status.pools.length.toString();
+		activePools.title = 'Number of database connection pools currently active';
+	}
+
+	// Memory and CPU usage with Server-provided Min/Max
+	if (status.system) {
+		const system = status.system;
+		const metrics = {
+			heapUsed: system.memory.heapUsed,
+			heapTotal: system.memory.heapTotal,
+			rss: system.memory.rss,
+			external: system.memory.external,
+			cpuUser: system.cpu.user,
+			cpuSystem: system.cpu.system,
+		};
+
+		const updateMem = (id: string, key: keyof SystemMetrics, maxKey: keyof typeof system.memory) => {
+			const val = metrics[key];
+			const max = system.memory[maxKey];
+			const el = document.getElementById(id);
+			const maxEl = document.getElementById(`${id}-max`);
+			if (el) el.textContent = formatBytes(val);
+			if (maxEl && typeof max === 'number') maxEl.textContent = formatBytes(max);
+		};
+
+		const updateCpu = (id: string, key: keyof SystemMetrics) => {
+			const val = metrics[key];
+			const el = document.getElementById(id);
+			if (el) el.textContent = formatCpuTime(val);
+		};
+
+		updateMem('memory-heap-used', 'heapUsed', 'heapUsedMax');
+		updateMem('memory-heap-total', 'heapTotal', 'heapTotalMax');
+		updateMem('memory-rss', 'rss', 'rssMax');
+		updateMem('memory-external', 'external', 'externalMax');
+		updateCpu('cpu-user', 'cpuUser');
+		updateCpu('cpu-system', 'cpuSystem');
+
+		const cpuMaxEl = document.getElementById('cpu-max');
+		if (cpuMaxEl && typeof system.cpu.max === 'number') {
+			cpuMaxEl.textContent = `${system.cpu.max.toFixed(1)}%`;
+		}
 	}
 
 	const systemRefreshStatus = document.getElementById('system-refresh-status');
@@ -151,8 +265,9 @@ export function refreshSystem(status: Partial<State['status']>): void {
 	const refreshInterval = document.getElementById('refresh-interval') as HTMLSelectElement | null;
 	if (systemRefreshStatus && autoRefreshToggle && refreshInterval) {
 		if (autoRefreshToggle.checked) {
-			const intervalSec = parseInt(refreshInterval.value) / 1000;
-			systemRefreshStatus.textContent = `Active (${intervalSec}s)`;
+			const intervalMs = parseInt(refreshInterval.value);
+			const intervalStr = intervalMs < 60000 ? `${intervalMs / 1000}s` : '1m';
+			systemRefreshStatus.textContent = `Active (${intervalStr})`;
 			systemRefreshStatus.classList.add('text-success');
 			systemRefreshStatus.classList.remove('text-accent');
 		} else {

@@ -1,8 +1,8 @@
 import {typedApi} from './api.js';
-import {initCharts, updateCharts} from '../client/charts.js';
+import {initCharts, updateCharts, hydrateHistory} from '../client/charts.js';
 import {formatDuration, formatDateTime} from './util/format.js';
 import {initTheme} from './ui/theme.js';
-import {refreshErrors, refreshAccess, refreshConfig, refreshPools, refreshSystem} from './ui/views.js';
+import {refreshErrors, refreshAccess, refreshConfig, refreshPools, refreshSystem, refreshStats} from './ui/views.js';
 import type {State} from './types.js';
 
 /**
@@ -12,6 +12,7 @@ const viewIcons: Record<string, string> = {
 	overview: 'dashboard',
 	errors: 'error',
 	access: 'list_alt',
+	stats: 'query_stats',
 	cache: 'cached',
 	pools: 'database',
 	config: 'settings',
@@ -33,9 +34,13 @@ const state: State = {
 		labels: [],
 		requests: [],
 		avgResponseTimes: [],
+		p95ResponseTimes: [],
+		p99ResponseTimes: [],
 		poolUsage: {},
 	},
 	charts: {},
+	metricsMin: {},
+	metricsMax: {},
 };
 
 /**
@@ -48,21 +53,34 @@ export async function clearCache(poolName: string): Promise<void> {
 	await updateStatus();
 }
 
+const STORAGE_KEYS = {
+	REFRESH_INTERVAL: 'admin_refresh_interval',
+	HISTORY_DURATION: 'admin_history_duration',
+	AUTO_REFRESH: 'admin_auto_refresh',
+	THEME: 'theme',
+	LAST_VIEW: 'admin_last_view',
+};
+
 /**
  * Update server status.
  */
 async function updateStatus(): Promise<void> {
 	const now = Date.now();
 	const newStatus = await typedApi.getStatus();
+
+	// Hydrate history on first load or if history is provided
+	if (newStatus.history && state.history.labels.length === 0) {
+		hydrateHistory(state, newStatus.history);
+	}
+
 	state.status = newStatus;
 
 	if (!newStatus.metrics || !newStatus.pools) return;
 
-	const deltaSec = (now - state.lastUpdateTime) / 1000;
-	const reqCountDelta = newStatus.metrics.requestCount - state.lastRequestCount;
-
-	const reqPerSec = deltaSec > 0 ? reqCountDelta / deltaSec : 0;
-	const avgResponseTime = newStatus.metrics.avgResponseTime;
+	// Use server provided interval stats if available
+	const latestBucket = newStatus.history?.[newStatus.history.length - 1];
+	const reqPerSec = latestBucket ? latestBucket.requests / 5 : 0; // Assuming 5s interval
+	const avgResponseTime = latestBucket ? latestBucket.durationAvg : newStatus.metrics.avgResponseTime;
 
 	state.lastRequestCount = newStatus.metrics.requestCount;
 	state.lastErrorCount = newStatus.metrics.errorCount;
@@ -84,21 +102,28 @@ async function updateStatus(): Promise<void> {
 	if (reqCount) reqCount.textContent = newStatus.metrics.requestCount.toLocaleString();
 
 	const reqPerSecVal = document.getElementById('req-per-sec');
-	if (reqPerSecVal) reqPerSecVal.textContent = `${reqPerSec.toFixed(2)} req/s`;
+	if (reqPerSecVal) reqPerSecVal.textContent = reqPerSec.toFixed(2);
+
+	const avgReqPerSecVal = document.getElementById('avg-req-per-sec');
+	if (avgReqPerSecVal) {
+		const avgLifetime = newStatus.uptime > 0 ? newStatus.metrics.requestCount / newStatus.uptime : 0;
+		avgReqPerSecVal.textContent = avgLifetime.toFixed(2);
+	}
 
 	const avgRespTimeVal = document.getElementById('avg-resp-time');
-	if (avgRespTimeVal) avgRespTimeVal.textContent = `Avg: ${avgResponseTime.toFixed(1)}ms`;
+	if (avgRespTimeVal) avgRespTimeVal.textContent = `${newStatus.metrics.avgResponseTime.toFixed(1)}ms`;
 
 	const errCount = document.getElementById('err-count');
 	if (errCount) errCount.textContent = newStatus.metrics.errorCount.toLocaleString();
 
 	// Update Cache Overview
-	const caches = await typedApi.getCache();
 	let totalHits = 0;
 	let totalMisses = 0;
-	caches.forEach((c) => {
-		totalHits += c.procedureNameCache.stats.hits + c.argumentCache.stats.hits;
-		totalMisses += c.procedureNameCache.stats.misses + c.argumentCache.stats.misses;
+	newStatus.pools.forEach((p) => {
+		if (p.cache) {
+			totalHits += p.cache.procedureName.hits + p.cache.argument.hits;
+			totalMisses += p.cache.procedureName.misses + p.cache.argument.misses;
+		}
 	});
 	const totalRequests = totalHits + totalMisses;
 	const hitRate = totalRequests > 0 ? Math.round((totalHits / totalRequests) * 100) : 0;
@@ -127,8 +152,9 @@ async function updateStatus(): Promise<void> {
 	if (state.currentView === 'errors') await refreshErrors();
 	if (state.currentView === 'access') await refreshAccess();
 	if (state.currentView === 'pools') refreshPools(newStatus);
+	if (state.currentView === 'stats') refreshStats(newStatus);
 	if (state.currentView === 'config') refreshConfig(state);
-	if (state.currentView === 'system') refreshSystem(newStatus);
+	if (state.currentView === 'system') refreshSystem(newStatus, state);
 }
 
 /**
@@ -160,26 +186,20 @@ function stopRefreshTimer(): void {
  * Update history points labels to be time-based.
  */
 function updateHistoryLabels(): void {
-	const intervalSelect = document.getElementById('refresh-interval') as HTMLSelectElement | null;
 	const historySelect = document.getElementById('chart-history-points') as HTMLSelectElement | null;
-	if (!intervalSelect || !historySelect) return;
+	if (!historySelect) return;
 
-	const intervalMs = parseInt(intervalSelect.value);
-	const points = [30, 60, 120];
+	Array.from(historySelect.options).forEach((option) => {
+		const durationSeconds = parseInt(option.value);
 
-	points.forEach((pts, idx) => {
-		const option = historySelect.options[idx];
-		if (!option) return;
-
-		const totalSeconds = (pts * intervalMs) / 1000;
 		let timeStr = '';
-		if (totalSeconds < 60) {
-			timeStr = `${totalSeconds}s`;
-		} else if (totalSeconds < 3600) {
-			timeStr = `${Math.round(totalSeconds / 60)} min`;
+		if (durationSeconds < 60) {
+			timeStr = `${durationSeconds}s`;
+		} else if (durationSeconds < 3600) {
+			timeStr = `${Math.round(durationSeconds / 60)} min`;
 		} else {
-			const hours = totalSeconds / 3600;
-			timeStr = hours === Math.round(hours) ? `${hours} hours` : `${hours.toFixed(1)} hours`;
+			const hours = durationSeconds / 3600;
+			timeStr = hours === Math.round(hours) ? `${hours} hour${hours > 1 ? 's' : ''}` : `${hours.toFixed(1)} hours`;
 		}
 		option.textContent = `Last ${timeStr}`;
 	});
@@ -192,6 +212,7 @@ document.querySelectorAll('nav button').forEach((btnEl) => {
 		const view = btn.dataset.view;
 		if (!view) return;
 		state.currentView = view;
+		localStorage.setItem(STORAGE_KEYS.LAST_VIEW, view);
 		document.querySelectorAll('.view').forEach((vEl) => {
 			const v = vEl as HTMLElement;
 			v.style.display = 'none';
@@ -212,8 +233,9 @@ document.querySelectorAll('nav button').forEach((btnEl) => {
 		if (view === 'errors') await refreshErrors();
 		if (view === 'access') await refreshAccess();
 		if (view === 'pools') refreshPools(state.status);
+		if (view === 'stats') refreshStats(state.status);
 		if (view === 'config') refreshConfig(state);
-		if (view === 'system') refreshSystem(state.status);
+		if (view === 'system') refreshSystem(state.status, state);
 	};
 });
 
@@ -221,6 +243,7 @@ const autoRefreshToggle = document.getElementById('auto-refresh-toggle') as HTML
 if (autoRefreshToggle) {
 	autoRefreshToggle.onchange = (e: Event) => {
 		const target = e.target as HTMLInputElement;
+		localStorage.setItem(STORAGE_KEYS.AUTO_REFRESH, String(target.checked));
 		if (target.checked) startRefreshTimer();
 		else stopRefreshTimer();
 	};
@@ -229,23 +252,29 @@ if (autoRefreshToggle) {
 const refreshIntervalSelect = document.getElementById('refresh-interval') as HTMLSelectElement | null;
 if (refreshIntervalSelect) {
 	refreshIntervalSelect.onchange = () => {
+		localStorage.setItem(STORAGE_KEYS.REFRESH_INTERVAL, refreshIntervalSelect.value);
 		startRefreshTimer();
 		updateHistoryLabels();
-		refreshSystem(state.status);
+		refreshSystem(state.status, state);
 	};
 }
 
 const chartHistorySelect = document.getElementById('chart-history-points') as HTMLSelectElement | null;
 if (chartHistorySelect) {
 	chartHistorySelect.onchange = () => {
-		state.maxHistoryPoints = parseInt(chartHistorySelect.value);
-		// Trim history if needed
-		while (state.history.labels.length > state.maxHistoryPoints) {
-			state.history.labels.shift();
-			state.history.requests.shift();
-			state.history.avgResponseTimes.shift();
-			Object.values(state.history.poolUsage).forEach((u) => u.shift());
-		}
+		localStorage.setItem(STORAGE_KEYS.HISTORY_DURATION, chartHistorySelect.value);
+		const intervalSelect = document.getElementById('refresh-interval') as HTMLSelectElement | null;
+		if (!intervalSelect) return;
+		const intervalMs = parseInt(intervalSelect.value);
+		const durationSeconds = parseInt(chartHistorySelect.value);
+		state.maxHistoryPoints = Math.max(1, Math.floor(durationSeconds / (intervalMs / 1000)));
+
+		// Clear history to force re-hydration from server on next update
+		state.history.labels = [];
+		state.history.requests = [];
+		state.history.avgResponseTimes = [];
+		state.history.poolUsage = {};
+
 		void updateStatus();
 	};
 }
@@ -257,50 +286,70 @@ if (manualRefreshBtn) {
 	};
 }
 
-// Server controls
-const btnPause = document.getElementById('btn-pause');
-if (btnPause) {
-	btnPause.onclick = () => {
-		void typedApi.post('api/server/pause').then(() => {
-			void updateStatus();
-		});
+const errorFilterInput = document.getElementById('error-filter') as HTMLInputElement | null;
+if (errorFilterInput) {
+	errorFilterInput.oninput = () => {
+		void refreshErrors();
 	};
 }
 
-const btnResume = document.getElementById('btn-resume');
-if (btnResume) {
-	btnResume.onclick = () => {
-		void typedApi.post('api/server/resume').then(() => {
-			void updateStatus();
-		});
+const statsRowLimitSelect = document.getElementById('stats-row-limit') as HTMLSelectElement | null;
+if (statsRowLimitSelect) {
+	statsRowLimitSelect.onchange = () => {
+		refreshStats(state.status);
 	};
 }
 
-const btnStop = document.getElementById('btn-stop');
-if (btnStop) {
-	btnStop.onclick = () => {
-		if (confirm('Stop the server?')) {
-			void typedApi.post('api/server/stop');
-		}
-	};
-}
-
-const btnClearAllCache = document.getElementById('btn-clear-all-cache');
-if (btnClearAllCache) {
-	btnClearAllCache.onclick = async () => {
-		if (confirm('Are you sure you want to clear all caches in all pools? This action cannot be undone.')) {
-			await typedApi.post('api/cache/clear', {});
-			await updateStatus();
-		}
-	};
-}
+// Close modal on escape key
+window.addEventListener('keydown', (e) => {
+	if (e.key === 'Escape') {
+		const modal = document.getElementById('error-modal');
+		if (modal) modal.style.display = 'none';
+	}
+});
 
 // Initialize
+
+// Load persisted settings
+const savedRefreshInterval = localStorage.getItem(STORAGE_KEYS.REFRESH_INTERVAL);
+if (savedRefreshInterval && refreshIntervalSelect) {
+	refreshIntervalSelect.value = savedRefreshInterval;
+}
+
+const savedHistoryDuration = localStorage.getItem(STORAGE_KEYS.HISTORY_DURATION);
+if (savedHistoryDuration && chartHistorySelect) {
+	chartHistorySelect.value = savedHistoryDuration;
+}
+
+const savedAutoRefresh = localStorage.getItem(STORAGE_KEYS.AUTO_REFRESH);
+if (savedAutoRefresh !== null && autoRefreshToggle) {
+	autoRefreshToggle.checked = savedAutoRefresh === 'true';
+}
+
 initTheme(state);
 initCharts(state);
 updateHistoryLabels();
+
+// Apply initial maxHistoryPoints based on loaded settings
+if (refreshIntervalSelect && chartHistorySelect) {
+	const intervalMs = parseInt(refreshIntervalSelect.value);
+	const durationSeconds = parseInt(chartHistorySelect.value);
+	state.maxHistoryPoints = Math.max(1, Math.floor(durationSeconds / (intervalMs / 1000)));
+}
+
+// Restore last view
+const lastView = localStorage.getItem(STORAGE_KEYS.LAST_VIEW);
+if (lastView) {
+	const btn = document.querySelector<HTMLButtonElement>(`nav button[data-view="${lastView}"]`);
+	if (btn) {
+		btn.click();
+	}
+}
+
 void updateStatus()
 	.then(() => {
-		startRefreshTimer();
+		if (autoRefreshToggle?.checked) {
+			startRefreshTimer();
+		}
 	})
 	.catch(console.error);

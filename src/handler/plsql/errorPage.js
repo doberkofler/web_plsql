@@ -8,7 +8,6 @@ import {getFormattedMessage, logToFile} from '../../util/trace.js';
 import {errorToString} from '../../util/errorToString.js';
 import {getHtmlPage} from '../../util/html.js';
 import {jsonLogger} from '../../util/jsonLogger.js';
-import {AdminContext} from '../../server/server.js';
 
 /**
  * @typedef {import('express').Request} Request
@@ -75,9 +74,6 @@ const getErrorData = (req, error) => {
 export const errorPage = (req, res, options, error) => {
 	// get error data
 	const errorData = getErrorData(req, error);
-
-	// Update metrics
-	AdminContext.metrics.errorCount++;
 
 	// get formatted message
 	const {html, text} = getFormattedMessage(errorData);

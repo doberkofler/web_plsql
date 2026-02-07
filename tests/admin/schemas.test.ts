@@ -1,8 +1,7 @@
 import {describe, it, expect} from 'vitest';
 import {
 	cacheStatsSchema,
-	cacheInfoSchema,
-	cacheDataSchema,
+	poolCacheSnapshotSchema,
 	poolStatsSchema,
 	poolInfoSchema,
 	metricsSchema,
@@ -14,19 +13,19 @@ import {
 describe('Admin Zod Schemas', () => {
 	describe('cacheStatsSchema', () => {
 		it('should validate correct cache stats', () => {
-			const valid = {hits: 10, misses: 5};
+			const valid = {size: 100, hits: 10, misses: 5};
 			expect(cacheStatsSchema.parse(valid)).toEqual(valid);
 		});
 
 		it('should fail on invalid types', () => {
-			const invalid = {hits: '10', misses: 5};
+			const invalid = {size: '100', hits: '10', misses: 5};
 			expect(() => cacheStatsSchema.parse(invalid)).toThrow();
 		});
 	});
 
 	describe('metricsSchema', () => {
 		it('should validate correct metrics', () => {
-			const valid = {requestCount: 100, errorCount: 2, avgResponseTime: 1.5};
+			const valid = {requestCount: 100, errorCount: 2, avgResponseTime: 1.5, minResponseTime: 0.1, maxResponseTime: 10.0};
 			expect(metricsSchema.parse(valid)).toEqual(valid);
 		});
 	});
@@ -38,7 +37,7 @@ describe('Admin Zod Schemas', () => {
 				status: 'running',
 				uptime: 3600,
 				startTime: new Date().toISOString(),
-				metrics: {requestCount: 100, errorCount: 5, avgResponseTime: 2.3},
+				metrics: {requestCount: 100, errorCount: 5, avgResponseTime: 2.3, minResponseTime: 0.1, maxResponseTime: 10.0},
 				pools: [
 					{
 						name: 'pool1',
@@ -76,7 +75,7 @@ describe('Admin Zod Schemas', () => {
 				status: 'paused',
 				uptime: 100,
 				startTime: new Date().toISOString(),
-				metrics: {requestCount: 0, errorCount: 0, avgResponseTime: 0},
+				metrics: {requestCount: 0, errorCount: 0, avgResponseTime: 0, minResponseTime: 0, maxResponseTime: 0},
 				pools: [],
 				system: {
 					nodeVersion: 'v22.0.0',
@@ -104,7 +103,7 @@ describe('Admin Zod Schemas', () => {
 				status: 'invalid_status',
 				uptime: 100,
 				startTime: new Date().toISOString(),
-				metrics: {requestCount: 0, errorCount: 0, avgResponseTime: 0},
+				metrics: {requestCount: 0, errorCount: 0, avgResponseTime: 0, minResponseTime: 0, maxResponseTime: 0},
 				pools: [],
 				system: {
 					nodeVersion: 'v22.0.0',
@@ -143,29 +142,13 @@ describe('Admin Zod Schemas', () => {
 		});
 	});
 
-	describe('cacheInfoSchema', () => {
-		it('should validate cache info', () => {
+	describe('poolCacheSnapshotSchema', () => {
+		it('should validate pool cache snapshot', () => {
 			const valid = {
-				size: 10,
-				stats: {hits: 100, misses: 20},
+				procedureName: {size: 10, hits: 100, misses: 20},
+				argument: {size: 5, hits: 50, misses: 10},
 			};
-			expect(cacheInfoSchema.parse(valid)).toEqual(valid);
-		});
-
-		it('should fail on missing stats', () => {
-			const invalid = {size: 10};
-			expect(() => cacheInfoSchema.parse(invalid)).toThrow();
-		});
-	});
-
-	describe('cacheDataSchema', () => {
-		it('should validate cache data', () => {
-			const valid = {
-				poolName: 'test-pool',
-				procedureNameCache: {size: 5, stats: {hits: 50, misses: 10}},
-				argumentCache: {size: 3, stats: {hits: 30, misses: 5}},
-			};
-			expect(cacheDataSchema.parse(valid)).toEqual(valid);
+			expect(poolCacheSnapshotSchema.parse(valid)).toEqual(valid);
 		});
 	});
 
@@ -186,6 +169,10 @@ describe('Admin Zod Schemas', () => {
 				connectionsInUse: 2,
 				connectionsOpen: 10,
 				stats: {totalRequests: 500, totalTimeouts: 1},
+				cache: {
+					procedureName: {size: 1, hits: 0, misses: 0},
+					argument: {size: 0, hits: 0, misses: 0},
+				},
 			};
 			expect(poolInfoSchema.parse(valid)).toEqual(valid);
 		});

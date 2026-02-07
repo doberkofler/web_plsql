@@ -6,3 +6,4 @@ coverage/
 *.log
 *.tgz
 .eslintcache
+src/admin/lib/

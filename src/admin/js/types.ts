@@ -51,6 +51,8 @@ export type Metrics = {
 	requestCount: number;
 	errorCount: number;
 	avgResponseTime: number;
+	minResponseTime: number;
+	maxResponseTime: number;
 };
 
 /**
@@ -102,12 +104,40 @@ export type Status = {
 };
 
 /**
+ * Resident Set Size - total memory used by the process
+ */
+export type HistoryBucket = {
+	timestamp: number;
+	requests: number;
+	errors: number;
+	durationMin: number;
+	durationMax: number;
+	durationAvg: number;
+	durationP95: number;
+	durationP99: number;
+	system: {
+		cpu: number;
+		heapUsed: number;
+		heapTotal: number;
+		rss: number;
+		external: number;
+	};
+	pools: {
+		name: string;
+		connectionsInUse: number;
+		connectionsOpen: number;
+	}[];
+};
+
+/**
  * Historical data for charts.
  */
 export type HistoryData = {
 	labels: string[];
 	requests: number[];
 	avgResponseTimes: number[];
+	p95ResponseTimes?: number[];
+	p99ResponseTimes?: number[];
 	poolUsage: Record<string, number[]>;
 };
 
@@ -208,6 +238,18 @@ export type ErrorLog = {
 import type {StatusResponse} from './schemas.js';
 
 /**
+ * System metrics for tracking min/max.
+ */
+export type SystemMetrics = {
+	heapUsed: number;
+	heapTotal: number;
+	rss: number;
+	external: number;
+	cpuUser: number;
+	cpuSystem: number;
+};
+
+/**
  * Application state.
  */
 export type State = {
@@ -220,4 +262,6 @@ export type State = {
 	refreshTimer: ReturnType<typeof setInterval> | null;
 	history: HistoryData;
 	charts: Record<string, ChartInstance>;
+	metricsMin: Partial<SystemMetrics>;
+	metricsMax: Partial<SystemMetrics>;
 };

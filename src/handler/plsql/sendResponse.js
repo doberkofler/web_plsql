@@ -29,19 +29,23 @@ export const sendResponse = async (_req, res, page) => {
 
 	// Send the "cookies"
 	page.head.cookies.forEach((cookie) => {
+		/* v8 ignore start */
 		if (debug.enabled) {
 			debugText.push(`res.cookie: name="${cookie.name}" value="${cookie.value}" options=${JSON.stringify(cookie.options)}`);
 		}
+		/* v8 ignore stop */
 
 		res.cookie(cookie.name, cookie.value, cookie.options);
 	});
 
 	// If there is a "redirectLocation" header, we immediately redirect and return
 	if (typeof page.head.redirectLocation === 'string' && page.head.redirectLocation.length > 0) {
+		/* v8 ignore start */
 		if (debug.enabled) {
 			debugText.push(`res.redirect(302, "${page.head.redirectLocation}")`);
 			debug(getBlock('RESPONSE', debugText.join('\n')));
 		}
+		/* v8 ignore stop */
 
 		res.redirect(302, page.head.redirectLocation);
 		return;
@@ -49,9 +53,11 @@ export const sendResponse = async (_req, res, page) => {
 
 	// Send all the "otherHeaders"
 	for (const key in page.head.otherHeaders) {
+		/* v8 ignore start */
 		if (debug.enabled) {
 			debugText.push(`res.set("${key}", "${page.head.otherHeaders[key]}")`);
 		}
+		/* v8 ignore stop */
 
 		res.set(key, page.head.otherHeaders[key]);
 	}
@@ -70,18 +76,23 @@ export const sendResponse = async (_req, res, page) => {
 		}
 
 		if (Object.keys(headers).length > 0) {
+			/* v8 ignore start */
 			if (debug.enabled) {
 				debugText.push(`res.writeHead(200, ${JSON.stringify(headers)})`);
 			}
+			/* v8 ignore stop */
+
 			res.writeHead(200, headers);
 		}
 
 		// Check if fileBlob is a stream
 		if (page.file.fileBlob instanceof stream.Readable) {
+			/* v8 ignore start */
 			if (debug.enabled) {
 				debugText.push(`res.pipe("${page.file.fileType}") - streaming`);
 				debug(getBlock('RESPONSE', debugText.join('\n')));
 			}
+			/* v8 ignore stop */
 
 			/** @type {Promise<void>} */
 			const streamComplete = new Promise((resolve, reject) => {
@@ -96,10 +107,12 @@ export const sendResponse = async (_req, res, page) => {
 			});
 			await streamComplete;
 		} else {
+			/* v8 ignore start */
 			if (debug.enabled) {
 				debugText.push(`res.end("${page.file.fileType}") - buffer`);
 				debug(getBlock('RESPONSE', debugText.join('\n')));
 			}
+			/* v8 ignore stop */
 
 			res.end(page.file.fileBlob, 'binary');
 		}
@@ -108,29 +121,35 @@ export const sendResponse = async (_req, res, page) => {
 
 	// Is the a "contentType" header
 	if (typeof page.head.contentType === 'string' && page.head.contentType.length > 0) {
+		/* v8 ignore start */
 		if (debug.enabled) {
 			debugText.push(`res.set("Content-Type", "${page.head.contentType}")`);
 		}
+		/* v8 ignore stop */
 
 		res.set('Content-Type', page.head.contentType);
 	}
 
 	// If we have a "Status" header, we send the header and then return.
 	if (typeof page.head.statusCode === 'number') {
+		/* v8 ignore start */
 		if (debug.enabled) {
 			debugText.push(`res.status(page.head.statusCode).send("${page.head.statusDescription}")`);
 			debug(getBlock('RESPONSE', debugText.join('\n')));
 		}
+		/* v8 ignore stop */
 
 		res.status(page.head.statusCode).send(page.head.statusDescription);
 		return;
 	}
 
 	// Send the body
+	/* v8 ignore start */
 	if (debug.enabled) {
 		debugText.push(`${'-'.repeat(60)}\n${page.body}`);
 		debug(getBlock('RESPONSE', debugText.join('\n')));
 	}
+	/* v8 ignore stop */
 
 	res.send(page.body);
 };

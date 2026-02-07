@@ -6,12 +6,13 @@ import type {ServerConfig, RouteConfig} from '../types.js';
  * @param value - The value to display.
  * @param isMono - Whether to use monospaced font.
  * @param colorClass - The CSS class for coloring the value.
+ * @param title - Optional tooltip explanation.
  * @returns HTML string.
  */
-function renderStatRow(label: string, value: string | number, isMono = true, colorClass = 'text-accent'): string {
+function renderStatRow(label: string, value: string | number, isMono = true, colorClass = 'text-accent', title = ''): string {
 	const valClass = `${isMono ? 'font-mono' : ''} ${colorClass} font-bold break-all`.trim();
 	return `
-		<div class="stat-row text-sm">
+		<div class="stat-row text-sm" ${title ? `title="${title}"` : ''}>
 			<span>${label}</span>
 			<span class="${valClass}">${value}</span>
 		</div>
@@ -109,19 +110,19 @@ export function renderConfig(config: Partial<ServerConfig>): string {
 	html += '<div class="card mb-8">';
 	html += '<div class="card-header"><span class="material-symbols-rounded">dns</span><h3>Server Settings</h3></div>';
 	if (typeof config.port === 'number') {
-		html += renderStatRow('Port', config.port);
+		html += renderStatRow('Port', config.port, true, 'text-accent', 'The TCP port the server is listening on');
 	}
-	html += renderStatRow('Admin Route', config.adminRoute ?? '/admin');
-	html += renderStatRow('Admin User', config.adminUser ?? '(Not authenticated)');
-	html += renderStatRow('Admin Password', config.adminPassword ?? '(None)');
-	html += renderStatRow('Logger Filename', config.loggerFilename ?? '(Logging disabled)');
+	html += renderStatRow('Admin Route', config.adminRoute ?? '/admin', true, 'text-accent', 'The URL path for the administration console');
+	html += renderStatRow('Admin User', config.adminUser ?? '(Not authenticated)', true, 'text-accent', 'The username required for admin access');
+	html += renderStatRow('Admin Password', config.adminPassword ?? '(None)', true, 'text-accent', 'The password required for admin access');
+	html += renderStatRow('Logger Filename', config.loggerFilename ?? '(Logging disabled)', true, 'text-accent', 'The path to the server log file');
 
 	if (typeof config.uploadFileSizeLimit === 'number') {
 		const limit = config.uploadFileSizeLimit;
 		const mb = (limit / (1024 * 1024)).toFixed(2);
-		html += renderStatRow('Upload Size Limit', `${mb} MB (${limit.toLocaleString()} bytes)`);
+		html += renderStatRow('Upload Size Limit', `${mb} MB (${limit.toLocaleString()} bytes)`, true, 'text-accent', 'Maximum allowed size for file uploads');
 	} else {
-		html += renderStatRow('Upload Size Limit', 'No limit');
+		html += renderStatRow('Upload Size Limit', 'No limit', true, 'text-accent', 'Maximum allowed size for file uploads');
 	}
 	html += '</div>';
 

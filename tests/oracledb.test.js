@@ -27,6 +27,14 @@ describe('oracledb', () => {
 		await lob.destroy();
 	});
 
+	it('commit', async () => {
+		await connection.commit();
+	});
+
+	it('rollback', async () => {
+		await connection.rollback();
+	});
+
 	it('release', async () => {
 		await connection.release();
 	});

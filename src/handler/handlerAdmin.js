@@ -13,6 +13,26 @@ import {forceShutdown} from '../util/shutdown.js';
  * @typedef {import('express').NextFunction} NextFunction
  */
 
+/**
+ * @typedef {import('../util/statsManager.js').Bucket} Bucket
+ */
+
+/**
+ * @typedef {object} StatsSummary
+ * @property {Date} startTime - Server start time.
+ * @property {number} totalRequests - Total requests handled.
+ * @property {number} totalErrors - Total errors encountered.
+ * @property {number} avgResponseTime - Lifetime average response time.
+ * @property {number} minResponseTime - Lifetime minimum response time.
+ * @property {number} maxResponseTime - Lifetime maximum response time.
+ * @property {object} maxMemory - Lifetime memory extremes.
+ * @property {number} maxMemory.heapUsedMax - Maximum heap used.
+ * @property {number} maxMemory.heapTotalMax - Maximum heap total.
+ * @property {number} maxMemory.rssMax - Maximum RSS.
+ * @property {number} maxMemory.externalMax - Maximum external memory.
+ * @property {number} maxCpu - Lifetime maximum CPU usage percentage.
+ */
+
 export const handlerAdmin = express.Router();
 
 /**
@@ -48,18 +68,35 @@ handlerAdmin.get('/api/status', (_req, res) => {
 	const uptime = (new Date().getTime() - AdminContext.startTime.getTime()) / 1000;
 
 	const poolStats = AdminContext.pools.map((pool, index) => {
-		const name = AdminContext.caches[index]?.poolName ?? `pool-${index}`;
+		const cache = AdminContext.caches[index];
+		const name = cache?.poolName ?? `pool-${index}`;
 		const p = /** @type {import('oracledb').Pool & {getStatistics?: () => Record<string, unknown>}} */ (pool);
+		const procStats = cache?.procedureNameCache.getStats();
+		const argStats = cache?.argumentCache.getStats();
+
 		return {
 			name,
 			stats: typeof p.getStatistics === 'function' ? p.getStatistics() : null,
 			connectionsOpen: pool.connectionsOpen,
 			connectionsInUse: pool.connectionsInUse,
+			cache: {
+				procedureName: {
+					size: cache?.procedureNameCache.keys().length ?? 0,
+					hits: procStats?.hits ?? 0,
+					misses: procStats?.misses ?? 0,
+				},
+				argument: {
+					size: cache?.argumentCache.keys().length ?? 0,
+					hits: argStats?.hits ?? 0,
+					misses: argStats?.misses ?? 0,
+				},
+			},
 		};
 	});
 
 	const memUsage = process.memoryUsage();
 	const cpuUsage = process.cpuUsage();
+	const summary = /** @type {StatsSummary} */ (AdminContext.statsManager.getSummary());
 
 	res.json({
 		version,
@@ -67,9 +104,13 @@ handlerAdmin.get('/api/status', (_req, res) => {
 		uptime,
 		startTime: AdminContext.startTime,
 		metrics: {
-			...AdminContext.metrics,
-			avgResponseTime: AdminContext.metrics.requestCount > 0 ? AdminContext.metrics.totalDuration / AdminContext.metrics.requestCount : 0,
+			requestCount: summary.totalRequests,
+			errorCount: summary.totalErrors,
+			avgResponseTime: summary.avgResponseTime,
+			minResponseTime: summary.minResponseTime,
+			maxResponseTime: summary.maxResponseTime,
 		},
+		history: AdminContext.statsManager.getHistory(),
 		pools: poolStats,
 		system: {
 			nodeVersion: process.version,
@@ -80,10 +121,12 @@ handlerAdmin.get('/api/status', (_req, res) => {
 				heapTotal: memUsage.heapTotal,
 				heapUsed: memUsage.heapUsed,
 				external: memUsage.external,
+				...summary.maxMemory,
 			},
 			cpu: {
 				user: cpuUsage.user,
 				system: cpuUsage.system,
+				max: summary.maxCpu,
 			},
 		},
 		config: AdminContext.config
@@ -143,21 +186,7 @@ handlerAdmin.get('/api/logs/access', async (req, res) => {
 	}
 });
 
-// GET /api/cache
-handlerAdmin.get('/api/cache', (_req, res) => {
-	const caches = AdminContext.caches.map((c) => ({
-		poolName: c.poolName,
-		procedureNameCache: {
-			size: c.procedureNameCache.keys().length,
-			stats: c.procedureNameCache.getStats(),
-		},
-		argumentCache: {
-			size: c.argumentCache.keys().length,
-			stats: c.argumentCache.getStats(),
-		},
-	}));
-	res.json(caches);
-});
+// GET /api/cache - REMOVED (Merged into /api/status)
 
 // POST /api/cache/clear
 handlerAdmin.post('/api/cache/clear', (req, res) => {

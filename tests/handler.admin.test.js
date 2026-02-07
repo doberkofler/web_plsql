@@ -54,7 +54,8 @@ describe('handler/handlerAdmin', () => {
 		AdminContext.pools = [];
 		AdminContext.caches = [];
 		AdminContext.paused = false;
-		AdminContext.metrics = {requestCount: 5, errorCount: 1, totalDuration: 100};
+		AdminContext.statsManager.recordRequest(100, false);
+		AdminContext.statsManager.recordRequest(200, true);
 	});
 
 	describe('GET /api/status', () => {
@@ -63,8 +64,14 @@ describe('handler/handlerAdmin', () => {
 			expect(res.status).toBe(200);
 			expect(res.body.version).toBeDefined();
 			expect(res.body.status).toBe('running');
-			expect(res.body.metrics.requestCount).toBe(5);
+			expect(res.body.metrics.requestCount).toBe(2);
 			expect(res.body.config.routePlSql[0].password).toBe('********');
+			// Verify cache stats are present
+			expect(res.body.pools).toBeDefined();
+			if (res.body.pools.length > 0) {
+				expect(res.body.pools[0].cache).toBeDefined();
+				expect(res.body.pools[0].cache.procedureName).toBeDefined();
+			}
 		});
 
 		it('should return paused status when paused', async () => {
@@ -134,32 +141,7 @@ describe('handler/handlerAdmin', () => {
 		});
 	});
 
-	describe('GET /api/cache', () => {
-		it('should return cache statistics', async () => {
-			AdminContext.caches = [
-				{
-					poolName: '/pls',
-					procedureNameCache: /** @type {GenericCache} */ (
-						/** @type {unknown} */ ({
-							keys: () => ['a', 'b'],
-							getStats: () => ({size: 2, maxSize: 100, hits: 10, misses: 2}),
-						})
-					),
-					argumentCache: /** @type {GenericCache} */ (
-						/** @type {unknown} */ ({
-							keys: () => ['c'],
-							getStats: () => ({size: 1, maxSize: 100, hits: 5, misses: 0}),
-						})
-					),
-				},
-			];
-
-			const res = await request(app).get('/admin/api/cache');
-			expect(res.status).toBe(200);
-			expect(res.body[0].poolName).toBe('/pls');
-			expect(res.body[0].procedureNameCache.size).toBe(2);
-		});
-	});
+	// REMOVED GET /api/cache tests
 
 	describe('POST /api/cache/clear', () => {
 		it('should clear all caches', async () => {

@@ -100,4 +100,34 @@ describe('cgi', () => {
 			HTTP_COOKIE: 'cookie1=value1;cookie2=value2;',
 		});
 	});
+
+	it('with minimal configuration to cover fallback branches', () => {
+		const req = /** @type {Request} */ (
+			/** @type {unknown} */ ({
+				protocol: undefined, // Test undefined protocol
+				originalUrl: '/pls/dad/proc',
+				method: 'POST',
+				params: {
+					name: ['proc'], // Test array params
+				},
+				httpVersion: '1.0',
+				ip: undefined, // Test undefined IP
+				get: (/** @type {any} */ _name) => undefined, // Test undefined headers
+				cookies: {},
+				connection: {},
+				socket: {
+					localPort: undefined, // Test undefined port
+				},
+			})
+		);
+
+		const cgi = getCGI(req, '', {});
+
+		assert.strictEqual(cgi.SERVER_PORT, '');
+		assert.strictEqual(cgi.REQUEST_PROTOCOL, '');
+		assert.strictEqual(cgi.REMOTE_ADDR, '');
+		assert.strictEqual(cgi.PATH_INFO, 'proc');
+		assert.strictEqual(cgi.HTTP_USER_AGENT, '');
+		assert.strictEqual(cgi.HTTP_HOST, '');
+	});
 });

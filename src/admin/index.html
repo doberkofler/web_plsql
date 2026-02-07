@@ -35,6 +35,10 @@
 						<span class="material-symbols-rounded">database</span>
 						Pools
 					</button>
+					<button data-view="stats">
+						<span class="material-symbols-rounded">query_stats</span>
+						Stats
+					</button>
 					<button data-view="config">
 						<span class="material-symbols-rounded">settings</span>
 						Configuration
@@ -57,10 +61,11 @@
 							<label for="auto-refresh-toggle">Auto-refresh</label>
 							<input type="checkbox" id="auto-refresh-toggle" checked />
 							<select id="refresh-interval">
+								<option value="1000">1s</option>
 								<option value="5000">5s</option>
-								<option value="10000">10s</option>
-								<option value="30000" selected>30s</option>
-								<option value="60000">60s</option>
+								<option value="10000" selected>10s</option>
+								<option value="30000">30s</option>
+								<option value="60000">1m</option>
 							</select>
 							<button
 								id="manual-refresh"
@@ -79,39 +84,48 @@
 
 				<section id="view-overview" class="view">
 					<div class="metrics-grid">
-						<div class="card">
+						<div class="card" title="Time since the server started">
 							<div class="card-header">
 								<span class="material-symbols-rounded">schedule</span>
-								<h3>Uptime</h3>
+								<h3 title="Time since the server started">Uptime</h3>
 							</div>
-							<p id="uptime-val">0s</p>
-							<small id="start-time-val">-</small>
+							<p id="uptime-val" title="Total uptime duration">0s</p>
+							<small id="start-time-val" title="Exact server start time">-</small>
 						</div>
-						<div class="card">
+						<div class="card" title="Request throughput and total count">
 							<div class="card-header">
 								<span class="material-symbols-rounded">swap_vert</span>
-								<h3>Requests</h3>
+								<h3 title="Request throughput and total count">Requests</h3>
 							</div>
-							<p id="req-count">0</p>
-							<div style="display: flex; gap: 8px">
-								<small id="req-per-sec">0 req/s</small>
-								<small id="avg-resp-time">Avg: 0ms</small>
+							<div class="flex items-baseline gap-1 mb-2" title="Current and average requests per second">
+								<span id="req-per-sec" class="text-2xl font-bold text-bright">0.00</span>
+								<span class="text-xs text-main font-medium uppercase mr-2">cur</span>
+								<span class="text-main opacity-30 mr-2">/</span>
+								<span id="avg-req-per-sec" class="text-2xl font-bold text-bright">0.00</span>
+								<span class="text-xs text-main font-medium uppercase">avg</span>
+							</div>
+							<div class="flex gap-4">
+								<small class="text-main" title="Total request count">Total: <span id="req-count" class="font-bold">0</span></small>
+								<small class="text-main" title="Average response time">Latency: <span id="avg-resp-time" class="font-bold">0ms</span></small>
 							</div>
 						</div>
-						<div class="card">
+						<div class="card" title="Total number of requests that resulted in an error">
 							<div class="card-header">
 								<span class="material-symbols-rounded">report</span>
-								<h3>Errors</h3>
+								<h3 title="Total number of requests that resulted in an error">Errors</h3>
 							</div>
-							<p id="err-count">0</p>
+							<p id="err-count" title="Total error count">0</p>
 						</div>
-						<div class="card">
+						<div class="card" title="Efficiency of the internal cache">
 							<div class="card-header">
 								<span class="material-symbols-rounded">cached</span>
-								<h3>Cache Hit Rate</h3>
+								<h3 title="Efficiency of the internal cache">Cache Hit Rate</h3>
 							</div>
-							<p id="cache-hit-rate-val">0%</p>
-							<small><span id="cache-hits-val">0</span> hits, <span id="cache-misses-val">0</span> misses</small>
+							<p id="cache-hit-rate-val" title="Percentage of requests served from cache">0%</p>
+							<small
+								><span id="cache-hits-val" title="Total cache hits">0</span> hits,
+								<span id="cache-misses-val" title="Total cache misses">0</span> misses</small
+							>
 						</div>
 					</div>
 
@@ -132,9 +146,14 @@
 										padding: 2px 4px;
 									"
 								>
-									<option value="30">Last 30 pts</option>
-									<option value="60">Last 60 pts</option>
-									<option value="120">Last 120 pts</option>
+									<option value="60">Last 1 min</option>
+									<option value="300">Last 5 min</option>
+									<option value="600" selected>Last 10 min</option>
+									<option value="1800">Last 30 min</option>
+									<option value="3600">Last 1 hour</option>
+									<option value="7200">Last 2 hours</option>
+									<option value="43200">Last 12 hours</option>
+									<option value="86400">Last 24 hours</option>
 								</select>
 							</div>
 						</div>
@@ -158,14 +177,31 @@
 				</section>
 
 				<section id="view-errors" class="view" style="display: none">
+					<div class="header-toolbar mb-4" style="justify-content: flex-start">
+						<div class="search-group" style="flex: 1; max-width: 400px">
+							<span
+								class="material-symbols-rounded"
+								style="position: absolute; left: 8px; top: 50%; transform: translateY(-50%); font-size: 18px; opacity: 0.5"
+								>search</span
+							>
+							<input
+								type="text"
+								id="error-filter"
+								placeholder="Filter errors (URL, message, method)..."
+								class="input-sm"
+								style="width: 100%; padding-left: 32px"
+							/>
+						</div>
+					</div>
 					<div class="table-container">
 						<table id="errors-table">
 							<thead>
 								<tr>
-									<th>Timestamp</th>
-									<th>Method</th>
-									<th>URL</th>
-									<th>Message</th>
+									<th title="When the error occurred">Timestamp</th>
+									<th title="HTTP method used">Method</th>
+									<th title="Requested URL">URL</th>
+									<th title="Error message summary">Message</th>
+									<th style="width: 40px"></th>
 								</tr>
 							</thead>
 							<tbody></tbody>
@@ -174,8 +210,57 @@
 				</section>
 
 				<section id="view-access" class="view" style="display: none">
+					<div class="header-toolbar mb-4" style="justify-content: space-between">
+						<small id="access-log-range" class="text-main" title="Number of log entries currently displayed">No logs loaded</small>
+					</div>
 					<div class="terminal-container">
-						<pre id="access-log-view" class="terminal"></pre>
+						<pre id="access-log-view" class="terminal" title="Real-time access logs from the server"></pre>
+					</div>
+				</section>
+
+				<section id="view-stats" class="view" style="display: none">
+					<div class="header-toolbar mb-4" style="justify-content: space-between">
+						<div class="flex items-center gap-4">
+							<small id="stats-history-info" class="text-main">Showing latest historical data points</small>
+							<select
+								id="stats-row-limit"
+								class="btn-sm"
+								style="
+									background: var(--bg-hover);
+									border: 1px solid var(--border);
+									border-radius: 4px;
+									color: var(--text-main);
+									font-size: 0.75rem;
+									padding: 2px 8px;
+								"
+							>
+								<option value="20">Latest 20</option>
+								<option value="50" selected>Latest 50</option>
+								<option value="100">Latest 100</option>
+								<option value="200">Latest 200</option>
+								<option value="0">All Points</option>
+							</select>
+						</div>
+					</div>
+					<div class="table-container">
+						<table id="stats-table">
+							<thead>
+								<tr>
+									<th title="Timestamp of the interval">Timestamp</th>
+									<th title="Requests in this interval" class="text-center">Req</th>
+									<th title="Errors in this interval" class="text-center">Err</th>
+									<th title="Min Latency (ms)" class="text-right">Min</th>
+									<th title="Avg Latency (ms)" class="text-right">Avg</th>
+									<th title="95th Percentile Latency (ms)" class="text-right">P95</th>
+									<th title="99th Percentile Latency (ms)" class="text-right">P99</th>
+									<th title="Max Latency (ms)" class="text-right">Max</th>
+									<th title="CPU Usage (%)" class="text-right">CPU %</th>
+									<th title="Resident Set Size (MB)" class="text-right">RSS</th>
+									<th title="Heap Used (MB)" class="text-right">Heap</th>
+								</tr>
+							</thead>
+							<tbody></tbody>
+						</table>
 					</div>
 				</section>
 
@@ -255,43 +340,67 @@
 					</div>
 
 					<div class="metrics-grid mb-6">
-						<div class="card">
+						<div class="card" title="Memory usage statistics for the Node.js process">
 							<div class="card-header">
 								<span class="material-symbols-rounded">memory</span>
-								<h3>Memory Usage</h3>
+								<h3 title="Memory usage statistics for the Node.js process">Memory Usage</h3>
 							</div>
 							<div class="text-sm text-main">
-								<div class="stat-row">
+								<div class="stat-row" title="Memory currently used by Node.js objects">
 									<span>Heap Used</span>
-									<span id="memory-heap-used" class="font-mono text-accent font-bold">-</span>
+									<div class="stat-values">
+										<span id="memory-heap-used" class="font-mono text-accent font-bold">-</span>
+										<small class="min-max"
+											>min: <span id="memory-heap-used-min">-</span> | max: <span id="memory-heap-used-max">-</span></small
+										>
+									</div>
 								</div>
-								<div class="stat-row">
+								<div class="stat-row" title="Total memory allocated for the heap">
 									<span>Heap Total</span>
-									<span id="memory-heap-total" class="font-mono text-accent font-bold">-</span>
+									<div class="stat-values">
+										<span id="memory-heap-total" class="font-mono text-accent font-bold">-</span>
+										<small class="min-max"
+											>min: <span id="memory-heap-total-min">-</span> | max: <span id="memory-heap-total-max">-</span></small
+										>
+									</div>
 								</div>
-								<div class="stat-row">
+								<div class="stat-row" title="Resident Set Size - total memory used by the process">
 									<span>RSS</span>
-									<span id="memory-rss" class="font-mono text-accent font-bold">-</span>
+									<div class="stat-values">
+										<span id="memory-rss" class="font-mono text-accent font-bold">-</span>
+										<small class="min-max">min: <span id="memory-rss-min">-</span> | max: <span id="memory-rss-max">-</span></small>
+									</div>
 								</div>
-								<div class="stat-row">
+								<div class="stat-row" title="Memory used by C++ objects linked to JavaScript objects">
 									<span>External</span>
-									<span id="memory-external" class="font-mono text-accent font-bold">-</span>
+									<div class="stat-values">
+										<span id="memory-external" class="font-mono text-accent font-bold">-</span>
+										<small class="min-max"
+											>min: <span id="memory-external-min">-</span> | max: <span id="memory-external-max">-</span></small
+										>
+									</div>
 								</div>
 							</div>
 						</div>
-						<div class="card">
+						<div class="card" title="CPU time consumed by the process">
 							<div class="card-header">
 								<span class="material-symbols-rounded">speed</span>
-								<h3>CPU Usage</h3>
+								<h3 title="CPU time consumed by the process">CPU Usage</h3>
 							</div>
 							<div class="text-sm text-main">
-								<div class="stat-row">
+								<div class="stat-row" title="Time spent in user code">
 									<span>User</span>
-									<span id="cpu-user" class="font-mono text-accent font-bold">-</span>
+									<div class="stat-values">
+										<span id="cpu-user" class="font-mono text-accent font-bold">-</span>
+										<small class="min-max">min: <span id="cpu-user-min">-</span> | max: <span id="cpu-user-max">-</span></small>
+									</div>
 								</div>
-								<div class="stat-row">
+								<div class="stat-row" title="Time spent in system (kernel) code">
 									<span>System</span>
-									<span id="cpu-system" class="font-mono text-accent font-bold">-</span>
+									<div class="stat-values">
+										<span id="cpu-system" class="font-mono text-accent font-bold">-</span>
+										<small class="min-max">min: <span id="cpu-system-min">-</span> | max: <span id="cpu-system-max">-</span></small>
+									</div>
 								</div>
 							</div>
 						</div>
@@ -309,6 +418,19 @@
 					</div>
 				</section>
 			</main>
+		</div>
+		<div id="error-modal" class="modal" style="display: none">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h3>Error Details</h3>
+					<button class="icon-btn" onclick="document.getElementById('error-modal').style.display = 'none'">
+						<span class="material-symbols-rounded">close</span>
+					</button>
+				</div>
+				<div class="modal-body">
+					<pre id="error-detail-content" class="terminal" style="max-height: 70vh; overflow: auto"></pre>
+				</div>
+			</div>
 		</div>
 		<script type="module" src="lib/chart.bundle.js"></script>
 	</body>
