@@ -16,7 +16,6 @@ jobs:
         strategy:
             matrix:
                 node-version: [22.x, 24.x, 25.x]
-                # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
 
         steps:
             - uses: actions/checkout@v4
@@ -26,5 +25,21 @@ jobs:
                   node-version: ${{ matrix.node-version }}
                   cache: 'npm'
             - run: npm ci
-            - run: npm run lint
-            - run: npm run test
+            - name: Run CI (lint, types, build, test, coverage)
+              run: npm run ci
+            - name: Coveralls
+              uses: coverallsapp/github-action@v2
+              with:
+                  github-token: ${{ secrets.GITHUB_TOKEN }}
+                  flag-name: node-${{ matrix.node-version }}
+                  parallel: true
+
+    finish:
+        needs: build
+        runs-on: ubuntu-latest
+        steps:
+            - name: Coveralls Finished
+              uses: coverallsapp/github-action@v2
+              with:
+                  github-token: ${{ secrets.GITHUB_TOKEN }}
+                  parallel-finished: true

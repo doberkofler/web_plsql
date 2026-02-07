@@ -1,7 +1,6 @@
   [![NPM Version][npm-image]][npm-url]
   [![NPM Downloads][downloads-image]][downloads-url]
-  [![Linux Build](https://travis-ci.org/doberkofler/web_plsql.svg?branch=master)](https://travis-ci.org/doberkofler/web_plsql)
-  [![Build status][appveyor-image]][appveyor-url]
+  [![Node.js CI](https://github.com/doberkofler/web_plsql/actions/workflows/node.js.yml/badge.svg)](https://github.com/doberkofler/web_plsql/actions/workflows/node.js.yml)
   [![Coverage Status](https://coveralls.io/repos/github/doberkofler/web_plsql/badge.svg?branch=master)](https://coveralls.io/github/doberkofler/web_plsql?branch=master)
 
 # Oracle PL/SQL Gateway Middleware for the Express web framework for Node.js
@@ -11,6 +10,8 @@ allowing you to develop PL/SQL web applications using the PL/SQL Web Toolkit (OW
 and serve the content using the Express web framework for Node.js.
 
 Please feel free to try and suggest any improvements. Your thoughts and ideas are most welcome.
+
+![Dashboard](docs/images/admin_console.png)
 
 # Release History
 See the [changelog](https://github.com/doberkofler/web_plsql/blob/master/CHANGELOG.md).
@@ -233,6 +234,3 @@ The following mod_plsql DAD configuration translates to the configuration option
 
 [downloads-image]: https://img.shields.io/npm/dm/web_plsql.svg
 [downloads-url]: https://npmjs.org/package/web_plsql
-
-[appveyor-image]: https://ci.appveyor.com/api/projects/status/github/doberkofler/web_plsql?branch=master&svg=true
-[appveyor-url]: https://ci.appveyor.com/project/doberkofler/web-plsql
