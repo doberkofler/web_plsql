@@ -25,13 +25,13 @@ import {Cache} from '../../util/cache.js';
  * express.Request handler
  * @param {Request} req - The req object represents the HTTP request.
  * @param {Response} res - The res object represents the HTTP response that an Express app sends when it gets an HTTP request.
- * @param {NextFunction} next - The next function.
+ * @param {NextFunction} _next - The next function.
  * @param {Pool} connectionPool - The connection pool.
  * @param {configPlSqlHandlerType} options - the options for the middleware.
  * @param {Cache<string>} procedureNameCache - The procedure name cache.
  * @param {Cache<import('./procedureNamed.js').argsType>} argumentCache - The argument cache.
  */
-const requestHandler = async (req, res, next, connectionPool, options, procedureNameCache, argumentCache) => {
+const requestHandler = async (req, res, _next, connectionPool, options, procedureNameCache, argumentCache) => {
 	try {
 		// should we switch to the default page if there is one defined
 		if (typeof req.params.name !== 'string' || req.params.name.length === 0) {

@@ -45,6 +45,7 @@ describe('JsonLogger', () => {
 		const content = fs.readFileSync(filename, 'utf8');
 		const lines = content.trim().split('\n');
 		const lastLine = lines[lines.length - 1];
+		if (!lastLine) throw new Error('No last line found');
 		const parsed = JSON.parse(lastLine);
 
 		expect(parsed).toMatchObject({
@@ -74,6 +75,7 @@ describe('JsonLogger', () => {
 		const content = fs.readFileSync(filename, 'utf8');
 		const lines = content.trim().split('\n');
 		const lastLine = lines[lines.length - 1];
+		if (!lastLine) throw new Error('No last line found');
 		const parsed = JSON.parse(lastLine);
 
 		expect(parsed.timestamp).toBeDefined();

@@ -44,13 +44,6 @@
 						System
 					</button>
 				</nav>
-				<div class="theme-toggle">
-					<span>Dark Mode</span>
-					<label class="switch">
-						<input type="checkbox" id="theme-toggle-checkbox" checked />
-						<span class="slider"></span>
-					</label>
-				</div>
 				<div class="status-indicator">
 					<span id="server-status-dot" class="dot"></span>
 					<span id="server-status-text">Checking...</span>
@@ -58,18 +51,21 @@
 			</aside>
 			<main class="content">
 				<header class="main-header">
-					<h1 id="view-title">Overview</h1>
+					<h1 id="view-title"><span class="material-symbols-rounded">dashboard</span>Overview</h1>
 					<div class="header-toolbar">
 						<div class="auto-refresh-group">
 							<label for="auto-refresh-toggle">Auto-refresh</label>
 							<input type="checkbox" id="auto-refresh-toggle" checked />
 							<select id="refresh-interval">
-								<option value="2000">2s</option>
 								<option value="5000">5s</option>
 								<option value="10000">10s</option>
-								<option value="30000">30s</option>
+								<option value="30000" selected>30s</option>
+								<option value="60000">60s</option>
 							</select>
 						</div>
+						<button id="theme-toggle-btn" class="icon-btn" title="Toggle Theme">
+							<span class="material-symbols-rounded">dark_mode</span>
+						</button>
 						<button id="manual-refresh" class="icon-btn" title="Refresh Now">
 							<span class="material-symbols-rounded">refresh</span>
 						</button>
@@ -103,24 +99,13 @@
 						</div>
 					</div>
 
-					<div class="metrics-grid">
-						<div class="card" style="grid-column: span 2">
-							<div class="card-header">
-								<span class="material-symbols-rounded">monitoring</span>
-								<h3>Traffic (req/s)</h3>
-							</div>
-							<div class="chart-container">
-								<canvas id="traffic-chart"></canvas>
-							</div>
+					<div class="card" style="grid-column: span 2">
+						<div class="card-header">
+							<span class="material-symbols-rounded">monitoring</span>
+							<h3>Traffic & Errors</h3>
 						</div>
-						<div class="card">
-							<div class="card-header">
-								<span class="material-symbols-rounded">analytics</span>
-								<h3>Error Rate</h3>
-							</div>
-							<div class="chart-container">
-								<canvas id="error-chart"></canvas>
-							</div>
+						<div class="chart-container">
+							<canvas id="traffic-chart"></canvas>
 						</div>
 					</div>
 				</section>
@@ -169,22 +154,122 @@
 				</section>
 
 				<section id="view-system" class="view" style="display: none">
-					<div class="card warning">
-						<h3>Danger Zone</h3>
-						<p>Careful! These actions affect the production server state.</p>
-						<div class="control-group">
-							<button id="btn-pause" class="btn-warning">
-								<span class="material-symbols-rounded">pause</span>
-								Pause Server
-							</button>
-							<button id="btn-resume" class="btn-success" style="display: none">
-								<span class="material-symbols-rounded">play_arrow</span>
-								Resume Server
-							</button>
-							<button id="btn-stop" class="btn-danger">
-								<span class="material-symbols-rounded">stop</span>
-								Stop Server
-							</button>
+					<div class="metrics-grid mb-6">
+						<div class="card">
+							<div class="card-header">
+								<span class="material-symbols-rounded">info</span>
+								<h3>Server Information</h3>
+							</div>
+							<div class="text-sm text-main">
+								<div class="stat-row">
+									<span>Node.js Version</span>
+									<span id="node-version" class="font-mono text-bright">-</span>
+								</div>
+								<div class="stat-row">
+									<span>Platform</span>
+									<span id="platform-info" class="text-bright">-</span>
+								</div>
+							</div>
+						</div>
+						<div class="card">
+							<div class="card-header">
+								<span class="material-symbols-rounded">schedule</span>
+								<h3>Runtime</h3>
+							</div>
+							<div class="text-sm text-main">
+								<div class="stat-row">
+									<span>Server Uptime</span>
+									<span id="system-uptime" class="font-semibold text-bright">-</span>
+								</div>
+								<div class="stat-row">
+									<span>Start Time</span>
+									<span id="system-start-time" class="text-bright">-</span>
+								</div>
+								<div class="stat-row">
+									<span>Status</span>
+									<span id="system-status" class="status-dot">
+										<span class="dot running"></span>
+										<span id="system-status-text">-</span>
+									</span>
+								</div>
+								<div class="stat-row">
+									<span>Auto-refresh</span>
+									<span id="system-refresh-status" class="text-bright">Active (30s)</span>
+								</div>
+							</div>
+						</div>
+						<div class="card">
+							<div class="card-header">
+								<span class="material-symbols-rounded">insights</span>
+								<h3>Activity</h3>
+							</div>
+							<div class="text-sm text-main">
+								<div class="stat-row">
+									<span>Total Requests</span>
+									<span id="total-requests" class="font-semibold text-bright">-</span>
+								</div>
+								<div class="stat-row">
+									<span>Total Errors</span>
+									<span id="total-errors" class="text-danger">-</span>
+								</div>
+								<div class="stat-row">
+									<span>Active Pools</span>
+									<span id="active-pools" class="text-bright">-</span>
+								</div>
+							</div>
+						</div>
+					</div>
+
+					<div class="metrics-grid mb-6">
+						<div class="card">
+							<div class="card-header">
+								<span class="material-symbols-rounded">memory</span>
+								<h3>Memory Usage</h3>
+							</div>
+							<div class="text-sm text-main">
+								<div class="stat-row">
+									<span>Heap Used</span>
+									<span id="memory-heap-used" class="font-mono text-bright">-</span>
+								</div>
+								<div class="stat-row">
+									<span>Heap Total</span>
+									<span id="memory-heap-total" class="font-mono text-bright">-</span>
+								</div>
+								<div class="stat-row">
+									<span>RSS</span>
+									<span id="memory-rss" class="font-mono text-bright">-</span>
+								</div>
+								<div class="stat-row">
+									<span>External</span>
+									<span id="memory-external" class="font-mono text-bright">-</span>
+								</div>
+							</div>
+						</div>
+						<div class="card">
+							<div class="card-header">
+								<span class="material-symbols-rounded">speed</span>
+								<h3>CPU Usage</h3>
+							</div>
+							<div class="text-sm text-main">
+								<div class="stat-row">
+									<span>User</span>
+									<span id="cpu-user" class="font-mono text-bright">-</span>
+								</div>
+								<div class="stat-row">
+									<span>System</span>
+									<span id="cpu-system" class="font-mono text-bright">-</span>
+								</div>
+							</div>
+						</div>
+					</div>
+
+					<div class="card danger-zone">
+						<h3 class="danger-zone-title">Danger Zone</h3>
+						<p class="danger-zone-text">Careful! These actions affect the production server state.</p>
+						<div style="display: flex; gap: 12px; margin-top: 16px">
+							<button id="btn-pause" class="btn btn-sm btn-warning">Pause Server</button>
+							<button id="btn-resume" class="btn btn-sm btn-success" style="display: none">Resume Server</button>
+							<button id="btn-stop" class="btn btn-sm btn-danger">Stop Server</button>
 						</div>
 					</div>
 				</section>

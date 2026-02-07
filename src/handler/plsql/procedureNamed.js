@@ -110,7 +110,11 @@ const loadArguments = async (procedure, databaseConnection) => {
 	/** @type {Record<string, string>} */
 	const argTypes = {};
 	for (let i = 0; i < data.names.length; i++) {
-		argTypes[data.names[i].toLowerCase()] = data.types[i];
+		const name = data.names[i];
+		const type = data.types[i];
+		if (name && type) {
+			argTypes[name.toLowerCase()] = type;
+		}
 	}
 
 	return argTypes;
@@ -204,7 +208,7 @@ export const getBinding = (argName, argValue, argType) => {
  */
 const inspectBindings = (argObj, argTypes) => {
 	const rows = Object.entries(argObj).map(([key, value]) => {
-		return [key, value.toString(), typeof value, argTypes[key.toLowerCase()]];
+		return [key, value.toString(), typeof value, argTypes[key.toLowerCase()] ?? 'unknown'];
 	});
 
 	const {text} = toTable(['id', 'value', 'value type', 'argument type'], rows);

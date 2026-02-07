@@ -144,7 +144,7 @@ describe('util/trace', () => {
 		it('should write to stream', () => {
 			logToFile('some text');
 			assert.strictEqual(mockStream.write.mock.calls.length, 1);
-			assert.strictEqual(mockStream.write.mock.calls[0][0], 'some text');
+			assert.strictEqual(mockStream.write.mock.calls[0]?.[0], 'some text');
 			assert.strictEqual(mockStream.end.mock.calls.length, 1);
 		});
 	});

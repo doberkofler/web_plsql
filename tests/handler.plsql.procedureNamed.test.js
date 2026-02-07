@@ -64,7 +64,7 @@ describe('handler/plsql/procedureNamed', () => {
 		it('should return PL/SQL TABLE binding for array input (inferred)', () => {
 			// If argType is not PL_SQL_TABLE but value is array, it enters the block?
 			// 00229| if (argType === DATA_TYPES.PL_SQL_TABLE || Array.isArray(argValue)) {
-			const bind = getBinding('p1', ['val1'], 'VARCHAR2'); // passing VARCHAR2 but value is array
+			// getBinding('p1', ['val1'], 'VARCHAR2'); // passing VARCHAR2 but value is array
 			// However, the first check for VARCHAR2 comes earlier:
 			// 00200| if (argType === DATA_TYPES.VARCHAR2 ...
 			// So if I pass VARCHAR2, it will hit line 200 first.
@@ -97,8 +97,8 @@ describe('handler/plsql/procedureNamed', () => {
 			const result = await getProcedureNamed(req, 'my_proc', argObj, connection, cache);
 
 			assert.strictEqual(result.sql, 'my_proc(P1=>:p_P1, P2=>:p_P2)');
-			assert.strictEqual(result.bind.p_P1.val, 'test');
-			assert.strictEqual(result.bind.p_P2.val, 42);
+			assert.strictEqual(result.bind.p_P1?.val, 'test');
+			assert.strictEqual(result.bind.p_P2?.val, 42);
 		});
 
 		it('should handle unknown argument gracefully (log warning and use default string bind)', async () => {
@@ -121,8 +121,8 @@ describe('handler/plsql/procedureNamed', () => {
 			// Should include P2 in SQL
 			assert.ok(result.sql.includes('P2=>:p_P2'));
 			// Should default to string bind
-			assert.strictEqual(result.bind.p_P2.val, 'val');
-			assert.strictEqual(result.bind.p_P2.type, oracledb.DB_TYPE_VARCHAR);
+			assert.strictEqual(result.bind.p_P2?.val, 'val');
+			assert.strictEqual(result.bind.p_P2?.type, oracledb.DB_TYPE_VARCHAR);
 		});
 	});
 });

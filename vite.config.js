@@ -1,7 +1,9 @@
 import {defineConfig} from 'vite';
 import path from 'node:path';
+import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig({
+	plugins: [tailwindcss()],
 	build: {
 		outDir: path.resolve(import.meta.dirname, 'src/admin/lib'),
 		emptyOutDir: true,

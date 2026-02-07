@@ -1,4 +1,4 @@
-export function getProcedureVariable(req: Request, procName: string, argObj: argObjType): {
+export function getProcedureVariable(_req: Request, procName: string, argObj: argObjType): {
     sql: string;
     bind: BindParameterConfig;
 };

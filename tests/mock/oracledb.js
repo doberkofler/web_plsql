@@ -46,10 +46,10 @@ export class Pool {
 	}
 
 	/**
-	 * @param {any} dummy
+	 * @param {any} _dummy
 	 * @return {Promise<void>}
 	 */
-	close(dummy) {
+	close(_dummy) {
 		debug('Pool.close');
 		return Promise.resolve();
 	}
@@ -103,10 +103,10 @@ export class Connection {
 }
 
 /**
- * @param {unknown} options
+ * @param {unknown} _options
  * @returns {Promise<Pool>}
  */
-export const createPool = (options) => {
+export const createPool = (_options) => {
 	debug('createPool');
 	return Promise.resolve(new Pool());
 };

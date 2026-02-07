@@ -15,6 +15,7 @@ import {getProcedureNamed} from './procedureNamed.js';
 import {parsePage} from './parsePage.js';
 import {sendResponse} from './sendResponse.js';
 import {ProcedureError} from './procedureError.js';
+import {RequestError} from './requestError.js';
 import {inspect, getBlock} from '../../util/trace.js';
 import {errorToString} from '../../util/errorToString.js';
 import {sanitizeProcName} from './procedureSanitize.js';
@@ -133,11 +134,11 @@ const procedureExecute = async (para, databaseConnection) => {
 /**
  * Get page from procedure
  *
- * @param {boolean} test - Test.
+ * @param {boolean} _test - Test.
  * @param {Connection} databaseConnection - Database connection.
  * @returns {Promise<string>} Promise resolving to the returned page content.
  */
-const procedureGetPage = async (test, databaseConnection) => {
+const procedureGetPage = async (_test, databaseConnection) => {
 	const MAX_IROWS = 100000;
 
 	/** @type {BindParameterConfig} */
@@ -264,6 +265,9 @@ export const invokeProcedure = async (req, res, argObj, cgiObj, filesToUpload, o
 	debug('invokeProcedure: get procedure to execute and the arguments');
 	// Extract the raw procedure name from params
 	const rawProcName = Array.isArray(req.params.name) ? req.params.name[0] : req.params.name;
+	if (!rawProcName) {
+		throw new RequestError('No procedure name provided');
+	}
 	const para = await getProcedure(req, rawProcName, argObj, options, databaseConnection, procedureNameCache, argumentCache);
 
 	// 3) prepare the session
@@ -328,7 +332,7 @@ export const invokeProcedure = async (req, res, argObj, cgiObj, filesToUpload, o
 		const pageComponents = parsePage(lines);
 
 		// add "Server" header
-		pageComponents.head.server = cgiObj.SERVER_SOFTWARE;
+		pageComponents.head.server = cgiObj.SERVER_SOFTWARE ?? '';
 
 		// add file download information
 		if (fileDownload.fileType !== '' && fileDownload.fileSize > 0 && fileDownload.fileBlob !== null) {

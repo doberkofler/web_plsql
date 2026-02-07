@@ -28,22 +28,8 @@ export default defineConfig([
 				...globals.browser,
 			},
 		},
-	},
-	{
-		files: ['src/**/*.{js,ts}'],
-		plugins: {jsdoc},
-		settings: {
-			jsdoc: {
-				mode: 'typescript',
-			},
-		},
 		rules: {
-			...jsdoc.configs['flat/recommended-error'].rules,
-			'jsdoc/lines-before-block': 'off',
-			'jsdoc/tag-lines': 'off',
-			'jsdoc/require-param-description': 'warn',
-			'jsdoc/require-property-description': 'warn',
-			'jsdoc/require-returns-description': 'warn',
+			'@typescript-eslint/no-unsafe-call': 'off',
 		},
 	},
 	{
@@ -69,6 +55,31 @@ export default defineConfig([
 				},
 			],
 			'@typescript-eslint/restrict-template-expressions': 'off',
+		},
+	},
+	{
+		files: ['src/**/*.{js,ts}'],
+		plugins: {jsdoc},
+		settings: {
+			jsdoc: {
+				mode: 'typescript',
+			},
+		},
+		rules: {
+			...jsdoc.configs['flat/recommended-error'].rules,
+			'jsdoc/lines-before-block': 'off',
+			'jsdoc/tag-lines': 'off',
+			'jsdoc/require-param-description': 'warn',
+			'jsdoc/require-property-description': 'warn',
+			'jsdoc/require-returns-description': 'warn',
+		},
+	},
+	{
+		files: ['src/admin/**/*.ts'],
+		rules: {
+			// Disable JSDoc type requirements in TypeScript files
+			'jsdoc/require-param-type': 'off',
+			'jsdoc/require-returns-type': 'off',
 		},
 	},
 	{

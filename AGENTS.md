@@ -44,6 +44,19 @@ This project is a Node.js application using ES Modules (ESM) and JSDoc for TypeS
     *   **Requirement**: All imports must include the `.js` file extension.
     *   Example: `import { foo } from './bar.js'`.
 
+### Package Management
+
+*   **Always Use Latest Versions**: When adding or updating dependencies, always use the latest stable versions available via `npm install package-name@latest`.
+*   **No Type Suppression**: Never use `@ts-ignore`, `// @ts-nocheck`, or `any` type.
+    *   If a TypeScript/ESLint error cannot be resolved, fix the code instead of suppressing the error.
+    *   **Exception**: Only if absolutely necessary, use `// @ts-expect-error` with a detailed explanation comment explaining why it was absolutely required.
+*   **No ESLint Disabling**: Never disable ESLint rules with `/* eslint-disable */` or inline disable comments.
+    *   **Exception**: Only if absolutely necessary, disable a specific rule with `// eslint-disable-next-line rule-name` followed by a detailed explanation comment explaining why it was absolutely required.
+*   **No Type Assertions**: Never use TypeScript `as` type assertions (e.g., `value as string`).
+    *   Use proper type narrowing, type guards, or explicit checks (e.g., `typeof value === 'string'`).
+    *   Throw exceptions for unexpected types rather than silently converting.
+    *   If you must cast, explain why in comments and prefer runtime checks over compile-time assertions.
+
 ### Formatting & Linting
 
 *   **Formatter**: Prettier.
@@ -107,18 +120,39 @@ The middleware enforces a **stateless model** as defined in the Oracle mod_plsql
 ### Known Issues & Security (See `ENHANCEMENTS.md`)
 *   **Character Sets**: The project currently hardcodes some charsets (`ascii`, `UTF8`). Aim for configuration-driven NLS settings.
 
-### Admin Console Chart.js
+### Admin Console
 The admin console uses **Vite** to bundle client-side JavaScript (including Chart.js) into a single file.
 
 **Architecture**:
-- Source code: `src/admin/client/` - Strictly typed, linted JavaScript
-- Entry point: `src/admin/client/main.js` - Imports from `js/` directory
-- Output: `lib/chart.bundle.js` - Bundled output served to browsers
+- Source code: `src/admin/js/` and `src/admin/client/` - TypeScript files compiled to JavaScript
+- Entry point: `src/admin/client/main.js` - Imports from `../js/` directory
+- Charts: `src/admin/client/charts.ts` - Chart.js initialization and updates
+- Output: `src/admin/lib/chart.bundle.js` - Bundled output served to browsers
+- HTML: `src/admin/index.html` - Admin console UI
 
 **Build Process**:
-1. Vite bundles `src/admin/client/` including Chart.js from npm
-2. Output is written to `lib/chart.bundle.js`
-3. Express serves the bundle from `lib/chart.bundle.js` via `/admin/lib/chart.bundle.js`
+1. Vite bundles `src/admin/client/main.js` which imports:
+   - `../js/api.js` - API client
+   - `../js/app.js` - Application logic
+   - `./tailwind.css` - Styles
+2. The entry point transitively imports Chart.js from npm via `charts.ts`
+3. Output is written to `src/admin/lib/chart.bundle.js`
+4. Express serves the bundle from `/admin/lib/chart.bundle.js`
+
+**Chart.js Integration**:
+- Chart.js is imported and initialized in `src/admin/client/charts.ts`
+- The `initCharts()` function creates actual Chart.js instances (not just data structures)
+- Charts are stored in the application state and updated via `updateCharts()`
+- Two charts are used:
+  - Traffic chart: Dual-axis line chart showing requests/sec and errors/sec
+  - Pool chart: Line chart showing database connection pool usage over time
+
+**View Refresh Logic**:
+- Each view (errors, access, cache, pools, config, system) has a refresh function in `src/admin/js/ui/views.ts`
+- Views are refreshed when:
+  1. The view is first clicked/opened
+  2. Auto-refresh timer fires (if the view is currently active)
+- The navigation handler in `src/admin/js/app.ts` calls the appropriate refresh function for each view
 
 **Commands**:
 - `npm run build:admin` - Build the admin client bundle
@@ -127,8 +161,7 @@ The admin console uses **Vite** to bundle client-side JavaScript (including Char
 - `npm run ci` - Runs full CI including build
 
 **Files Excluded from Linting/Type Checking**:
-- `lib/` - Build output directory
-- `src/admin/lib/**` - (deprecated, no longer used)
+- `src/admin/lib/` - Build output directory (contains bundled JS/CSS)
 
 ### Planned Enhancements
 Refer to `ENHANCEMENTS.md` for the full roadmap. Key priorities include:

@@ -155,7 +155,11 @@ const parseCookie = (text) => {
 	cookieElements = cookieElements.map((element) => element.trim());
 
 	// get name and value
-	const index = cookieElements[0].indexOf('=');
+	const firstElement = cookieElements[0];
+	if (!firstElement) {
+		return null;
+	}
+	const index = firstElement.indexOf('=');
 	/* v8 ignore next - cookie format validation */
 	if (index <= 0) {
 		// if the index is -1, there is no equal sign and if it's 0 the name is empty
@@ -164,8 +168,8 @@ const parseCookie = (text) => {
 
 	/** @type {cookieType} */
 	const cookie = {
-		name: cookieElements[0].substring(0, index).trim(),
-		value: cookieElements[0].substring(index + 1).trim(),
+		name: firstElement.substring(0, index).trim(),
+		value: firstElement.substring(index + 1).trim(),
 		options: {},
 	};
 

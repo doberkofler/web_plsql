@@ -18,12 +18,12 @@ import {getBlock} from '../../util/trace.js';
 
 /**
  *	Send "default" response to the browser
- *	@param {Request} req - The req object represents the HTTP request.
+ *	@param {Request} _req - The req object represents the HTTP request.
  *	@param {Response} res - The res object represents the HTTP response that an Express app sends when it gets an HTTP request.
  *	@param {pageType} page - The page to send.
  *	@returns {Promise<void>}
  */
-export const sendResponse = async (req, res, page) => {
+export const sendResponse = async (_req, res, page) => {
 	/** @type {string[]} */
 	const debugText = [];
 

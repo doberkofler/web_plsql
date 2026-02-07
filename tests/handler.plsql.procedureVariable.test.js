@@ -12,9 +12,9 @@ describe('handler/plsql/procedureVariable', () => {
 		const result = getProcedureVariable(req, 'my_proc', argObj);
 
 		assert.strictEqual(result.sql, 'my_proc(:argnames, :argvalues)');
-		assert.strictEqual(result.bind.argnames.type, oracledb.STRING);
-		assert.deepStrictEqual(result.bind.argnames.val, ['p1', 'p2']);
-		assert.deepStrictEqual(result.bind.argvalues.val, ['v1', 'v2']);
+		assert.strictEqual(result.bind.argnames?.type, oracledb.STRING);
+		assert.deepStrictEqual(result.bind.argnames?.val, ['p1', 'p2']);
+		assert.deepStrictEqual(result.bind.argvalues?.val, ['v1', 'v2']);
 	});
 
 	it('should process array arguments', () => {
@@ -25,8 +25,8 @@ describe('handler/plsql/procedureVariable', () => {
 		const result = getProcedureVariable(req, 'my_proc', argObj);
 
 		assert.strictEqual(result.sql, 'my_proc(:argnames, :argvalues)');
-		assert.deepStrictEqual(result.bind.argnames.val, ['p1', 'p1']);
-		assert.deepStrictEqual(result.bind.argvalues.val, ['v1a', 'v1b']);
+		assert.deepStrictEqual(result.bind.argnames?.val, ['p1', 'p1']);
+		assert.deepStrictEqual(result.bind.argvalues?.val, ['v1a', 'v1b']);
 	});
 
 	it('should process mixed arguments', () => {
@@ -36,7 +36,7 @@ describe('handler/plsql/procedureVariable', () => {
 
 		const result = getProcedureVariable(req, 'my_proc', argObj);
 
-		assert.deepStrictEqual(result.bind.argnames.val, ['p1', 'p2', 'p2']);
-		assert.deepStrictEqual(result.bind.argvalues.val, ['v1', 'v2a', 'v2b']);
+		assert.deepStrictEqual(result.bind.argnames?.val, ['p1', 'p2', 'p2']);
+		assert.deepStrictEqual(result.bind.argvalues?.val, ['v1', 'v2a', 'v2b']);
 	});
 });

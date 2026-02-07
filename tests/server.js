@@ -53,7 +53,8 @@ const parameterFixedEqual = (bind, parameters) => {
 
 		if (Array.isArray(para.value)) {
 			return para.value.every((v, i) => {
-				const equal = v === bind[`p_${para.name}`].val[i];
+				const paramBind = bind[`p_${para.name}`];
+				const equal = paramBind ? v === paramBind.val[i] : false;
 				if (!equal) {
 					proxyError(`===> The value "${v}" of parameter "${para.name}" is different`);
 				}
@@ -61,7 +62,8 @@ const parameterFixedEqual = (bind, parameters) => {
 			});
 		}
 
-		return para.value === bind[`p_${para.name}`].val;
+		const paramBind = bind[`p_${para.name}`];
+		return paramBind ? para.value === paramBind.val : false;
 	});
 };
 
@@ -87,7 +89,10 @@ const parameterFlexibleEqual = (bind, parameters) => {
 		return false;
 	}
 
-	return parameters.every((para) => Array.isArray(para.value) && arrayEqual(para.value, bind[para.name].val));
+	return parameters.every((para) => {
+		const paramBind = bind[para.name];
+		return Array.isArray(para.value) && paramBind && arrayEqual(para.value, paramBind.val);
+	});
 };
 
 /**
@@ -213,7 +218,8 @@ export const sqlExecuteProxy = (config) => {
 		if (sql.toLowerCase().includes('dbms_utility.name_resolve') && bindParams && 'resolved' in bindParams) {
 			// Extract the input name to return it as resolved (mocking success)
 			// bindParams.name.val holds the input procedure name
-			const procName = /** @type {string} */ (bindParams.name.val).toLowerCase();
+			const nameVal = bindParams.name?.val;
+			const procName = (typeof nameVal === 'string' ? nameVal : '').toLowerCase();
 			return {
 				outBinds: {
 					resolved: procName,

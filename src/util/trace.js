@@ -57,7 +57,7 @@ export const toTable = (head, body) => {
 
 	// Calculate column widths
 	const widths = head.map((h, i) => {
-		const bodyMax = Math.max(0, ...body.map((row) => (row[i] || '').length));
+		const bodyMax = Math.max(0, ...body.map((row) => (row[i] ?? '').length));
 		return Math.max(h.length, bodyMax);
 	});
 
@@ -68,13 +68,13 @@ export const toTable = (head, body) => {
 	 *	@returns {string} - The result
 	 */
 	const padCell = (cell, width) => cell.padEnd(width, ' ');
-	const textHeader = head.map((h, i) => padCell(h, widths[i])).join(' | ');
-	const textSeparator = widths.map((w) => '-'.repeat(w)).join('-+-');
-	const textRows = body.map((row) => head.map((_, i) => padCell(row[i] || '', widths[i])).join(' | '));
+	const textHeader = head.map((h, i) => padCell(h, widths[i] ?? 0)).join(' | ');
+	const textSeparator = widths.map((w) => '-'.repeat(w ?? 0)).join('-+-');
+	const textRows = body.map((row) => head.map((_, i) => padCell(row[i] ?? '', widths[i] ?? 0)).join(' | '));
 	const text = [textHeader, textSeparator, ...textRows].join('\n');
 
 	const htmlHead = head.map((h) => `<th>${escapeHtml(h)}</th>`).join('');
-	const htmlBody = body.map((row) => `<tr>${head.map((_, i) => `<td>${escapeHtml(row[i] || '')}</td>`).join('')}</tr>`).join('');
+	const htmlBody = body.map((row) => `<tr>${head.map((_, i) => `<td>${escapeHtml(row[i] ?? '')}</td>`).join('')}</tr>`).join('');
 	const html = `<table><thead><tr>${htmlHead}</tr></thead><tbody>${htmlBody}</tbody></table>`;
 
 	return {text, html};

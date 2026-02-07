@@ -12,7 +12,7 @@ describe('transaction mode', () => {
 
 		const serverConfig = await serverStart({
 			log: false,
-			transactionMode: (connection, procedure) => {
+			transactionMode: (_connection, procedure) => {
 				assert.strictEqual(procedure, 'sample.pageIndex');
 				callbackInvokations++;
 			},

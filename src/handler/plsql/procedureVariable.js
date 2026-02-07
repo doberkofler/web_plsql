@@ -18,12 +18,12 @@ import oracledb from 'oracledb';
 
 /**
  *	Get the sql statement and bindings for the procedure to execute for a variable number of arguments
- *	@param {Request} req - The req object represents the HTTP request. (only used for debugging)
+ *	@param {Request} _req - The req object represents the HTTP request. (only used for debugging)
  *	@param {string} procName - The procedure to execute
  *	@param {argObjType} argObj - The arguments to pass to the procedure
  *	@returns {{sql: string; bind: BindParameterConfig}} - The SQL statement and bindings for the procedure to execute
  */
-export const getProcedureVariable = (req, procName, argObj) => {
+export const getProcedureVariable = (_req, procName, argObj) => {
 	if (debug.enabled) {
 		debug(`getProcedureVariable: ${procName} arguments=`, argObj);
 	}

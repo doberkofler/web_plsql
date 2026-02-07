@@ -46,8 +46,8 @@ describe('handler/plsql/errorPage', () => {
 
 		errorPage(anyReq, anyRes, anyOptions, error);
 
-		assert.strictEqual(res.status.mock.calls[0][0], 404);
-		assert.strictEqual(res.send.mock.calls[0][0], 'Page not found');
+		assert.strictEqual(res.status.mock.calls[0]?.[0], 404);
+		assert.strictEqual(res.send.mock.calls[0]?.[0], 'Page not found');
 	});
 
 	it('should send detailed html page when errorStyle is debug', () => {
@@ -70,8 +70,8 @@ describe('handler/plsql/errorPage', () => {
 
 		errorPage(anyReq, anyRes, anyOptions, error);
 
-		assert.strictEqual(res.status.mock.calls[0][0], 404);
-		assert.ok(res.send.mock.calls[0][0].includes('Some error'));
+		assert.strictEqual(res.status.mock.calls[0]?.[0], 404);
+		assert.ok(res.send.mock.calls[0]?.[0]?.includes('Some error'));
 	});
 
 	it('should handle ProcedureError correctly', () => {

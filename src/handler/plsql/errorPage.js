@@ -86,15 +86,16 @@ export const errorPage = (req, res, options, error) => {
 	logToFile(text);
 
 	// json log
+	const firstLine = errorData.message.split('\n')[0];
 	jsonLogger.log({
 		timestamp: errorData.timestamp?.toISOString() ?? new Date().toISOString(),
 		type: 'error',
-		message: errorData.message.split('\n')[0], // First line as summary
+		message: firstLine ?? '',
 		req: {
 			method: req.method,
 			url: req.originalUrl,
-			ip: req.ip,
-			userAgent: req.get('user-agent'),
+			ip: req.ip ?? '',
+			userAgent: req.get('user-agent') ?? '',
 		},
 		details: {
 			fullMessage: errorData.message,

@@ -41,11 +41,11 @@ const readLastLines = async (filePath, n = 100) => {
 };
 
 // GET /api/status
-handlerAdmin.get('/api/status', (req, res) => {
+handlerAdmin.get('/api/status', (_req, res) => {
 	const uptime = (new Date().getTime() - AdminContext.startTime.getTime()) / 1000;
 
 	const poolStats = AdminContext.pools.map((pool, index) => {
-		const name = AdminContext.caches[index]?.poolName || `pool-${index}`;
+		const name = AdminContext.caches[index]?.poolName ?? `pool-${index}`;
 		const p = /** @type {import('oracledb').Pool & {getStatistics?: () => Record<string, unknown>}} */ (pool);
 		return {
 			name,
@@ -55,12 +55,30 @@ handlerAdmin.get('/api/status', (req, res) => {
 		};
 	});
 
+	const memUsage = process.memoryUsage();
+	const cpuUsage = process.cpuUsage();
+
 	res.json({
 		status: AdminContext.paused ? 'paused' : 'running',
 		uptime,
 		startTime: AdminContext.startTime,
 		metrics: AdminContext.metrics,
 		pools: poolStats,
+		system: {
+			nodeVersion: process.version,
+			platform: process.platform,
+			arch: process.arch,
+			memory: {
+				rss: memUsage.rss,
+				heapTotal: memUsage.heapTotal,
+				heapUsed: memUsage.heapUsed,
+				external: memUsage.external,
+			},
+			cpu: {
+				user: cpuUsage.user,
+				system: cpuUsage.system,
+			},
+		},
 		config: AdminContext.config
 			? {
 					...AdminContext.config,
@@ -119,7 +137,7 @@ handlerAdmin.get('/api/logs/access', async (req, res) => {
 });
 
 // GET /api/cache
-handlerAdmin.get('/api/cache', (req, res) => {
+handlerAdmin.get('/api/cache', (_req, res) => {
 	const caches = AdminContext.caches.map((c) => ({
 		poolName: c.poolName,
 		procedureNameCache: {

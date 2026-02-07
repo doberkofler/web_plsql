@@ -183,9 +183,9 @@ describe('handler/plsql/sendResponse', () => {
 		await sendResponse(req, res, page);
 
 		assert.strictEqual(res.writeHead.mock.calls.length, 1);
-		assert.strictEqual(res.writeHead.mock.calls[0][0], 200);
-		assert.deepStrictEqual(res.writeHead.mock.calls[0][1], {'Content-Type': 'application/octet-stream', 'Content-Length': '9'});
+		assert.strictEqual(res.writeHead.mock.calls[0]?.[0], 200);
+		assert.deepStrictEqual(res.writeHead.mock.calls[0]?.[1], {'Content-Type': 'application/octet-stream', 'Content-Length': '9'});
 		assert.strictEqual(pipeMock.mock.calls.length, 1);
-		assert.strictEqual(pipeMock.mock.calls[0][0], res);
+		assert.strictEqual(pipeMock.mock.calls[0]?.[0], res);
 	});
 });
