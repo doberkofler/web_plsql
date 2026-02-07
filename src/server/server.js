@@ -55,6 +55,7 @@ export const AdminContext = {
 	metrics: {
 		requestCount: 0,
 		errorCount: 0,
+		totalDuration: 0,
 	},
 };
 
@@ -191,6 +192,12 @@ export const startServer = async (config, ssl) => {
 
 		app.use([`${i.route}/:name`, i.route], (req, res, next) => {
 			AdminContext.metrics.requestCount++;
+			const start = process.hrtime();
+			res.on('finish', () => {
+				const diff = process.hrtime(start);
+				const duration = diff[0] * 1000 + diff[1] / 1_000_000;
+				AdminContext.metrics.totalDuration += duration;
+			});
 			handler(req, res, next);
 		});
 	}

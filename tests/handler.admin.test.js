@@ -58,7 +58,7 @@ describe('handler/handlerAdmin', () => {
 		AdminContext.pools = [];
 		AdminContext.caches = [];
 		AdminContext.paused = false;
-		AdminContext.metrics = {requestCount: 5, errorCount: 1};
+		AdminContext.metrics = {requestCount: 5, errorCount: 1, totalDuration: 100};
 	});
 
 	describe('GET /api/status', () => {

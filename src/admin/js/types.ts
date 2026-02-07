@@ -50,6 +50,7 @@ export type PoolInfo = {
 export type Metrics = {
 	requestCount: number;
 	errorCount: number;
+	avgResponseTime: number;
 };
 
 /**
@@ -106,7 +107,7 @@ export type Status = {
 export type HistoryData = {
 	labels: string[];
 	requests: number[];
-	errors: number[];
+	avgResponseTimes: number[];
 	poolUsage: Record<string, number[]>;
 };
 

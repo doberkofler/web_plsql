@@ -26,7 +26,7 @@ describe('Admin Zod Schemas', () => {
 
 	describe('metricsSchema', () => {
 		it('should validate correct metrics', () => {
-			const valid = {requestCount: 100, errorCount: 2};
+			const valid = {requestCount: 100, errorCount: 2, avgResponseTime: 1.5};
 			expect(metricsSchema.parse(valid)).toEqual(valid);
 		});
 	});
@@ -38,7 +38,7 @@ describe('Admin Zod Schemas', () => {
 				status: 'running',
 				uptime: 3600,
 				startTime: new Date().toISOString(),
-				metrics: {requestCount: 100, errorCount: 5},
+				metrics: {requestCount: 100, errorCount: 5, avgResponseTime: 2.3},
 				pools: [
 					{
 						name: 'pool1',
@@ -76,7 +76,7 @@ describe('Admin Zod Schemas', () => {
 				status: 'paused',
 				uptime: 100,
 				startTime: new Date().toISOString(),
-				metrics: {requestCount: 0, errorCount: 0},
+				metrics: {requestCount: 0, errorCount: 0, avgResponseTime: 0},
 				pools: [],
 				system: {
 					nodeVersion: 'v22.0.0',
@@ -104,7 +104,7 @@ describe('Admin Zod Schemas', () => {
 				status: 'invalid_status',
 				uptime: 100,
 				startTime: new Date().toISOString(),
-				metrics: {requestCount: 0, errorCount: 0},
+				metrics: {requestCount: 0, errorCount: 0, avgResponseTime: 0},
 				pools: [],
 				system: {
 					nodeVersion: 'v22.0.0',

@@ -55,10 +55,10 @@ export function initCharts(state: State): void {
 					yAxisID: 'y',
 				},
 				{
-					label: 'Errors/s',
+					label: 'Avg Response Time (ms)',
 					data: [],
-					borderColor: '#ef4444',
-					backgroundColor: 'rgba(239, 68, 68, 0.1)',
+					borderColor: '#10b981',
+					backgroundColor: 'rgba(16, 185, 129, 0.1)',
 					fill: true,
 					tension: 0.4,
 					yAxisID: 'y1',
@@ -102,12 +102,12 @@ export function initCharts(state: State): void {
 					display: true,
 					position: 'right' as const,
 					grid: {drawOnChartArea: false, color: colors.gridColor},
-					ticks: {color: '#ef4444'},
+					ticks: {color: '#10b981'},
 					beginAtZero: true,
 					title: {
 						display: true,
-						text: 'Errors/s',
-						color: '#ef4444',
+						text: 'Avg Response Time (ms)',
+						color: '#10b981',
 					},
 				},
 			},
@@ -193,27 +193,27 @@ export function initCharts(state: State): void {
  * @param state - Application state.
  * @param timeLabel - Time label for the data point.
  * @param reqPerSec - Requests per second.
- * @param errPerSec - Errors per second.
+ * @param avgResponseTime - Average response time in ms.
  * @param pools - Pool information.
  */
-export function updateCharts(state: State, timeLabel: string, reqPerSec: number, errPerSec: number, pools: PoolInfo[]): void {
+export function updateCharts(state: State, timeLabel: string, reqPerSec: number, avgResponseTime: number, pools: PoolInfo[]): void {
 	const maxPoints = state.maxHistoryPoints;
 
 	state.history.labels.push(timeLabel);
 	state.history.requests.push(reqPerSec);
-	state.history.errors.push(errPerSec);
+	state.history.avgResponseTimes.push(avgResponseTime);
 
 	if (state.history.labels.length > maxPoints) {
 		state.history.labels.shift();
 		state.history.requests.shift();
-		state.history.errors.shift();
+		state.history.avgResponseTimes.shift();
 	}
 
 	const trafficChart = state.charts.traffic;
 	if (trafficChart?.data.datasets[0] && trafficChart.data.datasets[1]) {
 		trafficChart.data.labels = state.history.labels;
 		trafficChart.data.datasets[0].data = state.history.requests;
-		trafficChart.data.datasets[1].data = state.history.errors;
+		trafficChart.data.datasets[1].data = state.history.avgResponseTimes;
 		trafficChart.update();
 	}
 

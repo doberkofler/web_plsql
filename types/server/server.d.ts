@@ -11,6 +11,7 @@ export namespace AdminContext {
     namespace metrics {
         let requestCount: number;
         let errorCount: number;
+        let totalDuration: number;
     }
 }
 export function createServer(app: Express, ssl?: sslConfig): http.Server | https.Server;

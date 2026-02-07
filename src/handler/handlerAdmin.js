@@ -66,7 +66,10 @@ handlerAdmin.get('/api/status', (_req, res) => {
 		status: AdminContext.paused ? 'paused' : 'running',
 		uptime,
 		startTime: AdminContext.startTime,
-		metrics: AdminContext.metrics,
+		metrics: {
+			...AdminContext.metrics,
+			avgResponseTime: AdminContext.metrics.requestCount > 0 ? AdminContext.metrics.totalDuration / AdminContext.metrics.requestCount : 0,
+		},
 		pools: poolStats,
 		system: {
 			nodeVersion: process.version,

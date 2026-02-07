@@ -32,7 +32,7 @@ const state: State = {
 	history: {
 		labels: [],
 		requests: [],
-		errors: [],
+		avgResponseTimes: [],
 		poolUsage: {},
 	},
 	charts: {},
@@ -60,17 +60,19 @@ async function updateStatus(): Promise<void> {
 
 	const deltaSec = (now - state.lastUpdateTime) / 1000;
 	const reqCountDelta = newStatus.metrics.requestCount - state.lastRequestCount;
-	const errCountDelta = newStatus.metrics.errorCount - state.lastErrorCount;
 
 	const reqPerSec = deltaSec > 0 ? reqCountDelta / deltaSec : 0;
-	const errPerSec = deltaSec > 0 ? errCountDelta / deltaSec : 0;
+	const avgResponseTime = newStatus.metrics.avgResponseTime;
 
 	state.lastRequestCount = newStatus.metrics.requestCount;
 	state.lastErrorCount = newStatus.metrics.errorCount;
 	state.lastUpdateTime = now;
 
 	const timeLabel = new Date().toLocaleTimeString();
-	updateCharts(state, timeLabel, reqPerSec, errPerSec, newStatus.pools);
+	updateCharts(state, timeLabel, reqPerSec, avgResponseTime, newStatus.pools);
+
+	const sidebarVersion = document.getElementById('sidebar-version');
+	if (sidebarVersion) sidebarVersion.textContent = `v${newStatus.version}`;
 
 	const uptimeVal = document.getElementById('uptime-val');
 	if (uptimeVal) uptimeVal.textContent = formatDuration(newStatus.uptime);
@@ -83,6 +85,9 @@ async function updateStatus(): Promise<void> {
 
 	const reqPerSecVal = document.getElementById('req-per-sec');
 	if (reqPerSecVal) reqPerSecVal.textContent = `${reqPerSec.toFixed(2)} req/s`;
+
+	const avgRespTimeVal = document.getElementById('avg-resp-time');
+	if (avgRespTimeVal) avgRespTimeVal.textContent = `Avg: ${avgResponseTime.toFixed(1)}ms`;
 
 	const errCount = document.getElementById('err-count');
 	if (errCount) errCount.textContent = newStatus.metrics.errorCount.toLocaleString();
@@ -238,7 +243,7 @@ if (chartHistorySelect) {
 		while (state.history.labels.length > state.maxHistoryPoints) {
 			state.history.labels.shift();
 			state.history.requests.shift();
-			state.history.errors.shift();
+			state.history.avgResponseTimes.shift();
 			Object.values(state.history.poolUsage).forEach((u) => u.shift());
 		}
 		void updateStatus();

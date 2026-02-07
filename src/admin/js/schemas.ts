@@ -52,6 +52,7 @@ export const poolInfoSchema = z.object({
 export const metricsSchema = z.object({
 	requestCount: z.number(),
 	errorCount: z.number(),
+	avgResponseTime: z.number(),
 });
 
 /**

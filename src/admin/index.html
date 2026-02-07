@@ -4,6 +4,7 @@
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<title>web_plsql Admin Console</title>
+		<link rel="icon" type="image/svg+xml" href="favicon.svg" />
 		<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
 		<link rel="stylesheet" href="style.css" />
 	</head>
@@ -12,7 +13,10 @@
 			<aside class="sidebar">
 				<div class="logo">
 					<span class="material-symbols-rounded">database</span>
-					web_plsql
+					<div style="display: flex; flex-direction: column; line-height: 1">
+						<span>web_plsql</span>
+						<small id="sidebar-version" style="font-size: 0.65rem; opacity: 0.7; margin-top: 2px"></small>
+					</div>
 				</div>
 				<nav>
 					<button data-view="overview" class="active">
@@ -89,7 +93,10 @@
 								<h3>Requests</h3>
 							</div>
 							<p id="req-count">0</p>
-							<small id="req-per-sec">0 req/s</small>
+							<div style="display: flex; gap: 8px">
+								<small id="req-per-sec">0 req/s</small>
+								<small id="avg-resp-time">Avg: 0ms</small>
+							</div>
 						</div>
 						<div class="card">
 							<div class="card-header">

@@ -113,7 +113,7 @@ describe('server/server', () => {
 		AdminContext.pools = [];
 		AdminContext.caches = [];
 		AdminContext.paused = false;
-		AdminContext.metrics = {requestCount: 0, errorCount: 0};
+		AdminContext.metrics = {requestCount: 0, errorCount: 0, totalDuration: 0};
 	});
 
 	describe('createServer', () => {
