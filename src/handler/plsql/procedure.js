@@ -19,6 +19,7 @@ import {RequestError} from './requestError.js';
 import {inspect, getBlock} from '../../util/trace.js';
 import {errorToString} from '../../util/errorToString.js';
 import {sanitizeProcName} from './procedureSanitize.js';
+import {OWAPageStream} from './owaPageStream.js';
 
 /**
  * @typedef {import('express').Request} Request
@@ -131,49 +132,6 @@ const procedureExecute = async (para, databaseConnection) => {
 	} catch (err) {
 		throw new ProcedureError(`procedureExecute: error when executing procedure:\n${sqlStatement}\n${errorToString(err)}`, {}, para.sql, para.bind);
 	}
-};
-
-/**
- * Get page from procedure
- *
- * @param {boolean} _test - Test.
- * @param {Connection} databaseConnection - Database connection.
- * @returns {Promise<string>} Promise resolving to the returned page content.
- */
-const procedureGetPage = async (_test, databaseConnection) => {
-	const MAX_IROWS = 100000;
-
-	/** @type {BindParameterConfig} */
-	const bindParameter = {
-		lines: {dir: oracledb.BIND_OUT, type: oracledb.STRING, maxArraySize: MAX_IROWS},
-		irows: {dir: oracledb.BIND_INOUT, type: oracledb.NUMBER, val: MAX_IROWS},
-	};
-
-	const sqlStatement = 'BEGIN owa.get_page(thepage=>:lines, irows=>:irows); END;';
-
-	/** @type {Result} */
-	let result = {};
-	try {
-		result = await databaseConnection.execute(sqlStatement, bindParameter);
-	} catch (err) {
-		/* v8 ignore start */
-		if (debug.enabled) {
-			debug(getBlock('procedureGetPage: results', inspect(result)));
-		}
-		/* v8 ignore stop */
-
-		throw new ProcedureError(`procedureGetPage: error when getting page returned by procedure\n${errorToString(err)}`, {}, sqlStatement, bindParameter);
-	}
-
-	const {lines, irows} = z.object({irows: z.number(), lines: z.array(z.string())}).parse(result.outBinds);
-
-	// Make sure that we have retrieved all the rows
-	if (irows > MAX_IROWS) {
-		/* v8 ignore next - defensive check for row limit */
-		throw new ProcedureError(`procedureGetPage: error when retrieving rows. irows="${irows}"`, {}, sqlStatement, bindParameter);
-	}
-
-	return lines.join('');
 };
 
 /**
@@ -314,12 +272,14 @@ export const invokeProcedure = async (req, res, argObj, cgiObj, filesToUpload, o
 	}
 
 	// 5) get the page returned from the procedure
-
 	debug('invokeProcedure: get the page returned from the procedure');
-	const lines = await procedureGetPage(true, databaseConnection);
+
+	const stream = new OWAPageStream(databaseConnection);
+	const lines = await stream.fetchChunk();
+
 	/* v8 ignore start */
 	if (debug.enabled) {
-		debug(getBlock('data', lines));
+		debug(getBlock('data', lines.join('')));
 	}
 	/* v8 ignore stop */
 
@@ -339,7 +299,8 @@ export const invokeProcedure = async (req, res, argObj, cgiObj, filesToUpload, o
 		// 7) parse the page
 
 		debug('invokeProcedure: parse the page');
-		const pageComponents = parsePage(lines);
+		// We parse the headers from the first chunk
+		const pageComponents = parsePage(lines.join(''));
 
 		// add "Server" header
 		pageComponents.head.server = cgiObj.SERVER_SOFTWARE ?? '';
@@ -349,6 +310,14 @@ export const invokeProcedure = async (req, res, argObj, cgiObj, filesToUpload, o
 			pageComponents.file.fileType = fileDownload.fileType;
 			pageComponents.file.fileSize = fileDownload.fileSize;
 			pageComponents.file.fileBlob = fileDownload.fileBlob;
+		} else {
+			// For normal pages, we use the stream.
+			// Prepend the initial body (parsed by parsePage) to the stream
+			if (typeof pageComponents.body === 'string' && pageComponents.body.length > 0) {
+				stream.addBody(pageComponents.body);
+			}
+			// Use the stream as the body
+			pageComponents.body = stream;
 		}
 
 		// 8) send the page to browser

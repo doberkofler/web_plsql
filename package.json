@@ -47,6 +47,7 @@
 		"build:admin": "vite build",
 		"lint": "prettier --check --experimental-cli . && eslint . && tsc --noEmit && eslint src/admin --config src/admin/js/eslint.config.js",
 		"test": "vitest run",
+		"test:perf": "vitest run tests/performance.test.js",
 		"test:coverage": "vitest run --coverage",
 		"stylelint": "stylelint \"src/admin/**/*.css\"",
 		"types": "rm -rf types && tsc  --noEmit false --declaration true --declarationDir types --emitDeclarationOnly true --allowJs true --target es2020 --module es2020 --moduleResolution node --allowSyntheticDefaultImports true src/*.js",

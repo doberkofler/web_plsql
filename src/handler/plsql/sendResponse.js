@@ -146,10 +146,29 @@ export const sendResponse = async (_req, res, page) => {
 	// Send the body
 	/* v8 ignore start */
 	if (debug.enabled) {
-		debugText.push(`${'-'.repeat(60)}\n${page.body}`);
+		if (page.body instanceof stream.Readable) {
+			debugText.push(`${'-'.repeat(60)}\n[Stream Body]`);
+		} else {
+			debugText.push(`${'-'.repeat(60)}\n${page.body}`);
+		}
 		debug(getBlock('RESPONSE', debugText.join('\n')));
 	}
 	/* v8 ignore stop */
 
-	res.send(page.body);
+	if (page.body instanceof stream.Readable) {
+		/** @type {Promise<void>} */
+		const streamComplete = new Promise((resolve, reject) => {
+			if (page.body instanceof stream.Readable) {
+				page.body.pipe(res);
+				page.body.on('end', () => resolve());
+				/* v8 ignore next - error handler */
+				page.body.on('error', (/** @type {Error} */ err) => reject(err));
+				/* v8 ignore next - error handler */
+				res.on('close', () => resolve());
+			}
+		});
+		await streamComplete;
+	} else {
+		res.send(page.body);
+	}
 };

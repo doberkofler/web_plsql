@@ -133,7 +133,7 @@ export const z$configType = z.strictObject({
 
 /**
  * @typedef {object} pageType - The page.
- * @property {string} body - The body of the page.
+ * @property {string | import('node:stream').Readable} body - The body of the page.
  * @property {object} head - The head of the page.
  * @property {cookieType[]} head.cookies - The cookies.
  * @property {string} [head.contentType] - The content type.

@@ -302,7 +302,7 @@ export type pageType = {
     /**
      * - The body of the page.
      */
-    body: string;
+    body: string | import("node:stream").Readable;
     /**
      * - The head of the page.
      */

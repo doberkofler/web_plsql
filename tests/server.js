@@ -8,7 +8,7 @@ import * as oracledb from './mock/oracledb.js';
 import {handlerWebPlSql} from '../src/handler/plsql/handlerPlSql.js';
 import {handlerUpload} from '../src/handler/handlerUpload.js';
 
-const PORT = 8765;
+export const PORT = 8765;
 const DOC_TABLE = 'docTable';
 export const PATH = '/base';
 export const DEFAULT_PAGE = 'sample.pageIndex';
@@ -203,15 +203,17 @@ export const serverStop = async (config) => {
 };
 
 /**
+ * @typedef {import('./mock/oracledb.js').executeCallbackType} executeCallbackType
+ */
+
+/**
  *	Set the proxy for the next sql procedure to be executed
  *	@param {{proc: string; para?: paraType; lines?: string[]; error?: string}} config - The configuration.
  */
 export const sqlExecuteProxy = (config) => {
 	/**
 	 *	Proxy for the next sql procedure to be executed
-	 *	@param {string} sql - The SQL statement.
-	 *	@param {BindParameterConfig} bindParams - The bind object.
-	 *	@returns {unknown}
+	 *	@type {executeCallbackType}
 	 */
 	const sqlExecuteProxyCallback = (sql, bindParams) => {
 		// New Check for Name Resolution (procedureSanitize.js)
@@ -246,12 +248,12 @@ export const sqlExecuteProxy = (config) => {
 		}
 
 		if (sql.toLowerCase().includes('dbms_session.modify_package_state')) {
-			return;
+			return {};
 		}
 
 		// this is the proxy for the sql statement in the function "procedurePrepare" in "procedure.js"
 		if (sql.toLowerCase().includes('dbms_session.modify_package_state') || sql.toLowerCase().includes('owa.init_cgi_env')) {
-			return;
+			return {};
 		}
 
 		// this is the proxy for the sql statement in the function "procedureExecute" in "procedure.js"
@@ -262,13 +264,13 @@ export const sqlExecuteProxy = (config) => {
 			}
 
 			if (typeof config.para !== 'undefined') {
-				if (!parameterEqual(sql, bindParams, config.para)) {
+				if (!parameterEqual(sql, bindParams ?? {}, config.para)) {
 					proxyError('parameter mismatch', util.inspect(bindParams));
 					return {};
 				}
 			}
 
-			return;
+			return {};
 		}
 
 		// this is the proxy for the sql statement in the function "procedureGetPage" in "procedure.js"
@@ -302,6 +304,5 @@ export const sqlExecuteProxy = (config) => {
 		process.exit(1);
 	};
 
-	// @ts-expect-error FIXME: do not understand!
 	oracledb.setExecuteCallback(sqlExecuteProxyCallback);
 };

@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 - Introduced the new admin console middleware that allows to control and manage the web_plsql middleware.
+- Implemented `OWAPageStream` class that extends Node.js `Readable` stream to fetch page content in chunks and pipe directly to the HTTP response.
 
 
 ## [0.19.0] - 2026-02-06
