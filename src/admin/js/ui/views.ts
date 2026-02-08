@@ -177,8 +177,8 @@ function formatCpuTime(microseconds: number): string {
 export function refreshSystem(status: Partial<State['status']>, _state?: State): void {
 	const middlewareVersion = document.getElementById('middleware-version');
 	if (middlewareVersion && status.version) {
-		middlewareVersion.textContent = status.version;
-		middlewareVersion.title = 'The version of the web_plsql gateway';
+		middlewareVersion.textContent = `${status.version} (${__BUILD_TIME__})`;
+		middlewareVersion.title = 'The version of the web_plsql gateway and admin console build time';
 	}
 
 	const nodeVersion = document.getElementById('node-version');
@@ -241,39 +241,43 @@ export function refreshSystem(status: Partial<State['status']>, _state?: State):
 			if (maxEl && typeof max === 'number') maxEl.textContent = formatBytes(max);
 		};
 
-		const updateCpu = (id: string, key: keyof SystemMetrics) => {
+		const updateCpu = (id: string, key: keyof SystemMetrics, maxKey?: 'userMax' | 'systemMax') => {
 			const val = metrics[key];
 			const el = document.getElementById(id);
 			if (el) el.textContent = formatCpuTime(val);
+
+			if (maxKey) {
+				const max = system.cpu[maxKey];
+				const maxEl = document.getElementById(`${id}-max`);
+				if (maxEl && typeof max === 'number') maxEl.textContent = formatCpuTime(max);
+			}
 		};
 
 		updateMem('memory-heap-used', 'heapUsed', 'heapUsedMax');
 		updateMem('memory-heap-total', 'heapTotal', 'heapTotalMax');
 		updateMem('memory-rss', 'rss', 'rssMax');
 		updateMem('memory-external', 'external', 'externalMax');
-		updateCpu('cpu-user', 'cpuUser');
-		updateCpu('cpu-system', 'cpuSystem');
+		updateCpu('cpu-user', 'cpuUser', 'userMax');
+		updateCpu('cpu-system', 'cpuSystem', 'systemMax');
 
-		const cpuMaxEl = document.getElementById('cpu-max');
-		if (cpuMaxEl && typeof system.cpu.max === 'number') {
-			cpuMaxEl.textContent = `${system.cpu.max.toFixed(1)}%`;
+		const cpuPercentEl = document.getElementById('cpu-percent');
+		if (cpuPercentEl && system.cpu.max !== undefined) {
+			const cpuCores = system.cpuCores ?? 1;
+			const totalPercent = system.cpu.max / cpuCores;
+			cpuPercentEl.textContent = `${totalPercent.toFixed(1)}%`;
+			cpuPercentEl.title = `Process CPU usage relative to total system capacity (${system.cpu.max.toFixed(1)}% of one core)`;
 		}
-	}
 
-	const systemRefreshStatus = document.getElementById('system-refresh-status');
-	const autoRefreshToggle = document.getElementById('auto-refresh-toggle') as HTMLInputElement | null;
-	const refreshInterval = document.getElementById('refresh-interval') as HTMLSelectElement | null;
-	if (systemRefreshStatus && autoRefreshToggle && refreshInterval) {
-		if (autoRefreshToggle.checked) {
-			const intervalMs = parseInt(refreshInterval.value);
-			const intervalStr = intervalMs < 60000 ? `${intervalMs / 1000}s` : '1m';
-			systemRefreshStatus.textContent = `Active (${intervalStr})`;
-			systemRefreshStatus.classList.add('text-success');
-			systemRefreshStatus.classList.remove('text-accent');
-		} else {
-			systemRefreshStatus.textContent = 'Paused';
-			systemRefreshStatus.classList.remove('text-success');
-			systemRefreshStatus.classList.add('text-accent');
+		const memoryPercentEl = document.getElementById('memory-percent');
+		if (memoryPercentEl && system.memory.totalMemory) {
+			const pct = (system.memory.rss / system.memory.totalMemory) * 100;
+			memoryPercentEl.textContent = `${pct.toFixed(1)}%`;
+			memoryPercentEl.title = `Process RSS relative to total system memory (${formatBytes(system.memory.totalMemory)})`;
+		}
+
+		const cpuCoresInfo = document.getElementById('cpu-cores-info');
+		if (cpuCoresInfo && system.cpuCores) {
+			cpuCoresInfo.textContent = `${system.cpuCores} Cores`;
 		}
 	}
 }

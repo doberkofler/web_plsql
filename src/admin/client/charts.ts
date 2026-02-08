@@ -40,6 +40,114 @@ export function initCharts(state: State): void {
 	const isDark = document.body.classList.contains('dark');
 	const colors = getChartColors(isDark);
 
+	const memoryEl = document.getElementById('memory-chart') as HTMLCanvasElement | null;
+	if (memoryEl) {
+		const chartData = {
+			labels: [],
+			datasets: [
+				{
+					label: 'Memory Usage (%)',
+					data: [],
+					borderColor: '#3b82f6',
+					backgroundColor: 'rgba(59, 130, 246, 0.1)',
+					fill: true,
+					tension: 0.4,
+				},
+			],
+		};
+
+		const chartOptions = {
+			responsive: true,
+			maintainAspectRatio: false,
+			scales: {
+				x: {display: false},
+				y: {
+					display: false,
+					beginAtZero: true,
+					max: 100,
+				},
+			},
+			plugins: {
+				legend: {display: false},
+				tooltip: {
+					enabled: true,
+					position: 'nearest' as const,
+					intersect: false,
+				},
+			},
+			elements: {
+				point: {radius: 0},
+				line: {borderWidth: 1.5},
+			},
+		};
+
+		const chart = new Chart(memoryEl, {
+			type: 'line',
+			data: chartData,
+			options: chartOptions,
+		});
+
+		state.charts.memory = {
+			data: chartData,
+			options: chartOptions,
+			update: () => chart.update(),
+		} as ChartInstance;
+	}
+
+	const cpuEl = document.getElementById('cpu-chart') as HTMLCanvasElement | null;
+	if (cpuEl) {
+		const chartData = {
+			labels: [],
+			datasets: [
+				{
+					label: 'CPU Usage (%)',
+					data: [],
+					borderColor: '#ef4444',
+					backgroundColor: 'rgba(239, 68, 68, 0.1)',
+					fill: true,
+					tension: 0.4,
+				},
+			],
+		};
+
+		const chartOptions = {
+			responsive: true,
+			maintainAspectRatio: false,
+			scales: {
+				x: {display: false},
+				y: {
+					display: false,
+					beginAtZero: true,
+					max: 100,
+				},
+			},
+			plugins: {
+				legend: {display: false},
+				tooltip: {
+					enabled: true,
+					position: 'nearest' as const,
+					intersect: false,
+				},
+			},
+			elements: {
+				point: {radius: 0},
+				line: {borderWidth: 1.5},
+			},
+		};
+
+		const chart = new Chart(cpuEl, {
+			type: 'line',
+			data: chartData,
+			options: chartOptions,
+		});
+
+		state.charts.cpu = {
+			data: chartData,
+			options: chartOptions,
+			update: () => chart.update(),
+		} as ChartInstance;
+	}
+
 	const trafficEl = document.getElementById('traffic-chart') as HTMLCanvasElement | null;
 	if (trafficEl) {
 		const chartData = {
@@ -199,17 +307,29 @@ export function hydrateHistory(state: State, history: HistoryBucket[]): void {
 	state.history.avgResponseTimes = [];
 	state.history.p95ResponseTimes = [];
 	state.history.p99ResponseTimes = [];
+	state.history.cpuUsage = [];
+	state.history.memoryUsage = [];
 	state.history.poolUsage = {};
 
-	history.forEach((b) => {
+	const maxPoints = state.maxHistoryPoints;
+	const recentHistory = history.slice(-maxPoints);
+	const intervalSec = (state.status.intervalMs ?? 5000) / 1000;
+
+	recentHistory.forEach((b) => {
 		const timeLabel = new Date(b.timestamp).toLocaleTimeString();
 		state.history.labels.push(timeLabel);
-		state.history.requests.push(b.requests); // Total requests in bucket
+		state.history.requests.push(b.requests / intervalSec); // Requests per second
 		state.history.avgResponseTimes.push(b.durationAvg);
 		state.history.p95ResponseTimes ??= [];
 		state.history.p95ResponseTimes.push(b.durationP95);
 		state.history.p99ResponseTimes ??= [];
 		state.history.p99ResponseTimes.push(b.durationP99);
+
+		// Resource usage percentage
+		const cpuCores = state.status.system?.cpuCores ?? 1;
+		const totalMem = state.status.system?.memory.totalMemory ?? 0;
+		state.history.cpuUsage.push(b.system.cpu / cpuCores);
+		state.history.memoryUsage.push(totalMem > 0 ? (b.system.rss / totalMem) * 100 : 0);
 
 		b.pools.forEach((p) => {
 			state.history.poolUsage[p.name] ??= [];
@@ -250,6 +370,24 @@ export function hydrateHistory(state: State, history: HistoryBucket[]): void {
 		});
 		poolChart.update();
 	}
+
+	const memoryChart = state.charts.memory;
+	if (memoryChart) {
+		memoryChart.data.labels = state.history.labels;
+		if (memoryChart.data.datasets[0]) {
+			memoryChart.data.datasets[0].data = state.history.memoryUsage;
+		}
+		memoryChart.update();
+	}
+
+	const cpuChart = state.charts.cpu;
+	if (cpuChart) {
+		cpuChart.data.labels = state.history.labels;
+		if (cpuChart.data.datasets[0]) {
+			cpuChart.data.datasets[0].data = state.history.cpuUsage;
+		}
+		cpuChart.update();
+	}
 }
 
 /**
@@ -267,10 +405,24 @@ export function updateCharts(state: State, timeLabel: string, reqPerSec: number,
 	state.history.requests.push(reqPerSec);
 	state.history.avgResponseTimes.push(avgResponseTime);
 
+	// Resource usage percentage
+	const cpuCores = state.status.system?.cpuCores ?? 1;
+	const totalMem = state.status.system?.memory.totalMemory ?? 0;
+	const latestBucket = state.status.history?.[state.status.history.length - 1];
+	if (latestBucket) {
+		state.history.cpuUsage.push(latestBucket.system.cpu / cpuCores);
+		state.history.memoryUsage.push(totalMem > 0 ? (latestBucket.system.rss / totalMem) * 100 : 0);
+	} else {
+		state.history.cpuUsage.push(0);
+		state.history.memoryUsage.push(0);
+	}
+
 	if (state.history.labels.length > maxPoints) {
 		state.history.labels.shift();
 		state.history.requests.shift();
 		state.history.avgResponseTimes.shift();
+		state.history.cpuUsage.shift();
+		state.history.memoryUsage.shift();
 	}
 
 	const trafficChart = state.charts.traffic;
@@ -279,6 +431,20 @@ export function updateCharts(state: State, timeLabel: string, reqPerSec: number,
 		trafficChart.data.datasets[0].data = state.history.requests;
 		trafficChart.data.datasets[1].data = state.history.avgResponseTimes;
 		trafficChart.update();
+	}
+
+	const memoryChart = state.charts.memory;
+	if (memoryChart?.data.datasets[0]) {
+		memoryChart.data.labels = state.history.labels;
+		memoryChart.data.datasets[0].data = state.history.memoryUsage;
+		memoryChart.update();
+	}
+
+	const cpuChart = state.charts.cpu;
+	if (cpuChart?.data.datasets[0]) {
+		cpuChart.data.labels = state.history.labels;
+		cpuChart.data.datasets[0].data = state.history.cpuUsage;
+		cpuChart.update();
 	}
 
 	const poolChart = state.charts.pool;

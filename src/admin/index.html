@@ -92,21 +92,21 @@
 							<p id="uptime-val" title="Total uptime duration">0s</p>
 							<small id="start-time-val" title="Exact server start time">-</small>
 						</div>
-						<div class="card" title="Request throughput and total count">
+						<div class="card" title="Request throughput and response times">
 							<div class="card-header">
 								<span class="material-symbols-rounded">swap_vert</span>
-								<h3 title="Request throughput and total count">Requests</h3>
+								<h3 title="Request throughput and response times">Requests</h3>
 							</div>
-							<div class="flex items-baseline gap-1 mb-2" title="Current and average requests per second">
+							<div class="flex items-baseline gap-1 mb-2" title="Current and maximum requests per second">
 								<span id="req-per-sec" class="text-2xl font-bold text-bright">0.00</span>
-								<span class="text-xs text-main font-medium uppercase mr-2">cur</span>
+								<span class="text-xs text-main font-medium uppercase mr-2">cur /s</span>
 								<span class="text-main opacity-30 mr-2">/</span>
-								<span id="avg-req-per-sec" class="text-2xl font-bold text-bright">0.00</span>
-								<span class="text-xs text-main font-medium uppercase">avg</span>
+								<span id="max-req-per-sec" class="text-2xl font-bold text-bright">0.00</span>
+								<span class="text-xs text-main font-medium uppercase">max /s</span>
 							</div>
 							<div class="flex gap-4">
-								<small class="text-main" title="Total request count">Total: <span id="req-count" class="font-bold">0</span></small>
-								<small class="text-main" title="Average response time">Latency: <span id="avg-resp-time" class="font-bold">0ms</span></small>
+								<small class="text-main" title="Average response time">Avg: <span id="avg-resp-time" class="font-bold">0ms</span></small>
+								<small class="text-main" title="Maximum response time">Max: <span id="max-resp-time" class="font-bold">0ms</span></small>
 							</div>
 						</div>
 						<div class="card" title="Total number of requests that resulted in an error">
@@ -132,7 +132,7 @@
 					<div class="card" style="grid-column: span 2">
 						<div class="card-header">
 							<span class="material-symbols-rounded">monitoring</span>
-							<h3>Traffic & Errors</h3>
+							<h3>TRAFFIC</h3>
 							<div class="header-toolbar ml-auto">
 								<select
 									id="chart-history-points"
@@ -268,8 +268,8 @@
 					<div id="config-view"></div>
 				</section>
 
-				<section id="view-system" class="view" style="display: none">
-					<div class="metrics-grid mb-6">
+				<section id="view-system" class="view view-system-compact" style="display: none">
+					<div class="metrics-grid mb-4">
 						<div class="card">
 							<div class="card-header">
 								<span class="material-symbols-rounded">info</span>
@@ -311,10 +311,6 @@
 										<span id="system-status-text" class="text-accent font-bold">-</span>
 									</span>
 								</div>
-								<div class="stat-row">
-									<span>Auto-refresh</span>
-									<span id="system-refresh-status" class="text-accent font-bold">Active (30s)</span>
-								</div>
 							</div>
 						</div>
 						<div class="card">
@@ -339,68 +335,81 @@
 						</div>
 					</div>
 
-					<div class="metrics-grid mb-6">
-						<div class="card" title="Memory usage statistics for the Node.js process">
+					<div class="metrics-grid">
+						<div class="card resource-card" title="Memory usage statistics for the Node.js process">
 							<div class="card-header">
 								<span class="material-symbols-rounded">memory</span>
 								<h3 title="Memory usage statistics for the Node.js process">Memory Usage</h3>
 							</div>
-							<div class="text-sm text-main">
-								<div class="stat-row" title="Memory currently used by Node.js objects">
-									<span>Heap Used</span>
-									<div class="stat-values">
-										<span id="memory-heap-used" class="font-mono text-accent font-bold">-</span>
-										<small class="min-max"
-											>min: <span id="memory-heap-used-min">-</span> | max: <span id="memory-heap-used-max">-</span></small
-										>
+							<div class="text-sm text-main flex flex-col flex-1">
+								<div class="stat-container">
+									<div class="stat-row">
+										<span>Memory Usage (%)</span>
+										<span id="memory-percent" class="font-mono text-accent font-bold">-</span>
+									</div>
+									<div class="stat-row" title="Memory currently used by Node.js objects">
+										<span>Heap Used</span>
+										<div class="stat-values">
+											<span id="memory-heap-used" class="font-mono text-accent font-bold">-</span>
+											<small class="min-max">max: <span id="memory-heap-used-max">-</span></small>
+										</div>
+									</div>
+									<div class="stat-row" title="Total memory allocated for the heap">
+										<span>Heap Total</span>
+										<div class="stat-values">
+											<span id="memory-heap-total" class="font-mono text-accent font-bold">-</span>
+											<small class="min-max">max: <span id="memory-heap-total-max">-</span></small>
+										</div>
+									</div>
+									<div class="stat-row" title="Resident Set Size - total memory used by the process">
+										<span>RSS</span>
+										<div class="stat-values">
+											<span id="memory-rss" class="font-mono text-accent font-bold">-</span>
+											<small class="min-max">max: <span id="memory-rss-max">-</span></small>
+										</div>
 									</div>
 								</div>
-								<div class="stat-row" title="Total memory allocated for the heap">
-									<span>Heap Total</span>
-									<div class="stat-values">
-										<span id="memory-heap-total" class="font-mono text-accent font-bold">-</span>
-										<small class="min-max"
-											>min: <span id="memory-heap-total-min">-</span> | max: <span id="memory-heap-total-max">-</span></small
-										>
-									</div>
-								</div>
-								<div class="stat-row" title="Resident Set Size - total memory used by the process">
-									<span>RSS</span>
-									<div class="stat-values">
-										<span id="memory-rss" class="font-mono text-accent font-bold">-</span>
-										<small class="min-max">min: <span id="memory-rss-min">-</span> | max: <span id="memory-rss-max">-</span></small>
-									</div>
-								</div>
-								<div class="stat-row" title="Memory used by C++ objects linked to JavaScript objects">
-									<span>External</span>
-									<div class="stat-values">
-										<span id="memory-external" class="font-mono text-accent font-bold">-</span>
-										<small class="min-max"
-											>min: <span id="memory-external-min">-</span> | max: <span id="memory-external-max">-</span></small
-										>
-									</div>
+								<div class="flex-1"></div>
+								<div class="card-divider"></div>
+								<div class="chart-container-mini">
+									<canvas id="memory-chart"></canvas>
 								</div>
 							</div>
 						</div>
-						<div class="card" title="CPU time consumed by the process">
+						<div class="card resource-card" title="CPU time consumed by the process">
 							<div class="card-header">
 								<span class="material-symbols-rounded">speed</span>
 								<h3 title="CPU time consumed by the process">CPU Usage</h3>
 							</div>
-							<div class="text-sm text-main">
-								<div class="stat-row" title="Time spent in user code">
-									<span>User</span>
-									<div class="stat-values">
-										<span id="cpu-user" class="font-mono text-accent font-bold">-</span>
-										<small class="min-max">min: <span id="cpu-user-min">-</span> | max: <span id="cpu-user-max">-</span></small>
+							<div class="text-sm text-main flex flex-col flex-1">
+								<div class="stat-container">
+									<div class="stat-row">
+										<span>CPU Usage (%)</span>
+										<span id="cpu-percent" class="font-mono text-accent font-bold">-</span>
+									</div>
+									<div class="stat-row" title="Time spent in user code">
+										<span>User</span>
+										<div class="stat-values">
+											<span id="cpu-user" class="font-mono text-accent font-bold">-</span>
+											<small class="min-max">max: <span id="cpu-user-max">-</span></small>
+										</div>
+									</div>
+									<div class="stat-row" title="Time spent in system (kernel) code">
+										<span>System</span>
+										<div class="stat-values">
+											<span id="cpu-system" class="font-mono text-accent font-bold">-</span>
+											<small class="min-max">max: <span id="cpu-system-max">-</span></small>
+										</div>
+									</div>
+									<div class="stat-row">
+										<span>Hardware</span>
+										<span id="cpu-cores-info" class="text-accent font-bold">-</span>
 									</div>
 								</div>
-								<div class="stat-row" title="Time spent in system (kernel) code">
-									<span>System</span>
-									<div class="stat-values">
-										<span id="cpu-system" class="font-mono text-accent font-bold">-</span>
-										<small class="min-max">min: <span id="cpu-system-min">-</span> | max: <span id="cpu-system-max">-</span></small>
-									</div>
+								<div class="flex-1"></div>
+								<div class="card-divider"></div>
+								<div class="chart-container-mini">
+									<canvas id="cpu-chart"></canvas>
 								</div>
 							</div>
 						</div>
@@ -408,7 +417,6 @@
 
 					<div class="card danger-zone">
 						<h3 class="danger-zone-title">Danger Zone</h3>
-						<p class="danger-zone-text">Careful! These actions affect the production server state.</p>
 						<div style="display: flex; gap: 12px; margin-top: 16px">
 							<button id="btn-clear-all-cache" class="btn btn-sm btn-warning">Clear All Caches</button>
 							<button id="btn-pause" class="btn btn-sm btn-warning">Pause Server</button>

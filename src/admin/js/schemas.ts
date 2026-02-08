@@ -48,6 +48,7 @@ export const metricsSchema = z.object({
 	avgResponseTime: z.number(),
 	minResponseTime: z.number(),
 	maxResponseTime: z.number(),
+	maxRequestsPerSecond: z.number(),
 });
 
 /**
@@ -121,11 +122,13 @@ export const systemInfoSchema = z.object({
 	nodeVersion: z.string(),
 	platform: z.string(),
 	arch: z.string(),
+	cpuCores: z.number().optional(),
 	memory: z.object({
 		rss: z.number(),
 		heapTotal: z.number(),
 		heapUsed: z.number(),
 		external: z.number(),
+		totalMemory: z.number().optional(),
 		rssMax: z.number().optional(),
 		heapTotalMax: z.number().optional(),
 		heapUsedMax: z.number().optional(),
@@ -135,6 +138,8 @@ export const systemInfoSchema = z.object({
 		user: z.number(),
 		system: z.number(),
 		max: z.number().optional(),
+		userMax: z.number().optional(),
+		systemMax: z.number().optional(),
 	}),
 });
 
@@ -146,6 +151,7 @@ export const statusSchema = z.object({
 	status: z.enum(['running', 'paused', 'stopped']),
 	uptime: z.number(),
 	startTime: z.string(),
+	intervalMs: z.number().optional(),
 	metrics: metricsSchema,
 	history: z.array(bucketSchema).optional(),
 	pools: z.array(poolInfoSchema),

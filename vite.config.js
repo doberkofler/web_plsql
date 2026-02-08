@@ -18,5 +18,6 @@ export default defineConfig({
 	},
 	define: {
 		'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV),
+		__BUILD_TIME__: JSON.stringify(new Date().toLocaleString()),
 	},
 });

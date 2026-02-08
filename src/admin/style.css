@@ -428,6 +428,51 @@ tr:last-child td {
 	}
 }
 
+/* System View Compact */
+.view-system-compact {
+	padding: 20px 32px;
+}
+
+.view-system-compact .metrics-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+	gap: 16px;
+	align-items: start;
+	margin-bottom: 24px;
+}
+
+.view-system-compact .card {
+	padding: 16px;
+}
+
+.view-system-compact .stat-row {
+	padding: 4px 0;
+}
+
+.view-system-compact .card-header {
+	margin-bottom: 12px;
+}
+
+.resource-card {
+	display: flex;
+	flex-direction: column;
+	min-height: 350px;
+}
+
+.card-divider {
+	height: 1px;
+	background-color: var(--border);
+	margin: 12px 0;
+	width: 100%;
+}
+
+.chart-container-mini {
+	height: 80px;
+	width: 100%;
+	position: relative;
+	overflow: hidden;
+}
+
 /* Theme Toggle */
 
 /* Chart Styles */
@@ -1181,6 +1226,12 @@ nav button .material-symbols-rounded {
 	overflow-y: auto;
 }
 
+.stat-values-inline {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
 /* Stat values for min/max */
 .stat-values {
 	display: flex;
@@ -1281,12 +1332,6 @@ nav button .material-symbols-rounded {
 	color: var(--warning);
 	font-weight: 600;
 	margin-bottom: 8px;
-}
-
-.danger-zone-text {
-	color: var(--text-main);
-	font-size: 0.875rem;
-	margin-bottom: 16px;
 }
 
 /* Empty state */

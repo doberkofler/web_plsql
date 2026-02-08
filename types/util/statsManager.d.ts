@@ -65,9 +65,12 @@
  * @property {number} minDuration - Min duration.
  * @property {number} maxDuration - Max duration.
  * @property {number} totalDuration - Total duration.
+ * @property {number} maxRequestsPerSecond - Max requests per second.
  * @property {MemoryLifetime} memory - Memory extremes.
  * @property {object} cpu - CPU extremes.
  * @property {number} cpu.max - Max CPU.
+ * @property {number} cpu.userMax - Max user CPU.
+ * @property {number} cpu.systemMax - Max system CPU.
  */
 /**
  * @typedef {object} StatsSummary
@@ -77,8 +80,12 @@
  * @property {number} avgResponseTime - Lifetime average response time.
  * @property {number} minResponseTime - Lifetime minimum response time.
  * @property {number} maxResponseTime - Lifetime maximum response time.
+ * @property {number} maxRequestsPerSecond - Lifetime maximum requests per second.
  * @property {MemoryLifetime} maxMemory - Lifetime memory extremes.
- * @property {number} maxCpu - Lifetime maximum CPU usage percentage.
+ * @property {object} cpu - CPU extremes.
+ * @property {number} cpu.max - Max CPU usage percentage.
+ * @property {number} cpu.userMax - Max user CPU usage in microseconds.
+ * @property {number} cpu.systemMax - Max system CPU usage in microseconds.
  */
 /**
  * Manager for statistical data collection and temporal bucketing.
@@ -317,6 +324,10 @@ export type LifetimeStats = {
      */
     totalDuration: number;
     /**
+     * - Max requests per second.
+     */
+    maxRequestsPerSecond: number;
+    /**
      * - Memory extremes.
      */
     memory: MemoryLifetime;
@@ -325,6 +336,8 @@ export type LifetimeStats = {
      */
     cpu: {
         max: number;
+        userMax: number;
+        systemMax: number;
     };
 };
 export type StatsSummary = {
@@ -353,11 +366,19 @@ export type StatsSummary = {
      */
     maxResponseTime: number;
     /**
+     * - Lifetime maximum requests per second.
+     */
+    maxRequestsPerSecond: number;
+    /**
      * - Lifetime memory extremes.
      */
     maxMemory: MemoryLifetime;
     /**
-     * - Lifetime maximum CPU usage percentage.
+     * - CPU extremes.
      */
-    maxCpu: number;
+    cpu: {
+        max: number;
+        userMax: number;
+        systemMax: number;
+    };
 };

@@ -3,6 +3,7 @@ import express from 'express';
 import request from 'supertest';
 import {AdminContext} from '../src/server/server.js';
 import {handlerAdmin} from '../src/handler/handlerAdmin.js';
+import {StatsManager} from '../src/util/statsManager.js';
 import * as shutdownUtils from '../src/util/shutdown.js';
 import fs from 'node:fs';
 
@@ -42,6 +43,12 @@ describe('handler/handlerAdmin', () => {
 
 		// Reset AdminContext
 		AdminContext.startTime = new Date(Date.now() - 10000); // 10s ago
+		AdminContext.statsManager.stop();
+		AdminContext.statsManager = new StatsManager({
+			intervalMs: 1000,
+			maxHistoryPoints: 5,
+			sampleSystem: false,
+		});
 		AdminContext.config = {
 			port: 8080,
 			adminRoute: '/admin',

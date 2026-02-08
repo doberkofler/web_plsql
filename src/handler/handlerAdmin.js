@@ -1,5 +1,6 @@
 import express from 'express';
 import fs from 'node:fs';
+import os from 'node:os';
 import readline from 'node:readline';
 import {AdminContext} from '../server/server.js';
 import {getVersion} from '../version.js';
@@ -25,12 +26,16 @@ import {forceShutdown} from '../util/shutdown.js';
  * @property {number} avgResponseTime - Lifetime average response time.
  * @property {number} minResponseTime - Lifetime minimum response time.
  * @property {number} maxResponseTime - Lifetime maximum response time.
+ * @property {number} maxRequestsPerSecond - Lifetime maximum requests per second.
  * @property {object} maxMemory - Lifetime memory extremes.
  * @property {number} maxMemory.heapUsedMax - Maximum heap used.
  * @property {number} maxMemory.heapTotalMax - Maximum heap total.
  * @property {number} maxMemory.rssMax - Maximum RSS.
  * @property {number} maxMemory.externalMax - Maximum external memory.
- * @property {number} maxCpu - Lifetime maximum CPU usage percentage.
+ * @property {object} cpu - Lifetime CPU extremes.
+ * @property {number} cpu.max - Max CPU.
+ * @property {number} cpu.userMax - Max user CPU.
+ * @property {number} cpu.systemMax - Max system CPU.
  */
 
 export const handlerAdmin = express.Router();
@@ -103,12 +108,14 @@ handlerAdmin.get('/api/status', (_req, res) => {
 		status: AdminContext.paused ? 'paused' : 'running',
 		uptime,
 		startTime: AdminContext.startTime,
+		intervalMs: AdminContext.statsManager.config.intervalMs,
 		metrics: {
 			requestCount: summary.totalRequests,
 			errorCount: summary.totalErrors,
 			avgResponseTime: summary.avgResponseTime,
 			minResponseTime: summary.minResponseTime,
 			maxResponseTime: summary.maxResponseTime,
+			maxRequestsPerSecond: summary.maxRequestsPerSecond,
 		},
 		history: AdminContext.statsManager.getHistory(),
 		pools: poolStats,
@@ -116,17 +123,21 @@ handlerAdmin.get('/api/status', (_req, res) => {
 			nodeVersion: process.version,
 			platform: process.platform,
 			arch: process.arch,
+			cpuCores: os.cpus().length,
 			memory: {
 				rss: memUsage.rss,
 				heapTotal: memUsage.heapTotal,
 				heapUsed: memUsage.heapUsed,
 				external: memUsage.external,
+				totalMemory: os.totalmem(),
 				...summary.maxMemory,
 			},
 			cpu: {
 				user: cpuUsage.user,
 				system: cpuUsage.system,
-				max: summary.maxCpu,
+				max: summary.cpu.max,
+				userMax: summary.cpu.userMax,
+				systemMax: summary.cpu.systemMax,
 			},
 		},
 		config: AdminContext.config

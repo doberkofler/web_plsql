@@ -123,7 +123,7 @@ describe('StatsManager', () => {
 		const summary = manager.getSummary();
 
 		assert.ok(summary.maxMemory.heapUsedMax > 0);
-		assert.ok(summary.maxCpu >= 0);
+		assert.ok(summary.cpu.max >= 0);
 	});
 
 	it('should include pool snapshots in buckets', () => {

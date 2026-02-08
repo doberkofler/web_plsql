@@ -30,6 +30,7 @@ const state: State = {
 	lastRequestCount: 0,
 	lastErrorCount: 0,
 	lastUpdateTime: Date.now(),
+	lastBucketTimestamp: 0,
 	refreshTimer: null,
 	history: {
 		labels: [],
@@ -37,6 +38,8 @@ const state: State = {
 		avgResponseTimes: [],
 		p95ResponseTimes: [],
 		p99ResponseTimes: [],
+		cpuUsage: [],
+		memoryUsage: [],
 		poolUsage: {},
 	},
 	charts: {},
@@ -80,7 +83,8 @@ async function updateStatus(): Promise<void> {
 
 	// Use server provided interval stats if available
 	const latestBucket = newStatus.history?.[newStatus.history.length - 1];
-	const reqPerSec = latestBucket ? latestBucket.requests / 5 : 0; // Assuming 5s interval
+	const intervalSec = (newStatus.intervalMs ?? 5000) / 1000;
+	const reqPerSec = latestBucket ? latestBucket.requests / intervalSec : 0;
 	const avgResponseTime = latestBucket ? latestBucket.durationAvg : newStatus.metrics.avgResponseTime;
 
 	state.lastRequestCount = newStatus.metrics.requestCount;
@@ -102,8 +106,16 @@ async function updateStatus(): Promise<void> {
 		updateMinMaxMetrics(metrics, state.metricsMin, state.metricsMax);
 	}
 
-	const timeLabel = new Date().toLocaleTimeString();
-	updateCharts(state, timeLabel, reqPerSec, avgResponseTime, newStatus.pools);
+	// Only update charts if we have a new bucket from the server
+	if (latestBucket && latestBucket.timestamp > state.lastBucketTimestamp) {
+		state.lastBucketTimestamp = latestBucket.timestamp;
+		const timeLabel = new Date(latestBucket.timestamp).toLocaleTimeString();
+		updateCharts(state, timeLabel, reqPerSec, avgResponseTime, newStatus.pools);
+	} else if (!latestBucket && state.history.labels.length === 0) {
+		// If we have no history yet, initialize with a zero point to avoid empty charts
+		const timeLabel = new Date().toLocaleTimeString();
+		updateCharts(state, timeLabel, 0, 0, newStatus.pools);
+	}
 
 	const sidebarVersion = document.getElementById('sidebar-version');
 	if (sidebarVersion) sidebarVersion.textContent = `v${newStatus.version}`;
@@ -114,20 +126,17 @@ async function updateStatus(): Promise<void> {
 	const startTimeVal = document.getElementById('start-time-val');
 	if (startTimeVal) startTimeVal.textContent = `Started: ${formatDateTime(newStatus.startTime)}`;
 
-	const reqCount = document.getElementById('req-count');
-	if (reqCount) reqCount.textContent = newStatus.metrics.requestCount.toLocaleString();
-
 	const reqPerSecVal = document.getElementById('req-per-sec');
 	if (reqPerSecVal) reqPerSecVal.textContent = reqPerSec.toFixed(2);
 
-	const avgReqPerSecVal = document.getElementById('avg-req-per-sec');
-	if (avgReqPerSecVal) {
-		const avgLifetime = newStatus.uptime > 0 ? newStatus.metrics.requestCount / newStatus.uptime : 0;
-		avgReqPerSecVal.textContent = avgLifetime.toFixed(2);
-	}
+	const maxReqPerSecVal = document.getElementById('max-req-per-sec');
+	if (maxReqPerSecVal) maxReqPerSecVal.textContent = newStatus.metrics.maxRequestsPerSecond.toFixed(2);
 
 	const avgRespTimeVal = document.getElementById('avg-resp-time');
 	if (avgRespTimeVal) avgRespTimeVal.textContent = `${newStatus.metrics.avgResponseTime.toFixed(1)}ms`;
+
+	const maxRespTimeVal = document.getElementById('max-resp-time');
+	if (maxRespTimeVal) maxRespTimeVal.textContent = `${newStatus.metrics.maxResponseTime.toFixed(1)}ms`;
 
 	const errCount = document.getElementById('err-count');
 	if (errCount) errCount.textContent = newStatus.metrics.errorCount.toLocaleString();
@@ -269,9 +278,24 @@ const refreshIntervalSelect = document.getElementById('refresh-interval') as HTM
 if (refreshIntervalSelect) {
 	refreshIntervalSelect.onchange = () => {
 		localStorage.setItem(STORAGE_KEYS.REFRESH_INTERVAL, refreshIntervalSelect.value);
+
+		// Recalculate maxHistoryPoints for the new interval
+		const intervalMs = parseInt(refreshIntervalSelect.value);
+		const durationSeconds = parseInt(chartHistorySelect?.value ?? '60');
+		state.maxHistoryPoints = Math.max(1, Math.floor(durationSeconds / (intervalMs / 1000)));
+
+		// Clear history to force re-hydration from server on next update
+		state.history.labels = [];
+		state.history.requests = [];
+		state.history.avgResponseTimes = [];
+		state.history.cpuUsage = [];
+		state.history.memoryUsage = [];
+		state.history.poolUsage = {};
+
 		startRefreshTimer();
 		updateHistoryLabels();
 		refreshSystem(state.status, state);
+		void updateStatus();
 	};
 }
 
@@ -289,6 +313,8 @@ if (chartHistorySelect) {
 		state.history.labels = [];
 		state.history.requests = [];
 		state.history.avgResponseTimes = [];
+		state.history.cpuUsage = [];
+		state.history.memoryUsage = [];
 		state.history.poolUsage = {};
 
 		void updateStatus();

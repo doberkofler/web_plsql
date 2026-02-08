@@ -53,6 +53,7 @@ export type Metrics = {
 	avgResponseTime: number;
 	minResponseTime: number;
 	maxResponseTime: number;
+	maxRequestsPerSecond: number;
 };
 
 /**
@@ -98,6 +99,7 @@ export type Status = {
 	status: 'running' | 'paused' | 'stopped';
 	uptime: number;
 	startTime: string;
+	intervalMs?: number;
 	metrics: Metrics;
 	pools: PoolInfo[];
 	config: Partial<ServerConfig>;
@@ -259,9 +261,18 @@ export type State = {
 	lastRequestCount: number;
 	lastErrorCount: number;
 	lastUpdateTime: number;
+	lastBucketTimestamp: number;
 	refreshTimer: ReturnType<typeof setInterval> | null;
-	history: HistoryData;
+	history: HistoryData & {
+		cpuUsage: number[];
+		memoryUsage: number[];
+	};
 	charts: Record<string, ChartInstance>;
 	metricsMin: Partial<SystemMetrics>;
 	metricsMax: Partial<SystemMetrics>;
 };
+
+declare global {
+	/** Injected by Vite during build */
+	const __BUILD_TIME__: string;
+}

@@ -76,9 +76,12 @@ const debug = debugModule('webplsql:statsManager');
  * @property {number} minDuration - Min duration.
  * @property {number} maxDuration - Max duration.
  * @property {number} totalDuration - Total duration.
+ * @property {number} maxRequestsPerSecond - Max requests per second.
  * @property {MemoryLifetime} memory - Memory extremes.
  * @property {object} cpu - CPU extremes.
  * @property {number} cpu.max - Max CPU.
+ * @property {number} cpu.userMax - Max user CPU.
+ * @property {number} cpu.systemMax - Max system CPU.
  */
 
 /**
@@ -89,8 +92,12 @@ const debug = debugModule('webplsql:statsManager');
  * @property {number} avgResponseTime - Lifetime average response time.
  * @property {number} minResponseTime - Lifetime minimum response time.
  * @property {number} maxResponseTime - Lifetime maximum response time.
+ * @property {number} maxRequestsPerSecond - Lifetime maximum requests per second.
  * @property {MemoryLifetime} maxMemory - Lifetime memory extremes.
- * @property {number} maxCpu - Lifetime maximum CPU usage percentage.
+ * @property {object} cpu - CPU extremes.
+ * @property {number} cpu.max - Max CPU usage percentage.
+ * @property {number} cpu.userMax - Max user CPU usage in microseconds.
+ * @property {number} cpu.systemMax - Max system CPU usage in microseconds.
  */
 
 /**
@@ -123,6 +130,7 @@ export class StatsManager {
 			minDuration: -1,
 			maxDuration: -1,
 			totalDuration: 0,
+			maxRequestsPerSecond: 0,
 			memory: {
 				heapUsedMax: 0,
 				heapTotalMax: 0,
@@ -131,6 +139,8 @@ export class StatsManager {
 			},
 			cpu: {
 				max: 0,
+				userMax: 0,
+				systemMax: 0,
 			},
 		};
 
@@ -239,14 +249,19 @@ export class StatsManager {
 	rotateBucket(poolSnapshots = []) {
 		const b = this._currentBucket;
 		const memUsage = process.memoryUsage();
+		const cpuUsage = process.cpuUsage();
 		const cpu = this._calculateCpuUsage();
 
 		// Update lifetime extremes
+		const reqPerSec = b.count / (this.config.intervalMs / 1000);
+		this.lifetime.maxRequestsPerSecond = Math.max(this.lifetime.maxRequestsPerSecond, reqPerSec);
 		this.lifetime.memory.heapUsedMax = Math.max(this.lifetime.memory.heapUsedMax, memUsage.heapUsed);
 		this.lifetime.memory.heapTotalMax = Math.max(this.lifetime.memory.heapTotalMax, memUsage.heapTotal);
 		this.lifetime.memory.rssMax = Math.max(this.lifetime.memory.rssMax, memUsage.rss);
 		this.lifetime.memory.externalMax = Math.max(this.lifetime.memory.externalMax, memUsage.external);
 		this.lifetime.cpu.max = Math.max(this.lifetime.cpu.max, cpu);
+		this.lifetime.cpu.userMax = Math.max(this.lifetime.cpu.userMax, cpuUsage.user);
+		this.lifetime.cpu.systemMax = Math.max(this.lifetime.cpu.systemMax, cpuUsage.system);
 
 		let p95 = 0;
 		let p99 = 0;
@@ -311,8 +326,9 @@ export class StatsManager {
 			avgResponseTime: this.lifetime.totalRequests > 0 ? this.lifetime.totalDuration / this.lifetime.totalRequests : 0,
 			minResponseTime: this.lifetime.minDuration,
 			maxResponseTime: this.lifetime.maxDuration,
+			maxRequestsPerSecond: this.lifetime.maxRequestsPerSecond,
 			maxMemory: this.lifetime.memory,
-			maxCpu: this.lifetime.cpu.max,
+			cpu: this.lifetime.cpu,
 		};
 	}
 
