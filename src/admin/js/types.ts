@@ -307,7 +307,9 @@ export type State = {
 	lastErrorCount: number;
 	lastUpdateTime: number;
 	lastBucketTimestamp: number;
-	refreshTimer: ReturnType<typeof setInterval> | null;
+	nextRefreshTimeout: ReturnType<typeof setTimeout> | null;
+	nextRefreshTime: number;
+	countdownInterval: ReturnType<typeof setInterval> | null;
 	history: HistoryData & {
 		cpuUsage: number[];
 		memoryUsage: number[];

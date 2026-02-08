@@ -1,15 +1,3 @@
-export namespace AdminContext {
-    let startTime: Date;
-    let config: configType | null;
-    let pools: Pool[];
-    let caches: Array<{
-        poolName: string;
-        procedureNameCache: Cache<string>;
-        argumentCache: Cache<argsType>;
-    }>;
-    let paused: boolean;
-    let statsManager: StatsManager;
-}
 export function createServer(app: Express, ssl?: sslConfig): http.Server | https.Server;
 export function startServer(config: configType, ssl?: sslConfig): Promise<webServer>;
 export function loadConfig(filename?: string): configType;
@@ -24,8 +12,8 @@ export type environmentType = import("../types.js").environmentType;
 export type configType = import("../types.js").configType;
 export type argsType = import("../handler/plsql/procedureNamed.js").argsType;
 export type ExtendedRequestHandler = import("express").RequestHandler & {
-    procedureNameCache: Cache<string>;
-    argumentCache: Cache<argsType>;
+    procedureNameCache: import("../util/cache.js").Cache<string>;
+    argumentCache: import("../util/cache.js").Cache<argsType>;
 };
 /**
  * - Web server interface.
@@ -65,7 +53,5 @@ export type sslConfig = {
      */
     certFilename: string;
 };
-import { Cache } from '../util/cache.js';
-import { StatsManager } from '../util/statsManager.js';
 import http from 'node:http';
 import https from 'node:https';

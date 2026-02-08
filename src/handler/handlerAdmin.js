@@ -2,7 +2,7 @@ import express from 'express';
 import fs from 'node:fs';
 import os from 'node:os';
 import readline from 'node:readline';
-import {AdminContext} from '../server/server.js';
+import {AdminContext} from '../server/adminContext.js';
 import {getVersion} from '../version.js';
 
 const version = getVersion();

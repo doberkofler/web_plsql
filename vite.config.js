@@ -13,6 +13,13 @@ export default defineConfig({
 			},
 			output: {
 				entryFileNames: 'chart.bundle.js',
+				assetFileNames: (assetInfo) => {
+					const info = /** @type {{name?: string, names?: string[]}} */ (assetInfo);
+					if (info.name?.endsWith('.css') || info.names?.some((n) => n.endsWith('.css'))) {
+						return 'chart.bundle.css';
+					}
+					return 'assets/[name]-[hash][extname]';
+				},
 			},
 		},
 	},

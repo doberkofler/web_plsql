@@ -1,7 +1,7 @@
 import {describe, it, expect, vi, beforeEach} from 'vitest';
 import express from 'express';
 import request from 'supertest';
-import {AdminContext} from '../src/server/server.js';
+import {AdminContext} from '../src/server/adminContext.js';
 import {handlerAdmin} from '../src/handler/handlerAdmin.js';
 import {StatsManager} from '../src/util/statsManager.js';
 import * as shutdownUtils from '../src/util/shutdown.js';

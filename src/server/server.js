@@ -16,9 +16,7 @@ import {handlerWebPlSql} from '../handler/plsql/handlerPlSql.js';
 import {handlerAdmin} from '../handler/handlerAdmin.js';
 import {readFileSyncUtf8, getJsonFile} from '../util/file.js';
 import {showConfig} from './config.js';
-import {Cache} from '../util/cache.js';
-
-import {StatsManager} from '../util/statsManager.js';
+import {AdminContext} from './adminContext.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -37,25 +35,10 @@ const __dirname = path.dirname(__filename);
 
 /**
  * @typedef {import('express').RequestHandler & {
- *   procedureNameCache: Cache<string>;
- *   argumentCache: Cache<argsType>;
+ *   procedureNameCache: import('../util/cache.js').Cache<string>;
+ *   argumentCache: import('../util/cache.js').Cache<argsType>;
  * }} ExtendedRequestHandler
  */
-
-/**
- * Global Admin Context
- */
-export const AdminContext = {
-	startTime: new Date(),
-	/** @type {configType | null} */
-	config: null,
-	/** @type {Pool[]} */
-	pools: [],
-	/** @type {Array<{poolName: string, procedureNameCache: Cache<string>, argumentCache: Cache<argsType>}>} */
-	caches: [],
-	paused: false,
-	statsManager: new StatsManager(),
-};
 
 /**
  * @typedef {object} webServer - Web server interface.
@@ -145,6 +128,17 @@ export const startServer = async (config, ssl) => {
 	// Admin console
 	const adminRoute = internalConfig.adminRoute ?? '/admin';
 	const adminDirectory = path.resolve(__dirname, '../admin');
+
+	// Ensure trailing slash for admin route to support relative paths
+	app.get(adminRoute, (req, res, next) => {
+		const [path] = req.originalUrl.split('?');
+		if (path === adminRoute) {
+			const query = req.originalUrl.split('?')[1];
+			return res.redirect(adminRoute + '/' + (query ? '?' + query : ''));
+		}
+		next();
+	});
+
 	app.use(adminRoute, handlerAdmin);
 	app.use(adminRoute, express.static(adminDirectory));
 

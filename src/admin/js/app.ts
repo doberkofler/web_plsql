@@ -31,7 +31,9 @@ const state: State = {
 	lastErrorCount: 0,
 	lastUpdateTime: Date.now(),
 	lastBucketTimestamp: 0,
-	refreshTimer: null,
+	nextRefreshTimeout: null,
+	nextRefreshTime: 0,
+	countdownInterval: null,
 	history: {
 		labels: [],
 		requests: [],
@@ -66,134 +68,268 @@ const STORAGE_KEYS = {
 };
 
 /**
- * Update server status.
+ * Set the UI to offline state.
+ *
+ * @param error - The error object.
  */
-async function updateStatus(): Promise<void> {
-	const now = Date.now();
-	const newStatus = await typedApi.getStatus();
-
-	// Hydrate history on first load or if history is provided
-	if (newStatus.history && state.history.labels.length === 0) {
-		hydrateHistory(state, newStatus.history);
-	}
-
-	state.status = newStatus;
-
-	if (!newStatus.metrics || !newStatus.pools) return;
-
-	// Use server provided interval stats if available
-	const latestBucket = newStatus.history?.[newStatus.history.length - 1];
-	const intervalSec = (newStatus.intervalMs ?? 5000) / 1000;
-	const reqPerSec = latestBucket ? latestBucket.requests / intervalSec : 0;
-	const avgResponseTime = latestBucket ? latestBucket.durationAvg : newStatus.metrics.avgResponseTime;
-
-	state.lastRequestCount = newStatus.metrics.requestCount;
-	state.lastErrorCount = newStatus.metrics.errorCount;
-	state.lastUpdateTime = now;
-
-	// Update Min/Max metrics
-	if (newStatus.system) {
-		const sys = newStatus.system;
-		const metrics: SystemMetrics = {
-			heapUsed: sys.memory.heapUsed,
-			heapTotal: sys.memory.heapTotal,
-			rss: sys.memory.rss,
-			external: sys.memory.external,
-			cpuUser: sys.cpu.user,
-			cpuSystem: sys.cpu.system,
-		};
-
-		updateMinMaxMetrics(metrics, state.metricsMin, state.metricsMax);
-	}
-
-	// Only update charts if we have a new bucket from the server
-	if (latestBucket && latestBucket.timestamp > state.lastBucketTimestamp) {
-		state.lastBucketTimestamp = latestBucket.timestamp;
-		const timeLabel = new Date(latestBucket.timestamp).toLocaleTimeString();
-		updateCharts(state, timeLabel, reqPerSec, avgResponseTime, newStatus.pools);
-	} else if (!latestBucket && state.history.labels.length === 0) {
-		// If we have no history yet, initialize with a zero point to avoid empty charts
-		const timeLabel = new Date().toLocaleTimeString();
-		updateCharts(state, timeLabel, 0, 0, newStatus.pools);
-	}
-
-	const sidebarVersion = document.getElementById('sidebar-version');
-	if (sidebarVersion) sidebarVersion.textContent = `v${newStatus.version}`;
-
-	const uptimeVal = document.getElementById('uptime-val');
-	if (uptimeVal) uptimeVal.textContent = formatDuration(newStatus.uptime);
-
-	const startTimeVal = document.getElementById('start-time-val');
-	if (startTimeVal) startTimeVal.textContent = `Started: ${formatDateTime(newStatus.startTime)}`;
-
-	const reqPerSecVal = document.getElementById('req-per-sec');
-	if (reqPerSecVal) reqPerSecVal.textContent = reqPerSec.toFixed(2);
-
-	const maxReqPerSecVal = document.getElementById('max-req-per-sec');
-	if (maxReqPerSecVal) maxReqPerSecVal.textContent = newStatus.metrics.maxRequestsPerSecond.toFixed(2);
-
-	const avgRespTimeVal = document.getElementById('avg-resp-time');
-	if (avgRespTimeVal) avgRespTimeVal.textContent = `${newStatus.metrics.avgResponseTime.toFixed(1)}ms`;
-
-	const maxRespTimeVal = document.getElementById('max-resp-time');
-	if (maxRespTimeVal) maxRespTimeVal.textContent = `${newStatus.metrics.maxResponseTime.toFixed(1)}ms`;
-
-	const errCount = document.getElementById('err-count');
-	if (errCount) errCount.textContent = newStatus.metrics.errorCount.toLocaleString();
-
-	// Update Cache Overview
-	let totalHits = 0;
-	let totalMisses = 0;
-	newStatus.pools.forEach((p) => {
-		if (p.cache) {
-			totalHits += p.cache.procedureName.hits + p.cache.argument.hits;
-			totalMisses += p.cache.procedureName.misses + p.cache.argument.misses;
-		}
-	});
-	const totalRequests = totalHits + totalMisses;
-	const hitRate = totalRequests > 0 ? Math.round((totalHits / totalRequests) * 100) : 0;
-
-	const cacheHitRateVal = document.getElementById('cache-hit-rate-val');
-	if (cacheHitRateVal) {
-		cacheHitRateVal.textContent = `${hitRate}%`;
-		cacheHitRateVal.style.color = hitRate > 80 ? 'var(--success)' : hitRate > 50 ? 'var(--warning)' : 'var(--danger)';
-	}
-	const cacheHitsVal = document.getElementById('cache-hits-val');
-	if (cacheHitsVal) cacheHitsVal.textContent = totalHits.toLocaleString();
-	const cacheMissesVal = document.getElementById('cache-misses-val');
-	if (cacheMissesVal) cacheMissesVal.textContent = totalMisses.toLocaleString();
+function setOfflineState(error: unknown): void {
+	console.error('Connection lost:', error);
 
 	const dot = document.getElementById('server-status-dot');
 	const text = document.getElementById('server-status-text');
-	if (dot) dot.className = 'dot ' + newStatus.status;
-	if (text) text.textContent = newStatus.status.toUpperCase();
+	if (dot) dot.className = 'dot offline';
+	if (text) text.textContent = 'OFFLINE';
 
 	const btnPause = document.getElementById('btn-pause');
-	if (btnPause) btnPause.style.display = newStatus.status === 'running' ? 'flex' : 'none';
+	if (btnPause) btnPause.style.display = 'none';
 
 	const btnResume = document.getElementById('btn-resume');
-	if (btnResume) btnResume.style.display = newStatus.status === 'paused' ? 'flex' : 'none';
+	if (btnResume) btnResume.style.display = 'none';
 
-	if (state.currentView === 'errors') await refreshErrors();
-	if (state.currentView === 'access') await refreshAccess();
-	if (state.currentView === 'pools') refreshPools(newStatus);
-	if (state.currentView === 'stats') refreshStats(newStatus);
-	if (state.currentView === 'config') refreshConfig(state);
-	if (state.currentView === 'system') refreshSystem(newStatus, state);
+	// Update system view status if visible
+	const systemStatusDot = document.querySelector('#system-status .dot');
+	const systemStatusText = document.getElementById('system-status-text');
+	if (systemStatusDot) systemStatusDot.className = 'dot offline';
+	if (systemStatusText) systemStatusText.textContent = 'OFFLINE';
+
+	// Show offline modal
+	const modal = document.getElementById('offline-modal');
+	if (modal && modal.style.display !== 'flex') {
+		modal.style.display = 'flex';
+	}
+
+	// Schedule next attempt in 60s
+	scheduleNextRefresh(60000);
+	startCountdown(60000);
 }
 
 /**
- * Start the refresh timer.
+ * Start the countdown timer for the offline modal.
+ *
+ * @param durationMs - The duration in milliseconds.
+ */
+function startCountdown(durationMs: number): void {
+	if (state.countdownInterval) clearInterval(state.countdownInterval);
+
+	const endTime = Date.now() + durationMs;
+	const el = document.getElementById('offline-countdown');
+	const btnText = document.getElementById('reconnect-text');
+
+	if (btnText) btnText.textContent = 'Try Reconnect';
+
+	const update = () => {
+		if (!el) return;
+		const remaining = Math.max(0, Math.ceil((endTime - Date.now()) / 1000));
+		el.textContent = `Retrying in ${remaining}s...`;
+		if (remaining <= 0 && state.countdownInterval) {
+			clearInterval(state.countdownInterval);
+			state.countdownInterval = null;
+		}
+	};
+
+	update();
+	state.countdownInterval = setInterval(update, 1000);
+}
+
+/**
+ * Stop the countdown timer.
+ */
+function stopCountdown(): void {
+	if (state.countdownInterval) {
+		clearInterval(state.countdownInterval);
+		state.countdownInterval = null;
+	}
+	const el = document.getElementById('offline-countdown');
+	if (el) el.textContent = '';
+}
+
+/**
+ * Update server status.
+ */
+async function updateStatus(): Promise<void> {
+	// Show spinner if manually triggered or retrying
+	const spinner = document.getElementById('reconnect-spinner');
+	const icon = document.getElementById('reconnect-icon');
+	const btnText = document.getElementById('reconnect-text');
+
+	if (spinner) spinner.style.display = 'inline-block';
+	if (icon) icon.style.display = 'none';
+	if (btnText) btnText.textContent = 'Connecting...';
+
+	try {
+		const now = Date.now();
+		const newStatus = await typedApi.getStatus();
+
+		// Check if we were offline
+		const modal = document.getElementById('offline-modal');
+		const wasOffline = modal?.style.display === 'flex';
+
+		if (wasOffline && modal) {
+			modal.style.display = 'none';
+			stopCountdown();
+		}
+
+		// Reset button state
+		if (spinner) spinner.style.display = 'none';
+		if (icon) icon.style.display = 'inline-block';
+		if (btnText) btnText.textContent = 'Try Reconnect';
+
+		// Hydrate history on first load or if history is provided
+		if (newStatus.history && state.history.labels.length === 0) {
+			hydrateHistory(state, newStatus.history);
+		}
+
+		state.status = newStatus;
+
+		if (!newStatus.metrics || !newStatus.pools) return;
+
+		// Use server provided interval stats if available
+		const latestBucket = newStatus.history?.[newStatus.history.length - 1];
+		const intervalSec = (newStatus.intervalMs ?? 5000) / 1000;
+		const reqPerSec = latestBucket ? latestBucket.requests / intervalSec : 0;
+		const avgResponseTime = latestBucket ? latestBucket.durationAvg : newStatus.metrics.avgResponseTime;
+
+		state.lastRequestCount = newStatus.metrics.requestCount;
+		state.lastErrorCount = newStatus.metrics.errorCount;
+		state.lastUpdateTime = now;
+
+		// Update Min/Max metrics
+		if (newStatus.system) {
+			const sys = newStatus.system;
+			const metrics: SystemMetrics = {
+				heapUsed: sys.memory.heapUsed,
+				heapTotal: sys.memory.heapTotal,
+				rss: sys.memory.rss,
+				external: sys.memory.external,
+				cpuUser: sys.cpu.user,
+				cpuSystem: sys.cpu.system,
+			};
+
+			updateMinMaxMetrics(metrics, state.metricsMin, state.metricsMax);
+		}
+
+		// Only update charts if we have a new bucket from the server
+		if (latestBucket && latestBucket.timestamp > state.lastBucketTimestamp) {
+			state.lastBucketTimestamp = latestBucket.timestamp;
+			const timeLabel = new Date(latestBucket.timestamp).toLocaleTimeString();
+			updateCharts(state, timeLabel, reqPerSec, avgResponseTime, newStatus.pools);
+		} else if (!latestBucket && state.history.labels.length === 0) {
+			// If we have no history yet, initialize with a zero point to avoid empty charts
+			const timeLabel = new Date().toLocaleTimeString();
+			updateCharts(state, timeLabel, 0, 0, newStatus.pools);
+		}
+
+		const sidebarVersion = document.getElementById('sidebar-version');
+		if (sidebarVersion) sidebarVersion.textContent = `v${newStatus.version}`;
+
+		const uptimeVal = document.getElementById('uptime-val');
+		if (uptimeVal) uptimeVal.textContent = formatDuration(newStatus.uptime);
+
+		const startTimeVal = document.getElementById('start-time-val');
+		if (startTimeVal) startTimeVal.textContent = `Started: ${formatDateTime(newStatus.startTime)}`;
+
+		const reqPerSecVal = document.getElementById('req-per-sec');
+		if (reqPerSecVal) reqPerSecVal.textContent = reqPerSec.toFixed(2);
+
+		const maxReqPerSecVal = document.getElementById('max-req-per-sec');
+		if (maxReqPerSecVal) maxReqPerSecVal.textContent = newStatus.metrics.maxRequestsPerSecond.toFixed(2);
+
+		const avgRespTimeVal = document.getElementById('avg-resp-time');
+		if (avgRespTimeVal) avgRespTimeVal.textContent = `${newStatus.metrics.avgResponseTime.toFixed(1)}ms`;
+
+		const maxRespTimeVal = document.getElementById('max-resp-time');
+		if (maxRespTimeVal) maxRespTimeVal.textContent = `${newStatus.metrics.maxResponseTime.toFixed(1)}ms`;
+
+		const errCount = document.getElementById('err-count');
+		if (errCount) errCount.textContent = newStatus.metrics.errorCount.toLocaleString();
+
+		// Update Cache Overview
+		let totalHits = 0;
+		let totalMisses = 0;
+		newStatus.pools.forEach((p) => {
+			if (p.cache) {
+				totalHits += p.cache.procedureName.hits + p.cache.argument.hits;
+				totalMisses += p.cache.procedureName.misses + p.cache.argument.misses;
+			}
+		});
+		const totalRequests = totalHits + totalMisses;
+		const hitRate = totalRequests > 0 ? Math.round((totalHits / totalRequests) * 100) : 0;
+
+		const cacheHitRateVal = document.getElementById('cache-hit-rate-val');
+		if (cacheHitRateVal) {
+			cacheHitRateVal.textContent = `${hitRate}%`;
+			cacheHitRateVal.style.color = hitRate > 80 ? 'var(--success)' : hitRate > 50 ? 'var(--warning)' : 'var(--danger)';
+		}
+		const cacheHitsVal = document.getElementById('cache-hits-val');
+		if (cacheHitsVal) cacheHitsVal.textContent = totalHits.toLocaleString();
+		const cacheMissesVal = document.getElementById('cache-misses-val');
+		if (cacheMissesVal) cacheMissesVal.textContent = totalMisses.toLocaleString();
+
+		const dot = document.getElementById('server-status-dot');
+		const text = document.getElementById('server-status-text');
+		if (dot) dot.className = 'dot ' + newStatus.status;
+		if (text) text.textContent = newStatus.status.toUpperCase();
+
+		const btnPause = document.getElementById('btn-pause');
+		if (btnPause) btnPause.style.display = newStatus.status === 'running' ? 'flex' : 'none';
+
+		const btnResume = document.getElementById('btn-resume');
+		if (btnResume) btnResume.style.display = newStatus.status === 'paused' ? 'flex' : 'none';
+
+		if (state.currentView === 'errors') await refreshErrors();
+		if (state.currentView === 'access') await refreshAccess();
+		if (state.currentView === 'pools') refreshPools(newStatus);
+		if (state.currentView === 'stats') refreshStats(newStatus);
+		if (state.currentView === 'config') refreshConfig(state);
+		if (state.currentView === 'system') refreshSystem(newStatus, state);
+
+		// Schedule next refresh if auto-refresh is on
+		if (autoRefreshToggle?.checked && refreshIntervalSelect) {
+			const interval = parseInt(refreshIntervalSelect.value);
+			scheduleNextRefresh(interval);
+		}
+	} catch (err) {
+		const modal = document.getElementById('offline-modal');
+		// Only set offline state if not already shown to avoid resetting the timer repeatedly
+		if (modal?.style.display !== 'flex') {
+			setOfflineState(err);
+		} else {
+			// Already offline, reschedule next attempt
+			scheduleNextRefresh(60000);
+			startCountdown(60000);
+			// Reset button state on failure
+			if (spinner) spinner.style.display = 'none';
+			if (icon) icon.style.display = 'inline-block';
+			if (btnText) btnText.textContent = 'Try Reconnect';
+		}
+	}
+}
+
+/**
+ * Schedule the next refresh using recursive setTimeout.
+ *
+ * @param delayMs - Delay in milliseconds.
+ */
+function scheduleNextRefresh(delayMs: number): void {
+	if (state.nextRefreshTimeout) {
+		clearTimeout(state.nextRefreshTimeout);
+		state.nextRefreshTimeout = null;
+	}
+
+	state.nextRefreshTime = Date.now() + delayMs;
+	state.nextRefreshTimeout = setTimeout(() => {
+		void updateStatus();
+	}, delayMs);
+}
+
+/**
+ * Start the refresh timer (wrapper for compatibility).
  */
 function startRefreshTimer(): void {
-	stopRefreshTimer();
-	const checkbox = document.getElementById('auto-refresh-toggle') as HTMLInputElement | null;
 	const intervalSelect = document.getElementById('refresh-interval') as HTMLSelectElement | null;
-	if (checkbox?.checked && intervalSelect) {
+	if (intervalSelect) {
 		const interval = parseInt(intervalSelect.value);
-		state.refreshTimer = setInterval(() => {
-			void updateStatus();
-		}, interval);
+		scheduleNextRefresh(interval);
 	}
 }
 
@@ -201,9 +337,9 @@ function startRefreshTimer(): void {
  * Stop the refresh timer.
  */
 function stopRefreshTimer(): void {
-	if (state.refreshTimer) {
-		clearInterval(state.refreshTimer);
-		state.refreshTimer = null;
+	if (state.nextRefreshTimeout) {
+		clearTimeout(state.nextRefreshTimeout);
+		state.nextRefreshTimeout = null;
 	}
 }
 
@@ -234,33 +370,37 @@ function updateHistoryLabels(): void {
 document.querySelectorAll('nav button').forEach((btnEl) => {
 	const btn = btnEl as HTMLButtonElement;
 	btn.onclick = async () => {
-		const view = btn.dataset.view;
-		if (!view) return;
-		state.currentView = view;
-		localStorage.setItem(STORAGE_KEYS.LAST_VIEW, view);
-		document.querySelectorAll('.view').forEach((vEl) => {
-			const v = vEl as HTMLElement;
-			v.style.display = 'none';
-		});
-		const viewEl = document.getElementById('view-' + view);
-		if (viewEl) viewEl.style.display = 'block';
-		document.querySelectorAll('nav button').forEach((b) => b.classList.remove('active'));
-		btn.classList.add('active');
-		const viewTitleEl = document.getElementById('view-title');
-		if (viewTitleEl) {
-			// Get text content excluding the icon span
-			const textNodes = Array.from(btn.childNodes).filter((node) => node.nodeType === Node.TEXT_NODE);
-			const btnText = textNodes.map((node) => node.textContent?.trim()).join('');
-			const icon = viewIcons[view] || 'chevron_right';
-			viewTitleEl.innerHTML = `<span class="material-symbols-rounded">${icon}</span>${btnText}`;
-		}
+		try {
+			const view = btn.dataset.view;
+			if (!view) return;
+			state.currentView = view;
+			localStorage.setItem(STORAGE_KEYS.LAST_VIEW, view);
+			document.querySelectorAll('.view').forEach((vEl) => {
+				const v = vEl as HTMLElement;
+				v.style.display = 'none';
+			});
+			const viewEl = document.getElementById('view-' + view);
+			if (viewEl) viewEl.style.display = 'block';
+			document.querySelectorAll('nav button').forEach((b) => b.classList.remove('active'));
+			btn.classList.add('active');
+			const viewTitleEl = document.getElementById('view-title');
+			if (viewTitleEl) {
+				// Get text content excluding the icon span
+				const textNodes = Array.from(btn.childNodes).filter((node) => node.nodeType === Node.TEXT_NODE);
+				const btnText = textNodes.map((node) => node.textContent?.trim()).join('');
+				const icon = viewIcons[view] || 'chevron_right';
+				viewTitleEl.innerHTML = `<span class="material-symbols-rounded">${icon}</span>${btnText}`;
+			}
 
-		if (view === 'errors') await refreshErrors();
-		if (view === 'access') await refreshAccess();
-		if (view === 'pools') refreshPools(state.status);
-		if (view === 'stats') refreshStats(state.status);
-		if (view === 'config') refreshConfig(state);
-		if (view === 'system') refreshSystem(state.status, state);
+			if (view === 'errors') await refreshErrors();
+			if (view === 'access') await refreshAccess();
+			if (view === 'pools') refreshPools(state.status);
+			if (view === 'stats') refreshStats(state.status);
+			if (view === 'config') refreshConfig(state);
+			if (view === 'system') refreshSystem(state.status, state);
+		} catch (err) {
+			setOfflineState(err);
+		}
 	};
 });
 
@@ -292,7 +432,6 @@ if (refreshIntervalSelect) {
 		state.history.memoryUsage = [];
 		state.history.poolUsage = {};
 
-		startRefreshTimer();
 		updateHistoryLabels();
 		refreshSystem(state.status, state);
 		void updateStatus();
@@ -346,9 +485,13 @@ if (statsRowLimitSelect) {
 const btnPause = document.getElementById('btn-pause');
 if (btnPause) {
 	btnPause.onclick = async () => {
-		if (confirm('Are you sure you want to pause the server?')) {
-			await typedApi.post('api/server/pause');
-			void updateStatus();
+		try {
+			if (confirm('Are you sure you want to pause the server?')) {
+				await typedApi.post('api/server/pause');
+				void updateStatus();
+			}
+		} catch (err) {
+			setOfflineState(err);
 		}
 	};
 }
@@ -356,17 +499,25 @@ if (btnPause) {
 const btnResume = document.getElementById('btn-resume');
 if (btnResume) {
 	btnResume.onclick = async () => {
-		await typedApi.post('api/server/resume');
-		void updateStatus();
+		try {
+			await typedApi.post('api/server/resume');
+			void updateStatus();
+		} catch (err) {
+			setOfflineState(err);
+		}
 	};
 }
 
 const btnStop = document.getElementById('btn-stop');
 if (btnStop) {
 	btnStop.onclick = async () => {
-		if (confirm('Are you sure you want to STOP the server? This action cannot be undone from the web interface.')) {
-			await typedApi.post('api/server/stop');
-			alert('Server stop requested. The interface will now become unresponsive.');
+		try {
+			if (confirm('Are you sure you want to STOP the server? This action cannot be undone from the web interface.')) {
+				await typedApi.post('api/server/stop');
+				alert('Server stop requested. The interface will now become unresponsive.');
+			}
+		} catch (err) {
+			setOfflineState(err);
 		}
 	};
 }
@@ -374,10 +525,21 @@ if (btnStop) {
 const btnClearAllCache = document.getElementById('btn-clear-all-cache');
 if (btnClearAllCache) {
 	btnClearAllCache.onclick = async () => {
-		if (confirm('Are you sure you want to clear ALL caches?')) {
-			await typedApi.post('api/cache/clear');
-			void updateStatus();
+		try {
+			if (confirm('Are you sure you want to clear ALL caches?')) {
+				await typedApi.post('api/cache/clear');
+				void updateStatus();
+			}
+		} catch (err) {
+			setOfflineState(err);
 		}
+	};
+}
+
+const btnReconnect = document.getElementById('btn-reconnect');
+if (btnReconnect) {
+	btnReconnect.onclick = async () => {
+		await updateStatus();
 	};
 }
 
