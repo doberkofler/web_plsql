@@ -341,7 +341,7 @@
 								<span class="material-symbols-rounded">memory</span>
 								<h3 title="Memory usage statistics for the Node.js process">Memory Usage</h3>
 							</div>
-							<div class="text-sm text-main flex flex-col flex-1">
+							<div class="stat-container-wrapper text-sm text-main">
 								<div class="stat-container">
 									<div class="stat-row">
 										<span>Memory Usage (%)</span>
@@ -369,11 +369,9 @@
 										</div>
 									</div>
 								</div>
-								<div class="flex-1"></div>
-								<div class="card-divider"></div>
-								<div class="chart-container-mini">
-									<canvas id="memory-chart"></canvas>
-								</div>
+							</div>
+							<div class="chart-container-mini">
+								<canvas id="memory-chart"></canvas>
 							</div>
 						</div>
 						<div class="card resource-card" title="CPU time consumed by the process">
@@ -381,7 +379,7 @@
 								<span class="material-symbols-rounded">speed</span>
 								<h3 title="CPU time consumed by the process">CPU Usage</h3>
 							</div>
-							<div class="text-sm text-main flex flex-col flex-1">
+							<div class="stat-container-wrapper text-sm text-main">
 								<div class="stat-container">
 									<div class="stat-row">
 										<span>CPU Usage (%)</span>
@@ -406,11 +404,9 @@
 										<span id="cpu-cores-info" class="text-accent font-bold">-</span>
 									</div>
 								</div>
-								<div class="flex-1"></div>
-								<div class="card-divider"></div>
-								<div class="chart-container-mini">
-									<canvas id="cpu-chart"></canvas>
-								</div>
+							</div>
+							<div class="chart-container-mini">
+								<canvas id="cpu-chart"></canvas>
 							</div>
 						</div>
 					</div>

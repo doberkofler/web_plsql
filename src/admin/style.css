@@ -459,18 +459,17 @@ tr:last-child td {
 	min-height: 350px;
 }
 
-.card-divider {
-	height: 1px;
-	background-color: var(--border);
-	margin: 12px 0;
-	width: 100%;
+.resource-card .chart-container-mini {
+	margin-top: auto;
 }
 
 .chart-container-mini {
-	height: 80px;
+	height: 100px;
 	width: 100%;
 	position: relative;
 	overflow: hidden;
+	border: 1px solid var(--border);
+	border-radius: 4px;
 }
 
 /* Theme Toggle */

@@ -60,12 +60,41 @@ export function initCharts(state: State): void {
 			responsive: true,
 			maintainAspectRatio: false,
 			scales: {
-				x: {display: false},
+				x: {
+					display: true,
+					grid: {
+						color: colors.gridColor,
+						drawBorder: true,
+					},
+					border: {
+						display: true,
+						color: colors.gridColor,
+					},
+					ticks: {
+						display: false,
+						color: colors.textColor,
+					},
+				},
 				y: {
-					display: false,
+					display: true,
 					beginAtZero: true,
 					max: 100,
+					grid: {
+						color: colors.gridColor,
+						drawBorder: true,
+					},
+					border: {
+						display: true,
+						color: colors.gridColor,
+					},
+					ticks: {
+						display: false,
+						color: colors.textColor,
+					},
 				},
+			},
+			layout: {
+				padding: 0,
 			},
 			plugins: {
 				legend: {display: false},
@@ -114,12 +143,41 @@ export function initCharts(state: State): void {
 			responsive: true,
 			maintainAspectRatio: false,
 			scales: {
-				x: {display: false},
+				x: {
+					display: true,
+					grid: {
+						color: colors.gridColor,
+						drawBorder: true,
+					},
+					border: {
+						display: true,
+						color: colors.gridColor,
+					},
+					ticks: {
+						display: false,
+						color: colors.textColor,
+					},
+				},
 				y: {
-					display: false,
+					display: true,
 					beginAtZero: true,
 					max: 100,
+					grid: {
+						color: colors.gridColor,
+						drawBorder: true,
+					},
+					border: {
+						display: true,
+						color: colors.gridColor,
+					},
+					ticks: {
+						display: false,
+						color: colors.textColor,
+					},
 				},
+			},
+			layout: {
+				padding: 0,
 			},
 			plugins: {
 				legend: {display: false},
