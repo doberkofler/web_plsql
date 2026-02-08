@@ -147,44 +147,84 @@ export type HistoryData = {
  * Chart grid options.
  */
 export type ChartGridOptions = {
-	color: string;
+	color?: string;
+	display?: boolean;
+	drawBorder?: boolean;
+	drawOnChartArea?: boolean;
 };
 
 /**
  * Chart ticks options.
  */
 export type ChartTicksOptions = {
-	color: string;
+	color?: string;
 	display?: boolean;
+	stepSize?: number;
+	maxRotation?: number;
+	autoSkip?: boolean;
+	maxTicksLimit?: number;
+	callback?: (value: number | string) => string;
 };
 
 /**
  * Chart scale options.
  */
 export type ChartScaleOptions = {
+	display?: boolean;
 	grid?: ChartGridOptions;
 	ticks?: ChartTicksOptions;
+	border?: {
+		display?: boolean;
+		color?: string;
+	};
 	title?: {
 		display: boolean;
 		text: string;
 		color: string;
 	};
+	type?: string;
+	position?: string;
+	beginAtZero?: boolean;
+	max?: number;
 };
 
 /**
  * Chart options.
  */
 export type ChartOptions = {
+	responsive?: boolean;
+	maintainAspectRatio?: boolean;
 	scales?: {
 		x?: ChartScaleOptions;
 		y?: ChartScaleOptions;
 		y1?: ChartScaleOptions;
 	};
+	layout?: {
+		padding?: number;
+	};
 	plugins?: {
 		legend?: {
+			display?: boolean;
 			labels?: {
-				color: string;
+				color?: string;
 			};
+		};
+		tooltip?: {
+			enabled?: boolean;
+			position?: string;
+			intersect?: boolean;
+			callbacks?: Record<string, unknown>;
+		};
+	};
+	elements?: {
+		point?: {
+			radius?: number;
+		};
+		line?: {
+			borderWidth?: number;
+		};
+		bar?: {
+			borderWidth?: number;
 		};
 	};
 };
@@ -197,8 +237,13 @@ export type ChartDataset = {
 	data: number[];
 	borderColor: string;
 	backgroundColor: string | undefined;
-	fill: boolean | undefined;
-	tension: number | undefined;
+	fill?: boolean | undefined;
+	tension?: number | undefined;
+	barThickness?: number;
+	categoryPercentage?: number;
+	barPercentage?: number;
+	borderWidth?: number;
+	yAxisID?: string;
 };
 
 /**

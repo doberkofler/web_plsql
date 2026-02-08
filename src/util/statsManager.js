@@ -1,4 +1,5 @@
 import debugModule from 'debug';
+import os from 'node:os';
 
 const debug = debugModule('webplsql:statsManager');
 
@@ -154,9 +155,7 @@ export class StatsManager {
 			durationMax: -1,
 		};
 
-		this._lastCpuUsage = process.cpuUsage();
-		/** @type {[number, number]} */
-		this._lastCpuTimestamp = process.hrtime();
+		this._lastCpuTimes = this._getSystemCpuTimes();
 
 		/** @type {ReturnType<typeof setTimeout> | undefined} */
 		this._timer = undefined;
@@ -224,21 +223,47 @@ export class StatsManager {
 	}
 
 	/**
+	 * Get system CPU times.
+	 * @private
+	 * @returns {{user: number, nice: number, sys: number, idle: number, irq: number, total: number}} System CPU times.
+	 */
+	_getSystemCpuTimes() {
+		const cpus = os.cpus();
+		let user = 0;
+		let nice = 0;
+		let sys = 0;
+		let idle = 0;
+		let irq = 0;
+
+		for (const cpu of cpus) {
+			user += cpu.times.user;
+			nice += cpu.times.nice;
+			sys += cpu.times.sys;
+			idle += cpu.times.idle;
+			irq += cpu.times.irq;
+		}
+
+		const total = user + nice + sys + idle + irq;
+		return {user, nice, sys, idle, irq, total};
+	}
+
+	/**
 	 * Calculate CPU usage percentage since last call.
 	 * @private
 	 * @returns {number} CPU usage percentage (0-100).
 	 */
 	_calculateCpuUsage() {
-		const hrtime = process.hrtime(this._lastCpuTimestamp);
-		const usage = process.cpuUsage(this._lastCpuUsage);
+		const current = this._getSystemCpuTimes();
+		const last = this._lastCpuTimes || {user: 0, nice: 0, sys: 0, idle: 0, irq: 0, total: 0};
 
-		this._lastCpuTimestamp = process.hrtime();
-		this._lastCpuUsage = process.cpuUsage();
+		const deltaTotal = current.total - last.total;
+		const deltaIdle = current.idle - last.idle;
 
-		const elapTime = hrtime[0] * 1_000_000 + hrtime[1] / 1000;
-		const totalUsage = usage.user + usage.system;
+		this._lastCpuTimes = current;
 
-		const percent = elapTime > 0 ? (totalUsage / elapTime) * 100 : 0;
+		if (deltaTotal <= 0) return 0;
+
+		const percent = ((deltaTotal - deltaIdle) / deltaTotal) * 100;
 		return Math.min(100, Math.max(0, percent));
 	}
 
@@ -249,6 +274,7 @@ export class StatsManager {
 	rotateBucket(poolSnapshots = []) {
 		const b = this._currentBucket;
 		const memUsage = process.memoryUsage();
+		const systemMemoryUsed = os.totalmem() - os.freemem();
 		const cpuUsage = process.cpuUsage();
 		const cpu = this._calculateCpuUsage();
 
@@ -257,7 +283,7 @@ export class StatsManager {
 		this.lifetime.maxRequestsPerSecond = Math.max(this.lifetime.maxRequestsPerSecond, reqPerSec);
 		this.lifetime.memory.heapUsedMax = Math.max(this.lifetime.memory.heapUsedMax, memUsage.heapUsed);
 		this.lifetime.memory.heapTotalMax = Math.max(this.lifetime.memory.heapTotalMax, memUsage.heapTotal);
-		this.lifetime.memory.rssMax = Math.max(this.lifetime.memory.rssMax, memUsage.rss);
+		this.lifetime.memory.rssMax = Math.max(this.lifetime.memory.rssMax, systemMemoryUsed);
 		this.lifetime.memory.externalMax = Math.max(this.lifetime.memory.externalMax, memUsage.external);
 		this.lifetime.cpu.max = Math.max(this.lifetime.cpu.max, cpu);
 		this.lifetime.cpu.userMax = Math.max(this.lifetime.cpu.userMax, cpuUsage.user);
@@ -289,7 +315,7 @@ export class StatsManager {
 				cpu,
 				heapUsed: memUsage.heapUsed,
 				heapTotal: memUsage.heapTotal,
-				rss: memUsage.rss,
+				rss: systemMemoryUsed,
 				external: memUsage.external,
 			},
 			pools: poolSnapshots,

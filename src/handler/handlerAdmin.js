@@ -100,6 +100,7 @@ handlerAdmin.get('/api/status', (_req, res) => {
 	});
 
 	const memUsage = process.memoryUsage();
+	const systemMemoryUsed = os.totalmem() - os.freemem();
 	const cpuUsage = process.cpuUsage();
 	const summary = /** @type {StatsSummary} */ (AdminContext.statsManager.getSummary());
 
@@ -125,7 +126,7 @@ handlerAdmin.get('/api/status', (_req, res) => {
 			arch: process.arch,
 			cpuCores: os.cpus().length,
 			memory: {
-				rss: memUsage.rss,
+				rss: systemMemoryUsed,
 				heapTotal: memUsage.heapTotal,
 				heapUsed: memUsage.heapUsed,
 				external: memUsage.external,

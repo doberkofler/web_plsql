@@ -48,8 +48,9 @@ export function initCharts(state: State): void {
 				{
 					label: 'Memory Usage (%)',
 					data: [],
-					borderColor: '#3b82f6',
-					backgroundColor: 'rgba(59, 130, 246, 0.1)',
+					backgroundColor: 'rgba(16, 185, 129, 0.1)',
+					borderColor: '#10b981',
+					borderWidth: 2,
 					fill: true,
 					tension: 0.4,
 				},
@@ -61,17 +62,17 @@ export function initCharts(state: State): void {
 			maintainAspectRatio: false,
 			scales: {
 				x: {
-					display: true,
-					grid: {
-						color: colors.gridColor,
-						drawBorder: true,
-					},
-					border: {
-						display: true,
-						color: colors.gridColor,
-					},
+					grid: {color: colors.gridColor},
 					ticks: {
 						display: false,
+						color: colors.textColor,
+						maxRotation: 0,
+						autoSkip: true,
+						maxTicksLimit: 10,
+					},
+					title: {
+						display: false,
+						text: 'Time',
 						color: colors.textColor,
 					},
 				},
@@ -81,14 +82,22 @@ export function initCharts(state: State): void {
 					max: 100,
 					grid: {
 						color: colors.gridColor,
-						drawBorder: true,
 					},
 					border: {
 						display: true,
 						color: colors.gridColor,
 					},
 					ticks: {
+						display: true,
+						color: colors.textColor,
+						stepSize: 25,
+						callback: function (value: number | string) {
+							return String(value) + '%';
+						},
+					},
+					title: {
 						display: false,
+						text: 'Memory %',
 						color: colors.textColor,
 					},
 				},
@@ -103,10 +112,6 @@ export function initCharts(state: State): void {
 					position: 'nearest' as const,
 					intersect: false,
 				},
-			},
-			elements: {
-				point: {radius: 0},
-				line: {borderWidth: 1.5},
 			},
 		};
 
@@ -131,8 +136,9 @@ export function initCharts(state: State): void {
 				{
 					label: 'CPU Usage (%)',
 					data: [],
-					borderColor: '#ef4444',
-					backgroundColor: 'rgba(239, 68, 68, 0.1)',
+					backgroundColor: 'rgba(16, 185, 129, 0.1)',
+					borderColor: '#10b981',
+					borderWidth: 2,
 					fill: true,
 					tension: 0.4,
 				},
@@ -144,17 +150,17 @@ export function initCharts(state: State): void {
 			maintainAspectRatio: false,
 			scales: {
 				x: {
-					display: true,
-					grid: {
-						color: colors.gridColor,
-						drawBorder: true,
-					},
-					border: {
-						display: true,
-						color: colors.gridColor,
-					},
+					grid: {color: colors.gridColor},
 					ticks: {
 						display: false,
+						color: colors.textColor,
+						maxRotation: 0,
+						autoSkip: true,
+						maxTicksLimit: 10,
+					},
+					title: {
+						display: false,
+						text: 'Time',
 						color: colors.textColor,
 					},
 				},
@@ -164,14 +170,22 @@ export function initCharts(state: State): void {
 					max: 100,
 					grid: {
 						color: colors.gridColor,
-						drawBorder: true,
 					},
 					border: {
 						display: true,
 						color: colors.gridColor,
 					},
 					ticks: {
+						display: true,
+						color: colors.textColor,
+						stepSize: 25,
+						callback: function (value: number | string) {
+							return String(value) + '%';
+						},
+					},
+					title: {
 						display: false,
+						text: 'Cpu %',
 						color: colors.textColor,
 					},
 				},
@@ -186,10 +200,6 @@ export function initCharts(state: State): void {
 					position: 'nearest' as const,
 					intersect: false,
 				},
-			},
-			elements: {
-				point: {radius: 0},
-				line: {borderWidth: 1.5},
 			},
 		};
 
@@ -239,6 +249,7 @@ export function initCharts(state: State): void {
 				x: {
 					grid: {color: colors.gridColor},
 					ticks: {
+						display: false,
 						color: colors.textColor,
 						maxRotation: 0,
 						autoSkip: true,
@@ -311,6 +322,7 @@ export function initCharts(state: State): void {
 				x: {
 					grid: {color: colors.gridColor},
 					ticks: {
+						display: false,
 						color: colors.textColor,
 						maxRotation: 0,
 						autoSkip: true,
@@ -384,9 +396,8 @@ export function hydrateHistory(state: State, history: HistoryBucket[]): void {
 		state.history.p99ResponseTimes.push(b.durationP99);
 
 		// Resource usage percentage
-		const cpuCores = state.status.system?.cpuCores ?? 1;
 		const totalMem = state.status.system?.memory.totalMemory ?? 0;
-		state.history.cpuUsage.push(b.system.cpu / cpuCores);
+		state.history.cpuUsage.push(b.system.cpu);
 		state.history.memoryUsage.push(totalMem > 0 ? (b.system.rss / totalMem) * 100 : 0);
 
 		b.pools.forEach((p) => {
@@ -464,11 +475,10 @@ export function updateCharts(state: State, timeLabel: string, reqPerSec: number,
 	state.history.avgResponseTimes.push(avgResponseTime);
 
 	// Resource usage percentage
-	const cpuCores = state.status.system?.cpuCores ?? 1;
 	const totalMem = state.status.system?.memory.totalMemory ?? 0;
 	const latestBucket = state.status.history?.[state.status.history.length - 1];
 	if (latestBucket) {
-		state.history.cpuUsage.push(latestBucket.system.cpu / cpuCores);
+		state.history.cpuUsage.push(latestBucket.system.cpu);
 		state.history.memoryUsage.push(totalMem > 0 ? (latestBucket.system.rss / totalMem) * 100 : 0);
 	} else {
 		state.history.cpuUsage.push(0);

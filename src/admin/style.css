@@ -468,7 +468,7 @@ tr:last-child td {
 	width: 100%;
 	position: relative;
 	overflow: hidden;
-	border: 1px solid var(--border);
+	border: none;
 	border-radius: 4px;
 }
 

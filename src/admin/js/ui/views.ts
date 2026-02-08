@@ -262,17 +262,16 @@ export function refreshSystem(status: Partial<State['status']>, _state?: State):
 
 		const cpuPercentEl = document.getElementById('cpu-percent');
 		if (cpuPercentEl && system.cpu.max !== undefined) {
-			const cpuCores = system.cpuCores ?? 1;
-			const totalPercent = system.cpu.max / cpuCores;
+			const totalPercent = system.cpu.max;
 			cpuPercentEl.textContent = `${totalPercent.toFixed(1)}%`;
-			cpuPercentEl.title = `Process CPU usage relative to total system capacity (${system.cpu.max.toFixed(1)}% of one core)`;
+			cpuPercentEl.title = `Max System CPU usage`;
 		}
 
 		const memoryPercentEl = document.getElementById('memory-percent');
 		if (memoryPercentEl && system.memory.totalMemory) {
 			const pct = (system.memory.rss / system.memory.totalMemory) * 100;
 			memoryPercentEl.textContent = `${pct.toFixed(1)}%`;
-			memoryPercentEl.title = `Process RSS relative to total system memory (${formatBytes(system.memory.totalMemory)})`;
+			memoryPercentEl.title = `System Memory Used relative to Total (${formatBytes(system.memory.totalMemory)})`;
 		}
 
 		const cpuCoresInfo = document.getElementById('cpu-cores-info');

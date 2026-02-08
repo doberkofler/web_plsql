@@ -342,6 +342,45 @@ if (statsRowLimitSelect) {
 	};
 }
 
+// Danger Zone Actions
+const btnPause = document.getElementById('btn-pause');
+if (btnPause) {
+	btnPause.onclick = async () => {
+		if (confirm('Are you sure you want to pause the server?')) {
+			await typedApi.post('api/server/pause');
+			void updateStatus();
+		}
+	};
+}
+
+const btnResume = document.getElementById('btn-resume');
+if (btnResume) {
+	btnResume.onclick = async () => {
+		await typedApi.post('api/server/resume');
+		void updateStatus();
+	};
+}
+
+const btnStop = document.getElementById('btn-stop');
+if (btnStop) {
+	btnStop.onclick = async () => {
+		if (confirm('Are you sure you want to STOP the server? This action cannot be undone from the web interface.')) {
+			await typedApi.post('api/server/stop');
+			alert('Server stop requested. The interface will now become unresponsive.');
+		}
+	};
+}
+
+const btnClearAllCache = document.getElementById('btn-clear-all-cache');
+if (btnClearAllCache) {
+	btnClearAllCache.onclick = async () => {
+		if (confirm('Are you sure you want to clear ALL caches?')) {
+			await typedApi.post('api/cache/clear');
+			void updateStatus();
+		}
+	};
+}
+
 // Close modal on escape key
 window.addEventListener('keydown', (e) => {
 	if (e.key === 'Escape') {

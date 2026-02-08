@@ -104,9 +104,14 @@ export class StatsManager {
     lifetime: LifetimeStats;
     /** @type {CurrentBucket} */
     _currentBucket: CurrentBucket;
-    _lastCpuUsage: NodeJS.CpuUsage;
-    /** @type {[number, number]} */
-    _lastCpuTimestamp: [number, number];
+    _lastCpuTimes: {
+        user: number;
+        nice: number;
+        sys: number;
+        idle: number;
+        irq: number;
+        total: number;
+    };
     /** @type {ReturnType<typeof setTimeout> | undefined} */
     _timer: ReturnType<typeof setTimeout> | undefined;
     /**
@@ -120,6 +125,12 @@ export class StatsManager {
      * @param {boolean} isError - Whether the request was an error.
      */
     recordRequest(duration: number, isError?: boolean): void;
+    /**
+     * Get system CPU times.
+     * @private
+     * @returns {{user: number, nice: number, sys: number, idle: number, irq: number, total: number}} System CPU times.
+     */
+    private _getSystemCpuTimes;
     /**
      * Calculate CPU usage percentage since last call.
      * @private
