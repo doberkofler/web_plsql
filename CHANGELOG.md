@@ -12,6 +12,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 
 
+## [1.1.0] - 2026-02-07
+
+### Added
+- Several functional and UX improvements in the admin console.
+- Major boost of unit test coverage.
+- Added performance regression testing.
+
+### Changed
+- Updated all dependencies to latest versions.
+
+
 ## [1.0.0] - 2026-02-07
 
 ### Added
