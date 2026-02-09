@@ -32,6 +32,8 @@ export type TableOptions<T> = {
 	dense?: boolean;
 	/** Callback when a row is clicked */
 	onRowClick?: (row: T) => void;
+	/** Table layout algorithm: 'auto' (content-based) or 'fixed' (equal-width) */
+	tableLayout?: 'auto' | 'fixed';
 };
 
 /**
@@ -65,6 +67,11 @@ export class DataTable<T> {
 			this.element.classList.add('dense-table');
 		} else {
 			this.element.classList.remove('dense-table');
+		}
+
+		// Apply table layout if specified
+		if (this.options.tableLayout) {
+			this.element.style.tableLayout = this.options.tableLayout;
 		}
 
 		this.renderHeader();

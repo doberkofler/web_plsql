@@ -1107,6 +1107,15 @@ nav button .material-symbols-rounded {
 	font-size: 0.8125rem;
 }
 
+/* Table layout utilities */
+.table-layout-auto {
+	table-layout: auto;
+}
+
+.table-layout-fixed {
+	table-layout: fixed;
+}
+
 /* Code style */
 .code {
 	font-family: 'JetBrains Mono', 'Fira Code', monospace;
