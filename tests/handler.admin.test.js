@@ -105,6 +105,42 @@ describe('handler/handlerAdmin', () => {
 			expect(res.body).toEqual(['line 2', 'line 1']);
 		});
 
+		it('should filter logs when filter is provided', async () => {
+			vi.spyOn(fs, 'existsSync').mockReturnValue(true);
+			const readline = await import('node:readline');
+			// @ts-expect-error - mock createInterface implementation for testing
+			readline.default.createInterface.mockReturnValueOnce({
+				[Symbol.asyncIterator]: async function* () {
+					await Promise.resolve();
+					yield 'GET /index.html 200';
+					yield 'POST /api/login 401';
+					yield 'GET /favicon.ico 200';
+				},
+			});
+
+			const res = await request(app).get('/admin/api/logs/access?filter=login');
+			expect(res.status).toBe(200);
+			expect(res.body).toEqual(['POST /api/login 401']);
+		});
+
+		it('should limit logs when limit is provided', async () => {
+			vi.spyOn(fs, 'existsSync').mockReturnValue(true);
+			const readline = await import('node:readline');
+			// @ts-expect-error - mock createInterface implementation for testing
+			readline.default.createInterface.mockReturnValueOnce({
+				[Symbol.asyncIterator]: async function* () {
+					await Promise.resolve();
+					yield 'line 1';
+					yield 'line 2';
+					yield 'line 3';
+				},
+			});
+
+			const res = await request(app).get('/admin/api/logs/access?limit=2');
+			expect(res.status).toBe(200);
+			expect(res.body).toEqual(['line 3', 'line 2']);
+		});
+
 		it('should return 500 on error', async () => {
 			vi.spyOn(fs, 'existsSync').mockImplementation(() => {
 				throw new Error('fs error');

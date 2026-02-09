@@ -90,7 +90,13 @@ export function refreshStats(status: Partial<State['status']>): void {
  * Refresh the access logs view.
  */
 export async function refreshAccess(): Promise<void> {
-	const result = await typedApi.getAccessLogs();
+	const filterInput = document.getElementById('access-filter') as HTMLInputElement | null;
+	const limitInput = document.getElementById('access-limit') as HTMLInputElement | null;
+
+	const filter = filterInput?.value ?? '';
+	const limit = limitInput ? parseInt(limitInput.value) : 100;
+
+	const result = await typedApi.getAccessLogs(limit, filter);
 	const el = document.getElementById('access-log-view');
 	const rangeEl = document.getElementById('access-log-range');
 	if (!el) return;

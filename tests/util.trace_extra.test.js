@@ -48,6 +48,8 @@ describe('util/trace extra', () => {
 			req: {}, // missing originalUrl
 		};
 		const output = getFormattedMessage(para);
-		expect(output.text).not.toContain('on');
+		// Check that it doesn't have the " on URL" part
+		const headerLine = output.text.split('\n').find((l) => l.startsWith('== '));
+		expect(headerLine).not.toContain(' on ');
 	});
 });

@@ -279,7 +279,8 @@ export const getFormattedMessage = (para) => {
 
 	// header
 	const url = typeof para.req?.originalUrl === 'string' && para.req.originalUrl.length > 0 ? ` on ${para.req.originalUrl}` : '';
-	const header = `${para.type.toUpperCase()} at ${timestamp.toUTCString()}${url}`;
+	const type = (para.type ?? 'trace').toUpperCase();
+	const header = `${type} at ${timestamp.toUTCString()}${url}`;
 	const output = {
 		html: `<h1>${header}</h1>`,
 		text: `\n\n${SEPARATOR_H1}\n== ${header}\n${SEPARATOR_H1}\n`,

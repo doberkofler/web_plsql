@@ -44,9 +44,10 @@ export const handlerAdmin = express.Router();
  * Helper to read last N lines of a file
  * @param {string} filePath - Path to file
  * @param {number} n - Number of lines
+ * @param {string} [filter] - Optional filter string
  * @returns {Promise<string[]>} - The lines
  */
-const readLastLines = async (filePath, n = 100) => {
+const readLastLines = async (filePath, n = 100, filter = '') => {
 	if (!fs.existsSync(filePath)) {
 		return [];
 	}
@@ -57,12 +58,16 @@ const readLastLines = async (filePath, n = 100) => {
 		crlfDelay: Infinity,
 	});
 
+	const filterLower = filter.toLowerCase();
+
 	/** @type {string[]} */
 	const lines = [];
 	for await (const line of rl) {
-		lines.push(line);
-		if (lines.length > n) {
-			lines.shift();
+		if (!filter || line.toLowerCase().includes(filterLower)) {
+			lines.push(line);
+			if (lines.length > n) {
+				lines.shift();
+			}
 		}
 	}
 	return lines;
@@ -184,6 +189,7 @@ handlerAdmin.get('/api/logs/error', async (req, res) => {
 handlerAdmin.get('/api/logs/access', async (req, res) => {
 	try {
 		const limit = Number(req.query.limit) || 100;
+		const filter = typeof req.query.filter === 'string' ? req.query.filter : '';
 		const logFile = AdminContext.config?.loggerFilename ?? 'access.log';
 
 		if (!AdminContext.config?.loggerFilename) {
@@ -191,7 +197,7 @@ handlerAdmin.get('/api/logs/access', async (req, res) => {
 			return;
 		}
 
-		const lines = await readLastLines(logFile, limit);
+		const lines = await readLastLines(logFile, limit, filter);
 		res.json(lines.reverse());
 	} catch (err) {
 		res.status(500).json({error: String(err)});

@@ -70,10 +70,16 @@ export const typedApi = {
 	/**
 	 * Get access logs with validation.
 	 *
+	 * @param limit - Max number of entries.
+	 * @param filter - Optional filter string.
 	 * @returns The validated access log response.
 	 */
-	async getAccessLogs(): Promise<AccessLogResponse> {
-		const res = await fetchWithRetry('api/logs/access');
+	async getAccessLogs(limit = 100, filter = ''): Promise<AccessLogResponse> {
+		const query = new URLSearchParams({
+			limit: limit.toString(),
+			filter,
+		});
+		const res = await fetchWithRetry(`api/logs/access?${query.toString()}`);
 		if (!res.ok) throw new Error(`GET api/logs/access failed: ${res.statusText}`);
 		const data: unknown = await res.json();
 		return validate(data, accessLogResponseSchema, 'api/logs/access');

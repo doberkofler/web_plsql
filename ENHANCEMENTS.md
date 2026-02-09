@@ -13,5 +13,6 @@ This document provides a consolidated analysis of the `web_plsql` middleware imp
 
 ## UX/UI Finding
 
-*   **Detect loss of connection** the admin console should detect a loss of connection warn the user and show this in the appropriate indicators.
+*	**Access logging on demand** do not periodically load the access log but only on demand.
 *   **Request debugging in admin console** the admin console could allow to debug every request that it processes incuding performance tracing.
+*	**Add options to the console** ...

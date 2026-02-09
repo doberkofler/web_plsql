@@ -12,10 +12,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 
 
-## [1.1.0] - 2026-02-07
+## [1.1.0] - 2026-02-10
 
 ### Added
 - Several functional and UX improvements in the admin console.
+- Detect loss of connection and add reconnection dialog.
 - Major boost of unit test coverage.
 - Added performance regression testing.
 

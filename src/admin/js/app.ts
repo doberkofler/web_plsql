@@ -277,7 +277,6 @@ async function updateStatus(): Promise<void> {
 		if (btnResume) btnResume.style.display = newStatus.status === 'paused' ? 'flex' : 'none';
 
 		if (state.currentView === 'errors') await refreshErrors();
-		if (state.currentView === 'access') await refreshAccess();
 		if (state.currentView === 'pools') refreshPools(newStatus);
 		if (state.currentView === 'stats') refreshStats(newStatus);
 		if (state.currentView === 'config') refreshConfig(state);
@@ -393,7 +392,6 @@ document.querySelectorAll('nav button').forEach((btnEl) => {
 			}
 
 			if (view === 'errors') await refreshErrors();
-			if (view === 'access') await refreshAccess();
 			if (view === 'pools') refreshPools(state.status);
 			if (view === 'stats') refreshStats(state.status);
 			if (view === 'config') refreshConfig(state);
@@ -471,6 +469,20 @@ const errorFilterInput = document.getElementById('error-filter') as HTMLInputEle
 if (errorFilterInput) {
 	errorFilterInput.oninput = () => {
 		void refreshErrors();
+	};
+}
+
+const accessLoadBtn = document.getElementById('access-load-btn');
+if (accessLoadBtn) {
+	accessLoadBtn.onclick = () => {
+		void refreshAccess();
+	};
+}
+
+const accessFilterInput = document.getElementById('access-filter') as HTMLInputElement | null;
+if (accessFilterInput) {
+	accessFilterInput.onkeydown = (e) => {
+		if (e.key === 'Enter') void refreshAccess();
 	};
 }
 
