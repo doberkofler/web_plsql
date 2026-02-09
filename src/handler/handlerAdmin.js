@@ -163,8 +163,9 @@ handlerAdmin.get('/api/status', (_req, res) => {
 handlerAdmin.get('/api/logs/error', async (req, res) => {
 	try {
 		const limit = Number(req.query.limit) || 100;
+		const filter = typeof req.query.filter === 'string' ? req.query.filter : '';
 		const logFile = 'error.json.log';
-		const lines = await readLastLines(logFile, limit);
+		const lines = await readLastLines(logFile, limit, filter);
 
 		/** @type {Record<string, unknown>[]} */
 		const logs = [];

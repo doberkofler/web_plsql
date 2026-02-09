@@ -8,29 +8,23 @@ import type {State, ServerConfig, SystemMetrics} from '../types.js';
  * Refresh the error logs view.
  */
 export async function refreshErrors(): Promise<void> {
-	const logs = await typedApi.getErrorLogs();
-	const tbody = document.querySelector('#errors-table tbody');
 	const filterInput = document.getElementById('error-filter') as HTMLInputElement | null;
+	const limitInput = document.getElementById('error-limit') as HTMLInputElement | null;
+
+	const filter = filterInput?.value ?? '';
+	const limit = limitInput ? parseInt(limitInput.value) : 100;
+
+	const logs = await typedApi.getErrorLogs(limit, filter);
+	const tbody = document.querySelector('#errors-table tbody');
 	if (!tbody) return;
 
-	const filter = filterInput?.value.toLowerCase() ?? '';
-	const filteredLogs = logs.filter((l) => {
-		if (!filter) return true;
-		return (
-			l.message.toLowerCase().includes(filter) ||
-			(l.req?.url?.toLowerCase().includes(filter) ?? false) ||
-			(l.req?.method?.toLowerCase().includes(filter) ?? false) ||
-			(l.details?.fullMessage?.toLowerCase().includes(filter) ?? false)
-		);
-	});
-
-	tbody.innerHTML = filteredLogs.map((l) => errorRow(l)).join('');
+	tbody.innerHTML = logs.map((l) => errorRow(l)).join('');
 
 	// Add click listeners for detail view
 	tbody.querySelectorAll('tr').forEach((row, idx) => {
 		row.classList.add('errors-table-row');
 		row.onclick = () => {
-			const log = filteredLogs[idx];
+			const log = logs[idx];
 			if (!log) return;
 			const modal = document.getElementById('error-modal');
 			const content = document.getElementById('error-detail-content');

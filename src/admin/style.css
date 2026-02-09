@@ -1408,3 +1408,23 @@ select {
 	accent-color: var(--accent);
 	cursor: pointer;
 }
+
+/* Animations */
+@keyframes spin {
+	from {
+		transform: rotate(0deg);
+	}
+	to {
+		transform: rotate(360deg);
+	}
+}
+
+.animate-spin {
+	animation: spin 1s linear infinite;
+	display: inline-block;
+}
+
+.btn.loading {
+	pointer-events: none;
+	opacity: 0.8;
+}

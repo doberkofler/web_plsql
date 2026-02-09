@@ -178,7 +178,7 @@
 				</section>
 
 				<section id="view-errors" class="view" style="display: none">
-					<div class="header-toolbar mb-4" style="justify-content: flex-start">
+					<div class="header-toolbar mb-4" style="justify-content: flex-start; gap: 12px">
 						<div class="search-group" style="flex: 1; max-width: 400px">
 							<span
 								class="material-symbols-rounded"
@@ -193,6 +193,14 @@
 								style="width: 100%; padding-left: 32px"
 							/>
 						</div>
+						<div class="flex items-center gap-2">
+							<label for="error-limit" class="text-xs text-main">Max entries:</label>
+							<input type="number" id="error-limit" value="100" min="1" max="5000" class="input-sm" style="width: 100px" />
+						</div>
+						<button id="error-load-btn" class="btn btn-sm btn-primary">
+							<span class="material-symbols-rounded" style="font-size: 18px">refresh</span>
+							Load Errors
+						</button>
 					</div>
 					<div class="table-container">
 						<table id="errors-table">
@@ -222,7 +230,7 @@
 						</div>
 						<div class="flex items-center gap-2">
 							<label for="access-limit" class="text-xs text-main">Max entries:</label>
-							<input type="number" id="access-limit" value="100" min="1" max="5000" class="input-sm" style="width: 80px" />
+							<input type="number" id="access-limit" value="100" min="1" max="5000" class="input-sm" style="width: 100px" />
 						</div>
 						<button id="access-load-btn" class="btn btn-sm btn-primary">
 							<span class="material-symbols-rounded" style="font-size: 18px">refresh</span>

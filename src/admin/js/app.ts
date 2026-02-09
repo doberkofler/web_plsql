@@ -4,6 +4,7 @@ import {formatDuration, formatDateTime} from './util/format.js';
 import {updateMinMaxMetrics} from './util/metrics.js';
 import {initTheme} from './ui/theme.js';
 import {refreshErrors, refreshAccess, refreshConfig, refreshPools, refreshSystem, refreshStats} from './ui/views.js';
+import {bindLoadingButton, withLoading} from './ui/components.js';
 import type {State, SystemMetrics} from './types.js';
 
 /**
@@ -458,26 +459,22 @@ if (chartHistorySelect) {
 	};
 }
 
-const manualRefreshBtn = document.getElementById('manual-refresh');
+const manualRefreshBtn = document.getElementById('manual-refresh') as HTMLButtonElement | null;
 if (manualRefreshBtn) {
 	manualRefreshBtn.onclick = () => {
-		void updateStatus();
+		void withLoading(manualRefreshBtn, updateStatus);
 	};
 }
 
 const errorFilterInput = document.getElementById('error-filter') as HTMLInputElement | null;
 if (errorFilterInput) {
-	errorFilterInput.oninput = () => {
-		void refreshErrors();
+	errorFilterInput.onkeydown = (e) => {
+		if (e.key === 'Enter') void refreshErrors();
 	};
 }
 
-const accessLoadBtn = document.getElementById('access-load-btn');
-if (accessLoadBtn) {
-	accessLoadBtn.onclick = () => {
-		void refreshAccess();
-	};
-}
+bindLoadingButton('error-load-btn', refreshErrors);
+bindLoadingButton('access-load-btn', refreshAccess);
 
 const accessFilterInput = document.getElementById('access-filter') as HTMLInputElement | null;
 if (accessFilterInput) {
@@ -494,64 +491,36 @@ if (statsRowLimitSelect) {
 }
 
 // Danger Zone Actions
-const btnPause = document.getElementById('btn-pause');
-if (btnPause) {
-	btnPause.onclick = async () => {
-		try {
-			if (confirm('Are you sure you want to pause the server?')) {
-				await typedApi.post('api/server/pause');
-				void updateStatus();
-			}
-		} catch (err) {
-			setOfflineState(err);
-		}
-	};
-}
-
-const btnResume = document.getElementById('btn-resume');
-if (btnResume) {
-	btnResume.onclick = async () => {
-		try {
-			await typedApi.post('api/server/resume');
-			void updateStatus();
-		} catch (err) {
-			setOfflineState(err);
-		}
-	};
-}
-
-const btnStop = document.getElementById('btn-stop');
-if (btnStop) {
-	btnStop.onclick = async () => {
-		try {
-			if (confirm('Are you sure you want to STOP the server? This action cannot be undone from the web interface.')) {
-				await typedApi.post('api/server/stop');
-				alert('Server stop requested. The interface will now become unresponsive.');
-			}
-		} catch (err) {
-			setOfflineState(err);
-		}
-	};
-}
-
-const btnClearAllCache = document.getElementById('btn-clear-all-cache');
-if (btnClearAllCache) {
-	btnClearAllCache.onclick = async () => {
-		try {
-			if (confirm('Are you sure you want to clear ALL caches?')) {
-				await typedApi.post('api/cache/clear');
-				void updateStatus();
-			}
-		} catch (err) {
-			setOfflineState(err);
-		}
-	};
-}
-
-const btnReconnect = document.getElementById('btn-reconnect');
-if (btnReconnect) {
-	btnReconnect.onclick = async () => {
+bindLoadingButton('btn-pause', async () => {
+	if (confirm('Are you sure you want to pause the server?')) {
+		await typedApi.post('api/server/pause');
 		await updateStatus();
+	}
+});
+
+bindLoadingButton('btn-resume', async () => {
+	await typedApi.post('api/server/resume');
+	await updateStatus();
+});
+
+bindLoadingButton('btn-stop', async () => {
+	if (confirm('Are you sure you want to STOP the server? This action cannot be undone from the web interface.')) {
+		await typedApi.post('api/server/stop');
+		alert('Server stop requested. The interface will now become unresponsive.');
+	}
+});
+
+bindLoadingButton('btn-clear-all-cache', async () => {
+	if (confirm('Are you sure you want to clear ALL caches?')) {
+		await typedApi.post('api/cache/clear');
+		await updateStatus();
+	}
+});
+
+const btnReconnect = document.getElementById('btn-reconnect') as HTMLButtonElement | null;
+if (btnReconnect) {
+	btnReconnect.onclick = () => {
+		void withLoading(btnReconnect, updateStatus);
 	};
 }
 

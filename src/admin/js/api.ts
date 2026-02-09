@@ -58,10 +58,16 @@ export const typedApi = {
 	/**
 	 * Get error logs with validation.
 	 *
+	 * @param limit - Max number of entries.
+	 * @param filter - Optional filter string.
 	 * @returns The validated error log response.
 	 */
-	async getErrorLogs(): Promise<ErrorLogResponse[]> {
-		const res = await fetchWithRetry('api/logs/error');
+	async getErrorLogs(limit = 100, filter = ''): Promise<ErrorLogResponse[]> {
+		const query = new URLSearchParams({
+			limit: limit.toString(),
+			filter,
+		});
+		const res = await fetchWithRetry(`api/logs/error?${query.toString()}`);
 		if (!res.ok) throw new Error(`GET api/logs/error failed: ${res.statusText}`);
 		const data: unknown = await res.json();
 		return validate(data, z.array(errorLogSchema), 'api/logs/error');
