@@ -11,15 +11,18 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Changed
 ### Fixed
 
+## [1.2.0] - 2026-02-09
 
-## [1.1.0] - 2026-02-10
-
-### Added
 - Add "Request tracing" page for comprehensive request tracing.
 - Improved "Errors" page UX.
 - Improved "Access log" page UX.
 - Reduced amount of data needed for apage refreshes.
 - Detect loss of connection and add reconnection dialog.
+
+
+## [1.1.0] - 2026-02-08
+
+### Added
 - Major boost of unit test coverage now 95%.
 - Added performance regression testing.
 
