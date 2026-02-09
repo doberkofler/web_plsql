@@ -20,7 +20,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Improved "Access log" page UX.
 - Reduced amount of data needed for apage refreshes.
 - Detect loss of connection and add reconnection dialog.
-- Major boost of unit test coverage.
+- Major boost of unit test coverage now 95%.
 - Added performance regression testing.
 
 ### Changed
