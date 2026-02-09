@@ -62,20 +62,109 @@ describe('handler/plsql/procedureNamed', () => {
 		});
 
 		it('should return PL/SQL TABLE binding for array input (inferred)', () => {
-			// If argType is not PL_SQL_TABLE but value is array, it enters the block?
-			// 00229| if (argType === DATA_TYPES.PL_SQL_TABLE || Array.isArray(argValue)) {
-			// getBinding('p1', ['val1'], 'VARCHAR2'); // passing VARCHAR2 but value is array
-			// However, the first check for VARCHAR2 comes earlier:
-			// 00200| if (argType === DATA_TYPES.VARCHAR2 ...
-			// So if I pass VARCHAR2, it will hit line 200 first.
-
-			// So I should pass a type that doesn't match earlier checks, or rely on array check.
-			// But if I pass 'UNKNOWN', it falls through to the end?
-			// No, the if block for PL_SQL_TABLE is checked.
-
-			// Let's pass 'UNKNOWN' as type but array as value.
 			const bind2 = getBinding('p1', ['val1'], 'UNKNOWN');
 			assert.deepStrictEqual(bind2.val, ['val1']);
+		});
+
+		it('should throw error for unknown binding type', () => {
+			assert.throws(() => {
+				getBinding('p1', 'val', 'NON_EXISTENT_TYPE');
+			}, /invalid binding type/);
+		});
+	});
+
+	describe('loadArguments', () => {
+		it('should throw RequestError when names and types length mismatch', async () => {
+			const mockExecute = vi.fn().mockResolvedValue({
+				outBinds: {
+					names: ['P1'],
+					types: ['VARCHAR2', 'NUMBER'], // Mismatch
+				},
+			});
+			/** @type {any} */
+			const connection = {execute: mockExecute};
+			const cache = new Cache();
+			/** @type {any} */
+			const req = {};
+
+			await assert.rejects(
+				async () => {
+					await getProcedureNamed(req, 'my_proc_mismatch', {P1: 'test'}, connection, cache);
+				},
+				(err) => {
+					assert.ok(err instanceof Error);
+					assert.ok(err.message.includes('number of names and types does not match'));
+					return true;
+				},
+			);
+		});
+
+		it('should throw error when zod parsing fails', async () => {
+			const mockExecute = vi.fn().mockResolvedValue({
+				outBinds: {
+					names: 'not-an-array',
+					types: ['VARCHAR2'],
+				},
+			});
+			/** @type {any} */
+			const connection = {execute: mockExecute};
+			const cache = new Cache();
+			/** @type {any} */
+			const req = {};
+
+			await assert.rejects(
+				async () => {
+					await getProcedureNamed(req, 'my_proc_zod_fail', {P1: 'test'}, connection, cache);
+				},
+				(err) => {
+					assert.ok(/** @type {Error} */ (err).message.includes('Error when decoding arguments'));
+					return true;
+				},
+			);
+		});
+
+		it('should throw RequestError when database execute fails', async () => {
+			const mockExecute = vi.fn().mockRejectedValue(new Error('ORA-00942'));
+			/** @type {any} */
+			const connection = {execute: mockExecute};
+			const cache = new Cache();
+			/** @type {any} */
+			const req = {};
+
+			await assert.rejects(
+				async () => {
+					await getProcedureNamed(req, 'my_proc_fail', {P1: 'test'}, connection, cache);
+				},
+				(err) => {
+					assert.ok(/** @type {Error} */ (err).message.includes('Error when retrieving arguments'));
+					return true;
+				},
+			);
+		});
+
+		it('should handle missing argument name/type in loadArguments', async () => {
+			const mockExecute = vi.fn().mockResolvedValue({
+				outBinds: {
+					names: ['P1', null],
+					types: ['VARCHAR2', 'NUMBER'],
+				},
+			});
+			/** @type {any} */
+			const connection = {execute: mockExecute};
+			const cache = new Cache();
+			/** @type {any} */
+			const req = {};
+
+			const result = await getProcedureNamed(req, 'my_proc_missing', {P1: 'test'}, connection, cache);
+			assert.ok(result);
+		});
+	});
+
+	describe('getBinding extra', () => {
+		it('should throw error for non-string DATE value', () => {
+			assert.throws(() => {
+				getBinding('p1', 123, 'DATE');
+			}, /invalid value "123" for type "DATE"/);
 		});
 	});
 

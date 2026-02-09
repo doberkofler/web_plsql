@@ -9,9 +9,9 @@ export default defineConfig({
 			reporter: ['text', 'json', 'html', 'lcov'],
 			exclude: ['tests/**', '**/node_modules/**', '**/dist/**', '**/*.config.{js,ts}', '**/coverage/**'],
 			thresholds: {
-				lines: 95,
-				functions: 95,
-				statements: 95,
+				lines: 99,
+				functions: 99,
+				statements: 99,
 				branches: 80,
 			},
 		},

@@ -3,7 +3,7 @@ import {initCharts, updateCharts, hydrateHistory} from '../client/charts.js';
 import {formatDuration, formatDateTime} from './util/format.js';
 import {updateMinMaxMetrics} from './util/metrics.js';
 import {initTheme} from './ui/theme.js';
-import {refreshErrors, refreshAccess, refreshConfig, refreshPools, refreshSystem, refreshStats} from './ui/views.js';
+import {refreshErrors, refreshTrace, refreshAccess, refreshConfig, refreshPools, refreshSystem, refreshStats} from './ui/views.js';
 import {bindLoadingButton, withLoading} from './ui/components.js';
 import type {State, SystemMetrics} from './types.js';
 
@@ -12,11 +12,11 @@ import type {State, SystemMetrics} from './types.js';
  */
 const viewIcons: Record<string, string> = {
 	overview: 'dashboard',
+	trace: 'bolt',
 	errors: 'error',
 	access: 'list_alt',
-	stats: 'query_stats',
-	cache: 'cached',
 	pools: 'database',
+	stats: 'query_stats',
 	config: 'settings',
 	system: 'terminal',
 };
@@ -278,6 +278,7 @@ async function updateStatus(): Promise<void> {
 		if (btnResume) btnResume.style.display = newStatus.status === 'paused' ? 'flex' : 'none';
 
 		if (state.currentView === 'errors') await refreshErrors();
+		if (state.currentView === 'trace') await refreshTrace();
 		if (state.currentView === 'pools') refreshPools(newStatus);
 		if (state.currentView === 'stats') refreshStats(newStatus);
 		if (state.currentView === 'config') refreshConfig(state);
@@ -393,6 +394,7 @@ document.querySelectorAll('nav button').forEach((btnEl) => {
 			}
 
 			if (view === 'errors') await refreshErrors();
+			if (view === 'trace') await refreshTrace();
 			if (view === 'pools') refreshPools(state.status);
 			if (view === 'stats') refreshStats(state.status);
 			if (view === 'config') refreshConfig(state);
@@ -474,7 +476,38 @@ if (errorFilterInput) {
 }
 
 bindLoadingButton('error-load-btn', refreshErrors);
+bindLoadingButton('trace-load-btn', refreshTrace);
 bindLoadingButton('access-load-btn', refreshAccess);
+
+const traceFilterInput = document.getElementById('trace-filter') as HTMLInputElement | null;
+if (traceFilterInput) {
+	traceFilterInput.onkeydown = (e) => {
+		if (e.key === 'Enter') void refreshTrace();
+	};
+}
+
+const traceClearBtn = document.getElementById('trace-clear-btn') as HTMLButtonElement | null;
+if (traceClearBtn) {
+	traceClearBtn.onclick = async () => {
+		if (confirm('Are you sure you want to clear all traces?')) {
+			await withLoading(traceClearBtn, async () => {
+				await typedApi.clearTraces();
+				await refreshTrace();
+			});
+		}
+	};
+}
+
+const traceStatusToggle = document.getElementById('trace-status-toggle') as HTMLButtonElement | null;
+if (traceStatusToggle) {
+	traceStatusToggle.onclick = async () => {
+		await withLoading(traceStatusToggle, async () => {
+			const {enabled: currentEnabled} = await typedApi.getTraceStatus();
+			await typedApi.toggleTrace(!currentEnabled);
+			await refreshTrace();
+		});
+	};
+}
 
 const accessFilterInput = document.getElementById('access-filter') as HTMLInputElement | null;
 if (accessFilterInput) {
@@ -527,8 +560,10 @@ if (btnReconnect) {
 // Close modal on escape key
 window.addEventListener('keydown', (e) => {
 	if (e.key === 'Escape') {
-		const modal = document.getElementById('error-modal');
-		if (modal) modal.style.display = 'none';
+		const errorModal = document.getElementById('error-modal');
+		if (errorModal) errorModal.style.display = 'none';
+		const traceModal = document.getElementById('trace-modal');
+		if (traceModal) traceModal.style.display = 'none';
 	}
 });
 

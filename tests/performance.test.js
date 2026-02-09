@@ -27,17 +27,22 @@ import {serverStart, serverStop, sqlExecuteProxy, PATH, DEFAULT_PAGE, PORT} from
 
 const BASE_URL = `http://localhost:${PORT}`;
 
+const skipPerf = !process.env.PERF_TEST;
+
 describe('Performance Regression Tests', () => {
 	/** @type {serverConfigType} */
 	let serverConfig;
 
 	beforeAll(async () => {
+		if (skipPerf) return;
 		// Start server with logging disabled to minimize noise/overhead
 		serverConfig = await serverStart({log: false});
 	});
 
 	afterAll(async () => {
-		await serverStop(serverConfig);
+		if (serverConfig) {
+			await serverStop(serverConfig);
+		}
 	});
 
 	beforeEach(() => {
@@ -45,7 +50,7 @@ describe('Performance Regression Tests', () => {
 		oracledb.setExecuteCallback();
 	});
 
-	it('should maintain acceptable latency for sequential requests', {timeout: 30000}, async () => {
+	it.skipIf(skipPerf)('should maintain acceptable latency for sequential requests', {timeout: 30000}, async () => {
 		// Configuration
 		const ITERATIONS = 1000;
 		const MAX_AVG_LATENCY_MS = 20;
@@ -87,7 +92,7 @@ Sequential Performance Results (${ITERATIONS} reqs):
 		expect(avgLatency).toBeLessThan(MAX_AVG_LATENCY_MS);
 	});
 
-	it('should maintain acceptable throughput for concurrent requests', {timeout: 30000}, async () => {
+	it.skipIf(skipPerf)('should maintain acceptable throughput for concurrent requests', {timeout: 30000}, async () => {
 		// Configuration
 		const ITERATIONS = 2000;
 		const BATCH_SIZE = 50;

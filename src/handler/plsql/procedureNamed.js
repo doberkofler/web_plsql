@@ -91,13 +91,13 @@ const loadArguments = async (procedure, databaseConnection) => {
 		throw new RequestError(message);
 	}
 
-	/** @type {{names: string[], types: string[]}} */
+	/** @type {{names: (string | null)[], types: (string | null)[]}} */
 	let data;
 	try {
 		data = z
 			.object({
-				names: z.array(z.string()),
-				types: z.array(z.string()),
+				names: z.array(z.string().nullable()),
+				types: z.array(z.string().nullable()),
 			})
 			.parse(result.outBinds);
 	} catch (err) {

@@ -201,6 +201,8 @@ The following mod_plsql DAD configuration translates to the configuration option
 - PlsqlRequestValidationFunction -> routePlSql[].pathAliasProcedure
 - PlsqlExclusionList
 - Basic and custom authentication methods, based on the OWA_SEC package and custom packages.
+- Caching of procedure metadata and validation results for high performance.
+- Real-time monitoring and management via a built-in Admin Console.
 
 ## Features that are only available in web_plsql
 - The option `transactionModeType` specifies an optional transaction mode.

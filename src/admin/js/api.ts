@@ -1,5 +1,14 @@
 import {z} from 'zod';
-import {statusSchema, errorLogSchema, accessLogResponseSchema, type StatusResponse, type ErrorLogResponse, type AccessLogResponse} from './schemas.js';
+import {
+	statusSchema,
+	errorLogSchema,
+	accessLogResponseSchema,
+	traceEntrySchema,
+	type StatusResponse,
+	type ErrorLogResponse,
+	type AccessLogResponse,
+} from './schemas.js';
+import type {TraceEntry} from './types.js';
 
 /**
  * Validates response data against a Zod schema.
@@ -89,6 +98,59 @@ export const typedApi = {
 		if (!res.ok) throw new Error(`GET api/logs/access failed: ${res.statusText}`);
 		const data: unknown = await res.json();
 		return validate(data, accessLogResponseSchema, 'api/logs/access');
+	},
+
+	/**
+	 * Get trace logs with validation.
+	 *
+	 * @param limit - Max number of entries.
+	 * @param filter - Optional filter string.
+	 * @returns The validated trace log response.
+	 */
+	async getTraceLogs(limit = 100, filter = ''): Promise<TraceEntry[]> {
+		const query = new URLSearchParams({
+			limit: limit.toString(),
+			filter,
+		});
+		const res = await fetchWithRetry(`api/trace/logs?${query.toString()}`);
+		if (!res.ok) throw new Error(`GET api/trace/logs failed: ${res.statusText}`);
+		const data: unknown = await res.json();
+		return validate(data, z.array(traceEntrySchema), 'api/trace/logs');
+	},
+
+	/**
+	 * Get trace status.
+	 *
+	 * @returns Trace status.
+	 */
+	async getTraceStatus(): Promise<{enabled: boolean}> {
+		const res = await fetchWithRetry('api/trace/status');
+		if (!res.ok) throw new Error(`GET api/trace/status failed: ${res.statusText}`);
+		return (await res.json()) as {enabled: boolean};
+	},
+
+	/**
+	 * Toggle trace status.
+	 *
+	 * @param enabled - Enable or disable.
+	 * @returns New status.
+	 */
+	async toggleTrace(enabled: boolean): Promise<{enabled: boolean}> {
+		const res = await fetchWithRetry('api/trace/toggle', {
+			method: 'POST',
+			headers: {'Content-Type': 'application/json'},
+			body: JSON.stringify({enabled}),
+		});
+		if (!res.ok) throw new Error(`POST api/trace/toggle failed: ${res.statusText}`);
+		return (await res.json()) as {enabled: boolean};
+	},
+
+	/**
+	 * Clear trace logs.
+	 */
+	async clearTraces(): Promise<void> {
+		const res = await fetchWithRetry('api/trace/clear', {method: 'POST'});
+		if (!res.ok) throw new Error(`POST api/trace/clear failed: ${res.statusText}`);
 	},
 
 	/**

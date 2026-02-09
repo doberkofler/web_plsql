@@ -1,4 +1,5 @@
 export function invokeProcedure(req: Request, res: Response, argObj: argObjType, cgiObj: environmentType, filesToUpload: fileUploadType[], options: configPlSqlHandlerType, databaseConnection: Connection, procedureNameCache: ProcedureNameCache, argumentCache: ArgumentCache): Promise<void>;
+export type TraceEntry = import("../../admin/js/types.js").TraceEntry;
 export type Request = import("express").Request;
 export type Response = import("express").Response;
 export type Connection = import("oracledb").Connection;

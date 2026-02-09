@@ -24,6 +24,10 @@
 						<span class="material-symbols-rounded">dashboard</span>
 						Overview
 					</button>
+					<button data-view="trace">
+						<span class="material-symbols-rounded">bolt</span>
+						Requests
+					</button>
 					<button data-view="errors">
 						<span class="material-symbols-rounded">error</span>
 						Errors
@@ -204,15 +208,44 @@
 					</div>
 					<div class="table-container">
 						<table id="errors-table">
-							<thead>
-								<tr>
-									<th title="When the error occurred">Timestamp</th>
-									<th title="HTTP method used">Method</th>
-									<th title="Requested URL">URL</th>
-									<th title="Error message summary">Message</th>
-									<th style="width: 40px"></th>
-								</tr>
-							</thead>
+							<thead></thead>
+							<tbody></tbody>
+						</table>
+					</div>
+				</section>
+
+				<section id="view-trace" class="view" style="display: none">
+					<div class="header-toolbar mb-4" style="justify-content: flex-start; gap: 12px">
+						<div class="search-group" style="flex: 1; max-width: 300px">
+							<span
+								class="material-symbols-rounded"
+								style="position: absolute; left: 8px; top: 50%; transform: translateY(-50%); font-size: 18px; opacity: 0.5"
+								>search</span
+							>
+							<input type="text" id="trace-filter" placeholder="Filter traces..." class="input-sm" style="width: 100%; padding-left: 32px" />
+						</div>
+						<div class="flex items-center gap-2">
+							<label for="trace-limit" class="text-xs text-main">Max entries:</label>
+							<input type="number" id="trace-limit" value="100" min="1" max="5000" class="input-sm" style="width: 80px" />
+						</div>
+						<button id="trace-load-btn" class="btn btn-sm btn-primary">
+							<span class="material-symbols-rounded" style="font-size: 18px">refresh</span>
+							Refresh
+						</button>
+						<button id="trace-clear-btn" class="btn btn-sm btn-danger">
+							<span class="material-symbols-rounded" style="font-size: 18px">delete</span>
+							Clear
+						</button>
+						<button
+							id="trace-status-toggle"
+							class="btn btn-sm px-4 py-2 rounded-lg text-sm font-bold transition-colors bg-white/10 text-white hover:bg-white/20"
+						>
+							Tracing: OFF
+						</button>
+					</div>
+					<div class="table-container">
+						<table id="trace-table">
+							<thead></thead>
 							<tbody></tbody>
 						</table>
 					</div>
@@ -458,6 +491,20 @@
 				</div>
 				<div class="modal-body">
 					<pre id="error-detail-content" class="terminal" style="max-height: 70vh; overflow: auto"></pre>
+				</div>
+			</div>
+		</div>
+
+		<div id="trace-modal" class="modal" style="display: none">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h3>Trace Details</h3>
+					<button class="icon-btn" onclick="document.getElementById('trace-modal').style.display = 'none'">
+						<span class="material-symbols-rounded">close</span>
+					</button>
+				</div>
+				<div class="modal-body">
+					<pre id="trace-detail-content" class="terminal" style="max-height: 70vh; overflow: auto"></pre>
 				</div>
 			</div>
 		</div>

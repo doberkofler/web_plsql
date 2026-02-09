@@ -302,4 +302,156 @@ describe('server/server', () => {
 			expect(oracleUtils.poolsClose).toHaveBeenCalled();
 		});
 	});
+
+	describe('extra coverage', () => {
+		it('should handle adminRoute redirection', async () => {
+			const oracleUtilsMock = /** @type {{poolCreate: Mock}} */ (/** @type {unknown} */ (oracleUtils));
+			oracleUtilsMock.poolCreate.mockResolvedValue({close: vi.fn()});
+
+			const webServer = await startServer(validConfig);
+			const request = (await import('supertest')).default;
+
+			const response = await request(webServer.app).get('/admin');
+			expect(response.status).toBe(302);
+			expect(response.header.location).toBe('/admin/');
+
+			await webServer.shutdown();
+		});
+
+		it('should record stats on request finish', async () => {
+			const oracleUtilsMock = /** @type {{poolCreate: Mock}} */ (/** @type {unknown} */ (oracleUtils));
+			oracleUtilsMock.poolCreate.mockResolvedValue({close: vi.fn()});
+			const statsSpy = vi.spyOn(AdminContext.statsManager, 'recordRequest');
+
+			// Mock the handler to just finish the request
+			const {handlerWebPlSql} = await import('../src/handler/plsql/handlerPlSql.js');
+			vi.mocked(handlerWebPlSql).mockImplementation(() => {
+				/** @type {import('express').RequestHandler & {procedureNameCache: any, argumentCache: any}} */
+				const handler = (_req, res) => {
+					res.status(200).send('ok');
+				};
+				handler.procedureNameCache = {clear: vi.fn(), keys: vi.fn(() => []), getStats: vi.fn()};
+				handler.argumentCache = {clear: vi.fn(), keys: vi.fn(() => []), getStats: vi.fn()};
+				return handler;
+			});
+
+			const webServer = await startServer(validConfig);
+			const request = (await import('supertest')).default;
+
+			await request(webServer.app).get('/pls/proc');
+			expect(statsSpy).toHaveBeenCalled();
+
+			await webServer.shutdown();
+		});
+
+		it('should rotate bucket with pool snapshots', async () => {
+			const oracleUtilsMock = /** @type {{poolCreate: Mock}} */ (/** @type {unknown} */ (oracleUtils));
+			oracleUtilsMock.poolCreate.mockResolvedValue({connectionsOpen: 5, connectionsInUse: 2});
+
+			await startServer(validConfig);
+			const rotateSpy = vi.spyOn(AdminContext.statsManager, 'rotateBucket');
+
+			AdminContext.statsManager.rotateBucket();
+			expect(rotateSpy).toHaveBeenCalled();
+		});
+
+		it('should handle static routes and access logging', async () => {
+			const config = {
+				...validConfig,
+				loggerFilename: 'test.log',
+				routeStatic: [{route: '/static', directoryPath: '/tmp'}],
+			};
+			const oracleUtilsMock = /** @type {{poolCreate: Mock}} */ (/** @type {unknown} */ (oracleUtils));
+			oracleUtilsMock.poolCreate.mockResolvedValue({close: vi.fn()});
+
+			const webServer = await startServer(config);
+			expect(webServer).toBeDefined();
+
+			await webServer.shutdown();
+		});
+
+		it('should handle adminRoute redirection with query string', async () => {
+			const oracleUtilsMock = /** @type {{poolCreate: Mock}} */ (/** @type {unknown} */ (oracleUtils));
+			oracleUtilsMock.poolCreate.mockResolvedValue({close: vi.fn()});
+
+			const webServer = await startServer(validConfig);
+			const request = (await import('supertest')).default;
+
+			const response = await request(webServer.app).get('/admin?foo=bar');
+			expect(response.status).toBe(302);
+			expect(response.header.location).toBe('/admin/?foo=bar');
+
+			await webServer.shutdown();
+		});
+
+		it('should handle malformed auth header', async () => {
+			const configWithAuth = {
+				...validConfig,
+				adminUser: 'admin',
+				adminPassword: 'password',
+			};
+			const oracleUtilsMock = /** @type {{poolCreate: Mock}} */ (/** @type {unknown} */ (oracleUtils));
+			oracleUtilsMock.poolCreate.mockResolvedValue({close: vi.fn()});
+
+			const webServer = await startServer(configWithAuth);
+			const request = (await import('supertest')).default;
+
+			const response = await request(webServer.app).get('/admin/api/status').set('Authorization', 'Basic malformed');
+			expect(response.status).toBe(401);
+
+			await webServer.shutdown();
+		});
+
+		it('should handle missing auth header when auth is required', async () => {
+			const configWithAuth = {
+				...validConfig,
+				adminUser: 'admin',
+				adminPassword: 'password',
+			};
+			const oracleUtilsMock = /** @type {{poolCreate: Mock}} */ (/** @type {unknown} */ (oracleUtils));
+			oracleUtilsMock.poolCreate.mockResolvedValue({close: vi.fn()});
+
+			const webServer = await startServer(configWithAuth);
+			const request = (await import('supertest')).default;
+
+			const response = await request(webServer.app).get('/admin/api/status');
+			expect(response.status).toBe(401);
+
+			await webServer.shutdown();
+		});
+
+		it('should allow admin routes when server is paused', async () => {
+			const oracleUtilsMock = /** @type {{poolCreate: Mock}} */ (/** @type {unknown} */ (oracleUtils));
+			oracleUtilsMock.poolCreate.mockResolvedValue({close: vi.fn()});
+
+			const webServer = await startServer(validConfig);
+			const request = (await import('supertest')).default;
+
+			AdminContext.paused = true;
+			const response = await request(webServer.app).get('/admin/api/status');
+			expect(response.status).toBe(200);
+
+			await webServer.shutdown();
+		});
+
+		it('should reject wrong credentials', async () => {
+			const configWithAuth = {
+				...validConfig,
+				adminUser: 'admin',
+				adminPassword: 'password',
+			};
+			const oracleUtilsMock = /** @type {{poolCreate: Mock}} */ (/** @type {unknown} */ (oracleUtils));
+			oracleUtilsMock.poolCreate.mockResolvedValue({close: vi.fn()});
+
+			const webServer = await startServer(configWithAuth);
+			const request = (await import('supertest')).default;
+
+			const response = await request(webServer.app)
+				.get('/admin/api/status')
+				.set('Authorization', 'Basic ' + Buffer.from('admin:wrong').toString('base64'));
+			expect(response.status).toBe(401);
+
+			await webServer.shutdown();
+		});
+	});
 });

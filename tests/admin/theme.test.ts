@@ -131,4 +131,35 @@ describe('Theme Management', () => {
 
 		expect(mockChart.update).not.toHaveBeenCalled();
 	});
+
+	it('should handle partial scales safely', () => {
+		const mockChart = {
+			options: {
+				scales: {
+					x: {}, // missing grid/ticks
+					y: {},
+					y1: {},
+				},
+			},
+			update: vi.fn(),
+		};
+
+		state.charts.test = mockChart as unknown as import('../../src/admin/js/types.js').ChartInstance;
+		initTheme(state);
+
+		if (mockBtn.onclick) {
+			mockBtn.onclick({});
+		}
+
+		expect(mockChart.update).toHaveBeenCalled();
+	});
+
+	it('should return if button is not found', () => {
+		vi.stubGlobal('document', {
+			getElementById: vi.fn().mockReturnValue(null),
+			body: {className: ''},
+		});
+		initTheme(state);
+		expect(document.body.className).toBe('');
+	});
 });

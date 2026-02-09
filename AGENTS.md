@@ -12,6 +12,7 @@ This project is a Node.js application using ES Modules (ESM) and JSDoc for TypeS
 *   **Install Dependencies**: `npm install`
 *   **Run All Tests**: `npm run test` (or `npm test`)
     *   Uses **Vitest** runner (`vitest run`).
+    *   **Coverage**: Run `npm run test -- --coverage` to generate a coverage report.
 *   **Run Single Test**: `npx vitest run tests/path/to/test.js`
     *   Example: `npx vitest run tests/version.test.js`
     *   *Note*: The project uses Vitest, not the native Node.js test runner.

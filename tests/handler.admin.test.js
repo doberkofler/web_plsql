@@ -236,4 +236,43 @@ describe('handler/handlerAdmin', () => {
 			expect(res.status).toBe(400);
 		});
 	});
+
+	describe('Trace API', () => {
+		it('GET /api/trace/status should return trace status', async () => {
+			const res = await request(app).get('/admin/api/trace/status');
+			expect(res.status).toBe(200);
+			expect(res.body).toHaveProperty('enabled');
+		});
+
+		it('POST /api/trace/toggle should toggle tracing', async () => {
+			const res = await request(app).post('/admin/api/trace/toggle').send({enabled: true});
+			expect(res.status).toBe(200);
+			expect(res.body.enabled).toBe(true);
+
+			const resOff = await request(app).post('/admin/api/trace/toggle').send({enabled: false});
+			expect(resOff.body.enabled).toBe(false);
+		});
+
+		it('GET /api/trace/logs should return trace logs', async () => {
+			vi.spyOn(fs, 'existsSync').mockReturnValue(true);
+			const readline = await import('node:readline');
+			// @ts-expect-error - mock createInterface implementation for testing purposes in Vitest
+			readline.default.createInterface.mockReturnValueOnce({
+				[Symbol.asyncIterator]: function* () {
+					yield '{"msg":"trace1"}';
+				},
+			});
+
+			const res = await request(app).get('/admin/api/trace/logs');
+			expect(res.status).toBe(200);
+			expect(res.body).toHaveLength(1);
+			expect(res.body[0].msg).toBe('trace1');
+		});
+
+		it('POST /api/trace/clear should clear traces', async () => {
+			const res = await request(app).post('/admin/api/trace/clear');
+			expect(res.status).toBe(200);
+			expect(res.body.message).toBe('Traces cleared');
+		});
+	});
 });

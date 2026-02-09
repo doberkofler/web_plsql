@@ -89,6 +89,13 @@ export const startServer = async (config, ssl) => {
 	// Create express app
 	const app = express();
 
+	// Default middleware
+	app.use(handlerUpload(internalConfig.uploadFileSizeLimit));
+	app.use(express.json({limit: '50mb'}));
+	app.use(express.urlencoded({limit: '50mb', extended: true}));
+	app.use(cookieParser());
+	app.use(compression());
+
 	// Pause & Admin Auth middleware
 	app.use((req, res, next) => {
 		const adminRoute = internalConfig.adminRoute ?? '/admin';
@@ -146,13 +153,6 @@ export const startServer = async (config, ssl) => {
 	for (const i of internalConfig.routeStatic) {
 		app.use(i.route, express.static(i.directoryPath));
 	}
-
-	// Default middleware
-	app.use(handlerUpload(internalConfig.uploadFileSizeLimit));
-	app.use(express.json({limit: '50mb'}));
-	app.use(express.urlencoded({limit: '50mb', extended: true}));
-	app.use(cookieParser());
-	app.use(compression());
 
 	/** @type {Pool[]} */
 	const connectionPools = [];

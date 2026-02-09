@@ -20,6 +20,11 @@ import {inspect, getBlock} from '../../util/trace.js';
 import {errorToString} from '../../util/errorToString.js';
 import {sanitizeProcName} from './procedureSanitize.js';
 import {OWAPageStream} from './owaPageStream.js';
+import {traceManager} from '../../util/traceManager.js';
+
+/**
+ * @typedef {import('../../admin/js/types.js').TraceEntry} TraceEntry
+ */
 
 /**
  * @typedef {import('express').Request} Request
@@ -212,123 +217,209 @@ END;
 export const invokeProcedure = async (req, res, argObj, cgiObj, filesToUpload, options, databaseConnection, procedureNameCache, argumentCache) => {
 	debug('invokeProcedure: begin');
 
-	// 1) upload files
-	debug(`invokeProcedure: upload "${filesToUpload.length}" files`);
-	if (filesToUpload.length > 0) {
-		if (typeof options.documentTable === 'string' && options.documentTable.length > 0) {
-			const {documentTable} = options;
+	const startTime = Date.now();
+	/** @type {TraceEntry | null} */
+	let traceData = null;
 
-			await Promise.all(filesToUpload.map((file) => uploadFile(file, documentTable, databaseConnection)));
-		} else {
-			console.warn(`Unable to upload "${filesToUpload.length}" files because the option ""doctable" has not been defined`);
-		}
+	if (traceManager.isEnabled()) {
+		traceData = {
+			id: Math.random().toString(36).substring(2, 15),
+			timestamp: new Date().toISOString(),
+			source: cgiObj.REMOTE_ADDR ?? '',
+			url: req.originalUrl,
+			method: req.method,
+			status: 'pending',
+			duration: 0,
+			cgi: cgiObj,
+			headers: /** @type {Record<string, string>} */ (req.headers),
+			cookies: req.cookies,
+			uploads: filesToUpload.map((f) => ({
+				originalname: f.originalname,
+				mimetype: f.mimetype,
+				size: f.size,
+			})),
+		};
 	}
 
-	// 2) get procedure to execute and the arguments
-
-	debug('invokeProcedure: get procedure to execute and the arguments');
-	// Extract the raw procedure name from params
-	const rawProcName = Array.isArray(req.params.name) ? req.params.name[0] : req.params.name;
-	if (!rawProcName) {
-		throw new RequestError('No procedure name provided');
-	}
-	const para = await getProcedure(req, rawProcName, argObj, options, databaseConnection, procedureNameCache, argumentCache);
-
-	// 3) prepare the session
-
-	debug('invokeProcedure: prepare the session');
-	await procedurePrepare(cgiObj, databaseConnection);
-
-	// 4) execute the procedure
-
-	debug('invokeProcedure: execute the session');
 	try {
-		await procedureExecute(para, databaseConnection);
-	} catch (err) {
-		// Invalidation Logic
-		if (err instanceof ProcedureError) {
-			const errorString = err.toString();
-			// Check for ORA-04068, ORA-04061, ORA-04065, ORA-06550
-			if (
-				errorString.includes('ORA-04068') ||
-				errorString.includes('ORA-04061') ||
-				errorString.includes('ORA-04065') ||
-				errorString.includes('ORA-06550')
-			) {
-				debug(`invokeProcedure: detected invalidation error (${errorString}). Clearing caches.`);
+		// 1) upload files
+		debug(`invokeProcedure: upload "${filesToUpload.length}" files`);
+		if (filesToUpload.length > 0) {
+			if (typeof options.documentTable === 'string' && options.documentTable.length > 0) {
+				const {documentTable} = options;
 
-				// Clear name resolution cache for the input name
-				if (rawProcName) {
-					procedureNameCache.delete(rawProcName);
-				}
-
-				// Clear argument cache for the resolved name
-				if (para.resolvedName) {
-					argumentCache.delete(para.resolvedName.toUpperCase());
-				}
+				await Promise.all(filesToUpload.map((file) => uploadFile(file, documentTable, databaseConnection)));
+			} else {
+				console.warn(`Unable to upload "${filesToUpload.length}" files because the option ""doctable" has not been defined`);
 			}
 		}
-		throw err;
-	}
 
-	// 5) get the page returned from the procedure
-	debug('invokeProcedure: get the page returned from the procedure');
+		// 2) get procedure to execute and the arguments
 
-	const stream = new OWAPageStream(databaseConnection);
-	const lines = await stream.fetchChunk();
+		debug('invokeProcedure: get procedure to execute and the arguments');
+		// Extract the raw procedure name from params
+		const rawProcName = Array.isArray(req.params.name) ? req.params.name[0] : req.params.name;
+		if (!rawProcName) {
+			throw new RequestError('No procedure name provided');
+		}
+		const para = await getProcedure(req, rawProcName, argObj, options, databaseConnection, procedureNameCache, argumentCache);
 
-	/* v8 ignore start */
-	if (debug.enabled) {
-		debug(getBlock('data', lines.join('')));
-	}
-	/* v8 ignore stop */
+		if (traceData) {
+			traceData.procedure = para.resolvedName;
+			traceData.parameters = para.bind;
+		}
 
-	// 6) download files
+		// 3) prepare the session
 
-	debug('invokeProcedure: download files');
-	const fileBlob = await databaseConnection.createLob(oracledb.BLOB);
+		debug('invokeProcedure: prepare the session');
+		await procedurePrepare(cgiObj, databaseConnection);
 
-	try {
-		const fileDownload = await procedureDownloadFiles(fileBlob, databaseConnection);
+		// 4) execute the procedure
+
+		debug('invokeProcedure: execute the session');
+		try {
+			await procedureExecute(para, databaseConnection);
+		} catch (err) {
+			// Invalidation Logic
+			if (err instanceof ProcedureError) {
+				const errorString = err.toString();
+				// Check for ORA-04068, ORA-04061, ORA-04065, ORA-06550
+				if (
+					errorString.includes('ORA-04068') ||
+					errorString.includes('ORA-04061') ||
+					errorString.includes('ORA-04065') ||
+					errorString.includes('ORA-06550')
+				) {
+					debug(`invokeProcedure: detected invalidation error (${errorString}). Clearing caches.`);
+
+					// Clear name resolution cache for the input name
+					if (rawProcName) {
+						procedureNameCache.delete(rawProcName);
+					}
+
+					// Clear argument cache for the resolved name
+					if (para.resolvedName) {
+						argumentCache.delete(para.resolvedName.toUpperCase());
+					}
+				}
+			}
+			throw err;
+		}
+
+		// 5) get the page returned from the procedure
+		debug('invokeProcedure: get the page returned from the procedure');
+
+		const streamInstance = new OWAPageStream(databaseConnection);
+		const lines = await streamInstance.fetchChunk();
+
 		/* v8 ignore start */
 		if (debug.enabled) {
-			debug(getBlock('fileDownload', inspect({fileType: fileDownload.fileType, fileSize: fileDownload.fileSize})));
+			debug(getBlock('data', lines.join('')));
 		}
 		/* v8 ignore stop */
 
-		// 7) parse the page
+		// 6) download files
 
-		debug('invokeProcedure: parse the page');
-		// We parse the headers from the first chunk
-		const pageComponents = parsePage(lines.join(''));
+		debug('invokeProcedure: download files');
+		const fileBlob = await databaseConnection.createLob(oracledb.BLOB);
 
-		// add "Server" header
-		pageComponents.head.server = cgiObj.SERVER_SOFTWARE ?? '';
-
-		// add file download information
-		if (fileDownload.fileType !== '' && fileDownload.fileSize > 0 && fileDownload.fileBlob !== null) {
-			pageComponents.file.fileType = fileDownload.fileType;
-			pageComponents.file.fileSize = fileDownload.fileSize;
-			pageComponents.file.fileBlob = fileDownload.fileBlob;
-		} else {
-			// For normal pages, we use the stream.
-			// Prepend the initial body (parsed by parsePage) to the stream
-			if (typeof pageComponents.body === 'string' && pageComponents.body.length > 0) {
-				stream.addBody(pageComponents.body);
+		try {
+			const fileDownload = await procedureDownloadFiles(fileBlob, databaseConnection);
+			/* v8 ignore start */
+			if (debug.enabled) {
+				debug(getBlock('fileDownload', inspect({fileType: fileDownload.fileType, fileSize: fileDownload.fileSize})));
 			}
-			// Use the stream as the body
-			pageComponents.body = stream;
+			/* v8 ignore stop */
+
+			// 7) parse the page
+
+			debug('invokeProcedure: parse the page');
+			// We parse the headers from the first chunk
+			const pageComponents = parsePage(lines.join(''));
+
+			// add "Server" header
+			pageComponents.head.server = cgiObj.SERVER_SOFTWARE ?? '';
+
+			// add file download information
+			if (fileDownload.fileType !== '' && fileDownload.fileSize > 0 && fileDownload.fileBlob !== null) {
+				pageComponents.file.fileType = fileDownload.fileType;
+				pageComponents.file.fileSize = fileDownload.fileSize;
+				pageComponents.file.fileBlob = fileDownload.fileBlob;
+
+				if (traceData) {
+					traceData.downloads = {
+						fileType: fileDownload.fileType,
+						fileSize: fileDownload.fileSize,
+					};
+				}
+			} else {
+				// For normal pages, we use the stream.
+				// Prepend the initial body (parsed by parsePage) to the stream
+				if (typeof pageComponents.body === 'string' && pageComponents.body.length > 0) {
+					streamInstance.addBody(pageComponents.body);
+				}
+				// Use the stream as the body
+				pageComponents.body = streamInstance;
+
+				if (traceData) {
+					// Buffer HTML if tracing enabled
+					let htmlBuffer = typeof pageComponents.body === 'string' ? pageComponents.body : lines.join('');
+					const MAX_HTML_SIZE = 1024 * 1024; // 1MB
+
+					const originalPush = streamInstance.push.bind(streamInstance);
+					streamInstance.push = (chunk) => {
+						if (chunk !== null && htmlBuffer.length < MAX_HTML_SIZE) {
+							const str = String(chunk);
+							htmlBuffer += str;
+							if (htmlBuffer.length > MAX_HTML_SIZE) {
+								htmlBuffer = htmlBuffer.substring(0, MAX_HTML_SIZE) + '... [truncated]';
+							}
+						}
+						return originalPush(chunk);
+					};
+
+					// Since we can't easily wait for the stream to finish here without blocking,
+					// we'll have to finalize traceData when the stream ends.
+					const currentTrace = traceData;
+					streamInstance.on('end', () => {
+						currentTrace.html = htmlBuffer;
+						currentTrace.status = 'success';
+						currentTrace.duration = Date.now() - startTime;
+						traceManager.addTrace(currentTrace);
+					});
+					streamInstance.on('error', (err) => {
+						currentTrace.status = 'fail';
+						currentTrace.error = err instanceof Error ? err.message : String(err);
+						currentTrace.duration = Date.now() - startTime;
+						traceManager.addTrace(currentTrace);
+					});
+				}
+			}
+
+			// 8) send the page to browser
+
+			debug('invokeProcedure: send the page to browser');
+			await sendResponse(req, res, pageComponents);
+
+			if (traceData?.downloads) {
+				traceData.status = 'success';
+				traceData.duration = Date.now() - startTime;
+				traceManager.addTrace(traceData);
+			}
+		} finally {
+			// 9) cleanup
+
+			debug('invokeProcedure: cleanup');
+			fileBlob.destroy();
 		}
-
-		// 8) send the page to browser
-
-		debug('invokeProcedure: send the page to browser');
-		await sendResponse(req, res, pageComponents);
-	} finally {
-		// 9) cleanup
-
-		debug('invokeProcedure: cleanup');
-		fileBlob.destroy();
+	} catch (err) {
+		if (traceData) {
+			traceData.status = err instanceof ProcedureError ? 'error' : 'fail';
+			traceData.error = err instanceof Error ? err.message : String(err);
+			traceData.duration = Date.now() - startTime;
+			traceManager.addTrace(traceData);
+		}
+		throw err;
 	}
 
 	debug('invokeProcedure: end');

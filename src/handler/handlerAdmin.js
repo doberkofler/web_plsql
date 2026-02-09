@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import readline from 'node:readline';
 import {AdminContext} from '../server/adminContext.js';
+import {traceManager} from '../util/traceManager.js';
 import {getVersion} from '../version.js';
 
 const version = getVersion();
@@ -243,4 +244,50 @@ handlerAdmin.post('/api/server/:action', (req, res) => {
 	} else {
 		res.status(400).json({error: 'Invalid action'});
 	}
+});
+
+// GET /api/trace/status
+handlerAdmin.get('/api/trace/status', (_req, res) => {
+	res.json({enabled: traceManager.isEnabled()});
+});
+
+// POST /api/trace/toggle
+handlerAdmin.post('/api/trace/toggle', (req, res) => {
+	const body = /** @type {unknown} */ (req.body);
+	const enabled = body && typeof body === 'object' && 'enabled' in body && typeof body.enabled === 'boolean' ? body.enabled : false;
+	traceManager.setEnabled(enabled);
+	res.json({enabled: traceManager.isEnabled()});
+});
+
+// GET /api/trace/logs
+handlerAdmin.get('/api/trace/logs', async (req, res) => {
+	try {
+		const limit = Number(req.query.limit) || 100;
+		const filter = typeof req.query.filter === 'string' ? req.query.filter : '';
+		const logFile = traceManager.getFilePath();
+		const lines = await readLastLines(logFile, limit, filter);
+
+		/** @type {Record<string, unknown>[]} */
+		const logs = [];
+		for (const line of lines) {
+			try {
+				const parsed = /** @type {unknown} */ (JSON.parse(line));
+				if (parsed && typeof parsed === 'object') {
+					logs.push(/** @type {Record<string, unknown>} */ (parsed));
+				}
+			} catch (e) {
+				// ignore
+			}
+		}
+
+		res.json(logs.reverse());
+	} catch (err) {
+		res.status(500).json({error: String(err)});
+	}
+});
+
+// POST /api/trace/clear
+handlerAdmin.post('/api/trace/clear', (_req, res) => {
+	traceManager.clear();
+	res.json({message: 'Traces cleared'});
 });

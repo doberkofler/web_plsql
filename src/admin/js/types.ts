@@ -264,25 +264,36 @@ export type ChartInstance = {
 };
 
 /**
- * Error log entry.
+ * Trace entry.
  */
-export type ErrorLog = {
+export type TraceEntry = {
+	id: string;
 	timestamp: string;
-	req:
+	source: string;
+	url: string;
+	method: string;
+	status: string;
+	duration: number;
+	procedure?: string | undefined;
+	parameters?: Record<string, unknown> | undefined;
+	uploads?: {originalname: string; mimetype: string; size: number}[] | undefined;
+	downloads?:
 		| {
-				method: string;
-				url: string;
+				fileType: string;
+				fileSize: number;
 		  }
 		| undefined;
-	message: string;
-	details:
-		| {
-				fullMessage: string;
-		  }
-		| undefined;
+	html?: string | undefined;
+	cookies?: Record<string, string> | undefined;
+	headers?: Record<string, string> | undefined;
+	cgi?: Record<string, string> | undefined;
+	error?: string | undefined;
 };
 
-import type {StatusResponse} from './schemas.js';
+import type {StatusResponse, ErrorLogResponse, AccessLogResponse} from './schemas.js';
+
+// Re-export types from schemas
+export type {StatusResponse, ErrorLogResponse, AccessLogResponse};
 
 /**
  * System metrics for tracking min/max.

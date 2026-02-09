@@ -1,8 +1,9 @@
 import {typedApi} from '../api.js';
 import {formatDuration, formatDateTime, formatMs} from '../util/format.js';
-import {errorRow, poolCard} from '../templates/index.js';
+import {poolCard} from '../templates/index.js';
 import {renderConfig} from '../templates/config.js';
-import type {State, ServerConfig, SystemMetrics} from '../types.js';
+import type {State, ServerConfig, SystemMetrics, ErrorLogResponse, TraceEntry} from '../types.js';
+import {DataTable, type TableColumn} from './table.js';
 
 /**
  * Refresh the error logs view.
@@ -15,25 +16,69 @@ export async function refreshErrors(): Promise<void> {
 	const limit = limitInput ? parseInt(limitInput.value) : 100;
 
 	const logs = await typedApi.getErrorLogs(limit, filter);
-	const tbody = document.querySelector('#errors-table tbody');
-	if (!tbody) return;
 
-	tbody.innerHTML = logs.map((l) => errorRow(l)).join('');
+	const columns: TableColumn<ErrorLogResponse>[] = [
+		{
+			id: 'timestamp',
+			header: 'Timestamp',
+			headerTitle: 'When the error occurred',
+			accessor: (l) => new Date(l.timestamp).toLocaleString(),
+			cellTitle: (l) => new Date(l.timestamp).toLocaleString(),
+		},
+		{
+			id: 'method',
+			header: 'Method',
+			headerTitle: 'HTTP method used',
+			render: (l) => `<code>${l.req?.method ?? '-'}</code>`,
+			cellTitle: (l) => `Method: ${l.req?.method ?? '-'}`,
+		},
+		{
+			id: 'url',
+			header: 'URL',
+			headerTitle: 'Requested URL',
+			accessor: (l) => l.req?.url ?? '-',
+			cellTitle: (l) => `URL: ${l.req?.url ?? '-'}`,
+		},
+		{
+			id: 'message',
+			header: 'Message',
+			headerTitle: 'Error message summary',
+			accessor: (l) => l.message,
+			className: 'break-all',
+			cellTitle: (l) => `Click for details: ${l.details?.fullMessage ?? ''}`,
+		},
+		{
+			id: 'action',
+			header: '',
+			width: '40px',
+			align: 'center',
+			render: () => '<span class="material-symbols-rounded">chevron_right</span>',
+			className: 'text-center text-accent opacity-70',
+		},
+	];
 
-	// Add click listeners for detail view
-	tbody.querySelectorAll('tr').forEach((row, idx) => {
-		row.classList.add('errors-table-row');
-		row.onclick = () => {
-			const log = logs[idx];
-			if (!log) return;
+	const table = new DataTable<ErrorLogResponse>('errors-table', {
+		columns,
+		dense: true,
+		onRowClick: (log) => {
 			const modal = document.getElementById('error-modal');
 			const content = document.getElementById('error-detail-content');
 			if (modal && content) {
 				content.textContent = JSON.stringify(log, null, 2);
 				modal.style.display = 'flex';
 			}
-		};
+		},
 	});
+
+	table.render(logs);
+
+	// Add class to rows for styling (legacy support if needed, or handled by table component)
+	const tbody = document.querySelector('#errors-table tbody');
+	if (tbody) {
+		tbody.querySelectorAll('tr').forEach((row) => {
+			row.classList.add('errors-table-row');
+		});
+	}
 }
 
 /**
@@ -114,6 +159,106 @@ export async function refreshAccess(): Promise<void> {
 	if (el.parentElement) {
 		el.parentElement.scrollTop = el.parentElement.scrollHeight;
 	}
+}
+
+/**
+ * Refresh the trace logs view.
+ */
+export async function refreshTrace(): Promise<void> {
+	const filterInput = document.getElementById('trace-filter') as HTMLInputElement | null;
+	const limitInput = document.getElementById('trace-limit') as HTMLInputElement | null;
+	const statusToggle = document.getElementById('trace-status-toggle') as HTMLButtonElement | null;
+
+	const filter = filterInput?.value ?? '';
+	const limit = limitInput ? parseInt(limitInput.value) : 100;
+
+	// Update status toggle
+	try {
+		const {enabled} = await typedApi.getTraceStatus();
+		if (statusToggle) {
+			statusToggle.textContent = enabled ? 'Tracing: ON' : 'Tracing: OFF';
+			statusToggle.dataset.enabled = String(enabled);
+			statusToggle.className = `px-4 py-2 rounded-lg text-sm font-bold transition-colors ${
+				enabled ? 'bg-success text-black hover:bg-success/80' : 'bg-white/10 text-white hover:bg-white/20'
+			}`;
+		}
+	} catch (err) {
+		console.error('Failed to get trace status', err);
+	}
+
+	const logs = await typedApi.getTraceLogs(limit, filter);
+
+	const columns: TableColumn<TraceEntry>[] = [
+		{
+			id: 'timestamp',
+			header: 'Timestamp',
+			headerTitle: 'Time of request',
+			accessor: (l) => new Date(l.timestamp).toLocaleString(),
+			className: 'font-mono text-xs text-dim',
+		},
+		{
+			id: 'source',
+			header: 'Source',
+			headerTitle: 'Request source (IP/User)',
+			accessor: (l) => l.source,
+			className: 'text-dim text-xs truncate max-w-[150px]',
+			cellTitle: (l) => l.source,
+		},
+		{
+			id: 'method',
+			header: 'Method',
+			headerTitle: 'HTTP Method',
+			accessor: (l) => l.method,
+			className: 'font-mono text-xs',
+		},
+		{
+			id: 'url',
+			header: 'Request URL',
+			headerTitle: 'Request URL',
+			accessor: (l) => l.url,
+			className: 'text-bright font-mono text-xs truncate max-w-[300px]',
+			cellTitle: (l) => l.url,
+		},
+		{
+			id: 'status',
+			header: 'Status',
+			headerTitle: 'HTTP Status Code',
+			width: '80px',
+			accessor: (l) => l.status,
+			className: (l) => `font-bold text-xs uppercase ${l.status === 'success' ? 'text-success' : 'text-danger'}`,
+		},
+		{
+			id: 'duration',
+			header: 'Duration',
+			headerTitle: 'Execution time in ms',
+			align: 'right',
+			accessor: (l) => formatMs(l.duration),
+			className: 'font-mono text-xs text-dim',
+		},
+		{
+			id: 'procedure',
+			header: 'Procedure',
+			headerTitle: 'Executed PL/SQL procedure',
+			accessor: (l) => l.procedure ?? '-',
+			className: 'text-dim text-xs truncate max-w-[200px]',
+			cellTitle: (l) => l.procedure ?? '',
+		},
+	];
+
+	const table = new DataTable<TraceEntry>('trace-table', {
+		columns,
+		dense: true,
+		onRowClick: (log) => {
+			const modal = document.getElementById('trace-modal');
+			const content = document.getElementById('trace-detail-content');
+			if (modal && content) {
+				content.textContent = JSON.stringify(log, null, 2);
+				modal.style.display = 'flex';
+			}
+		},
+	});
+
+	table.render(logs);
 }
 
 /**

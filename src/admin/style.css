@@ -1100,6 +1100,13 @@ nav button .material-symbols-rounded {
 	text-align: left;
 }
 
+/* Dense table variant */
+.dense-table th,
+.dense-table td {
+	padding: 6px 12px;
+	font-size: 0.8125rem;
+}
+
 /* Code style */
 .code {
 	font-family: 'JetBrains Mono', 'Fira Code', monospace;

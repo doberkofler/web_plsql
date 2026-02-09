@@ -220,7 +220,6 @@ describe('handler/plsql/sendResponse', () => {
 			/** @type {any} */
 			(mockStream.pipe) = pipeMock.mockImplementation((/** @type {any} */ _destination) => {
 				setTimeout(() => mockStream.emit('end'), 10);
-				// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 				return res;
 			});
 

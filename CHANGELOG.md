@@ -15,7 +15,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [1.1.0] - 2026-02-10
 
 ### Added
-- Several functional and UX improvements in the admin console.
+- Add "Request tracing" page for comprehensive request tracing.
+- Improved "Errors" page UX.
+- Improved "Access log" page UX.
+- Reduced amount of data needed for apage refreshes.
 - Detect loss of connection and add reconnection dialog.
 - Major boost of unit test coverage.
 - Added performance regression testing.

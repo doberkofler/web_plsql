@@ -181,6 +181,33 @@ export const errorLogSchema = z.object({
 export const accessLogResponseSchema = z.union([z.array(z.string()), z.object({message: z.string()})]);
 
 /**
+ * Trace entry schema.
+ */
+export const traceEntrySchema = z.object({
+	id: z.string(),
+	timestamp: z.string(),
+	source: z.string(),
+	url: z.string(),
+	method: z.string(),
+	status: z.string(),
+	duration: z.number(),
+	procedure: z.string().optional(),
+	parameters: z.record(z.string(), z.any()).optional(),
+	uploads: z.array(z.any()).optional(),
+	downloads: z
+		.object({
+			fileType: z.string(),
+			fileSize: z.number(),
+		})
+		.optional(),
+	html: z.string().optional(),
+	cookies: z.record(z.string(), z.string()).optional(),
+	headers: z.record(z.string(), z.string()).optional(),
+	cgi: z.record(z.string(), z.string()).optional(),
+	error: z.string().optional(),
+});
+
+/**
  * API response type helpers.
  */
 export type StatusResponse = z.infer<typeof statusSchema>;
