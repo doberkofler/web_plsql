@@ -1,12 +1,13 @@
 import {describe, it, expect, vi} from 'vitest';
 import {OWAPageStream} from '../src/handler/plsql/owaPageStream.js';
+import {OWA_STREAM_CHUNK_SIZE} from '../src/constants.js';
 
 /** @typedef {import('oracledb').Connection} Connection */
 
 describe('OWAPageStream', () => {
 	it('should stream data in chunks', async () => {
-		// Create array of 1000 lines for first chunk
-		const firstChunkLines = Array.from({length: 1000}, (_, i) => `Line ${i + 1}\n`);
+		// Create array of chunkSize lines for first chunk
+		const firstChunkLines = Array.from({length: OWA_STREAM_CHUNK_SIZE}, (_, i) => `Line ${i + 1}\n`);
 		const secondChunkLines = ['Final Line\n'];
 
 		const mockConnection = /** @type {Connection} */ (
@@ -14,10 +15,10 @@ describe('OWAPageStream', () => {
 				execute: vi
 					.fn()
 					.mockResolvedValueOnce({
-						outBinds: {lines: firstChunkLines, irows: 1000},
+						outBinds: {lines: firstChunkLines, irows: OWA_STREAM_CHUNK_SIZE},
 					})
 					.mockResolvedValueOnce({
-						outBinds: {lines: secondChunkLines, irows: 1}, // Less than 1000, so it should be the last chunk
+						outBinds: {lines: secondChunkLines, irows: 1}, // Less than chunkSize, so it should be the last chunk
 					}),
 			})
 		);
