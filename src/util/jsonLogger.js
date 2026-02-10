@@ -1,4 +1,5 @@
 import * as rotatingFileStream from 'rotating-file-stream';
+import {JSON_LOG_ROTATION_SIZE, JSON_LOG_ROTATION_INTERVAL, JSON_LOG_MAX_ROTATED_FILES} from '../constants.js';
 
 /**
  * @typedef {object} LogEntry
@@ -12,9 +13,9 @@ import * as rotatingFileStream from 'rotating-file-stream';
 export class JsonLogger {
 	constructor(filename = 'error.json.log') {
 		this.stream = rotatingFileStream.createStream(filename, {
-			size: '10M', // rotate every 10 MegaBytes written
-			interval: '1d', // rotate daily
-			maxFiles: 10, // maximum number of rotated files to keep
+			size: JSON_LOG_ROTATION_SIZE, // rotate every 10 MegaBytes written
+			interval: JSON_LOG_ROTATION_INTERVAL, // rotate daily
+			maxFiles: JSON_LOG_MAX_ROTATED_FILES, // maximum number of rotated files to keep
 			compress: 'gzip', // compress rotated files
 		});
 	}

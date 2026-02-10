@@ -8,6 +8,7 @@ import util from 'node:util';
 import oracledb from 'oracledb';
 import {escapeHtml, convertAsciiToHtml} from './html.js';
 import {errorToString} from './errorToString.js';
+import {TRACE_LOG_ROTATION_SIZE, TRACE_LOG_ROTATION_INTERVAL, TRACE_LOG_MAX_ROTATED_FILES} from '../constants.js';
 
 /**
  * @typedef {import('express').Request} Request
@@ -88,9 +89,9 @@ export const toTable = (head, body) => {
  */
 export const logToFile = (text) => {
 	const fs = rotatingFileStream.createStream('trace.log', {
-		size: '10M', // rotate every 10 MegaBytes written
-		interval: '1d', // rotate daily
-		maxFiles: 10, // maximum number of rotated files to keep
+		size: TRACE_LOG_ROTATION_SIZE, // rotate every 10 MegaBytes written
+		interval: TRACE_LOG_ROTATION_INTERVAL, // rotate daily
+		maxFiles: TRACE_LOG_MAX_ROTATED_FILES, // maximum number of rotated files to keep
 		compress: 'gzip', // compress rotated files
 	});
 

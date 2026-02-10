@@ -207,3 +207,85 @@ export const MAX_PERCENTILE_SAMPLES: 1000;
  *   - Consider making configurable for high-traffic deployments
  */
 export const SHUTDOWN_GRACE_DELAY_MS: 100;
+/**
+ * TRACE_LOG_ROTATION_SIZE = '10M'
+ *
+ * Purpose: Log file size threshold triggering trace log rotation (10 Megabytes).
+ *
+ * Used By: rotating-file-stream library for 'trace.log'
+ *
+ * Related Values:
+ *   - TRACE_LOG_ROTATION_INTERVAL ('1d'): Also triggers rotation
+ *   - TRACE_LOG_MAX_ROTATED_FILES (10): Maximum retained files
+ *
+ * Implications:
+ *   - When either size OR time threshold is reached, rotation occurs
+ *   - Combined with daily rotation: ~10MB/day minimum
+ *   - gzip compression reduces rotated file size by ~70-90%
+ */
+export const TRACE_LOG_ROTATION_SIZE: "10M";
+/**
+ * TRACE_LOG_ROTATION_INTERVAL = '1d'
+ *
+ * Purpose: Time-based trace log rotation trigger (daily).
+ *
+ * Used By: rotating-file-stream library for 'trace.log'
+ *
+ * Implications:
+ *   - Guarantees at least one rotation per day
+ *   - Midnight-based or 24h from first write
+ */
+export const TRACE_LOG_ROTATION_INTERVAL: "1d";
+/**
+ * TRACE_LOG_MAX_ROTATED_FILES = 10
+ *
+ * Purpose: Maximum number of rotated trace log files to retain.
+ *
+ * Used By: rotating-file-stream library for 'trace.log'
+ *
+ * Implications:
+ *   - When exceeded, oldest rotated file is deleted
+ *   - Maximum: ~10 files × 10MB = ~100MB (compressed: ~10-30MB)
+ */
+export const TRACE_LOG_MAX_ROTATED_FILES: 10;
+/**
+ * JSON_LOG_ROTATION_SIZE = '10M'
+ *
+ * Purpose: Log file size threshold triggering JSON error log rotation (10 Megabytes).
+ *
+ * Used By: rotating-file-stream library for 'error.json.log'
+ *
+ * Related Values:
+ *   - JSON_LOG_ROTATION_INTERVAL ('1d'): Also triggers rotation
+ *   - JSON_LOG_MAX_ROTATED_FILES (10): Maximum retained files
+ *
+ * Implications:
+ *   - When either size OR time threshold is reached, rotation occurs
+ *   - Combined with daily rotation: ~10MB/day minimum
+ *   - gzip compression reduces rotated file size by ~70-90%
+ */
+export const JSON_LOG_ROTATION_SIZE: "10M";
+/**
+ * JSON_LOG_ROTATION_INTERVAL = '1d'
+ *
+ * Purpose: Time-based JSON error log rotation trigger (daily).
+ *
+ * Used By: rotating-file-stream library for 'error.json.log'
+ *
+ * Implications:
+ *   - Guarantees at least one rotation per day
+ *   - Midnight-based or 24h from first write
+ */
+export const JSON_LOG_ROTATION_INTERVAL: "1d";
+/**
+ * JSON_LOG_MAX_ROTATED_FILES = 10
+ *
+ * Purpose: Maximum number of rotated JSON error log files to retain.
+ *
+ * Used By: rotating-file-stream library for 'error.json.log'
+ *
+ * Implications:
+ *   - When exceeded, oldest rotated file is deleted
+ *   - Maximum: ~10 files × 10MB = ~100MB (compressed: ~10-30MB)
+ */
+export const JSON_LOG_MAX_ROTATED_FILES: 10;
