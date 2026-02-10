@@ -4,6 +4,7 @@ import z from 'zod';
 import debugModule from 'debug';
 import {ProcedureError} from './procedureError.js';
 import {errorToString} from '../../util/errorToString.js';
+import {OWA_STREAM_CHUNK_SIZE} from '../../constants.js';
 
 const debug = debugModule('webplsql:owaPageStream');
 
@@ -19,7 +20,7 @@ export class OWAPageStream extends Readable {
 	constructor(databaseConnection) {
 		super({highWaterMark: 16384}); // 16KB buffer
 		this.databaseConnection = databaseConnection;
-		this.chunkSize = 1000;
+		this.chunkSize = OWA_STREAM_CHUNK_SIZE;
 		this.isDone = false;
 	}
 

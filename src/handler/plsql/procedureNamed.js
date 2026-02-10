@@ -11,6 +11,7 @@ import {RequestError} from './requestError.js';
 import {errorToString} from '../../util/errorToString.js';
 import {stringToNumber} from '../../util/util.js';
 import {toTable, warningMessage} from '../../util/trace.js';
+import {MAX_PROCEDURE_PARAMETERS} from '../../constants.js';
 
 /**
  * @typedef {import('express').Request} Request
@@ -69,13 +70,11 @@ const DATA_TYPES = Object.freeze({
  *	@returns {Promise<argsType>} - The argument types
  */
 const loadArguments = async (procedure, databaseConnection) => {
-	const MAX_PARAMETER_NUMBER = 1000;
-
 	/** @type {BindParameterConfig} */
 	const bind = {
 		name: {dir: oracledb.BIND_IN, type: oracledb.STRING, val: procedure},
-		names: {dir: oracledb.BIND_OUT, type: oracledb.STRING, maxSize: 60, maxArraySize: MAX_PARAMETER_NUMBER},
-		types: {dir: oracledb.BIND_OUT, type: oracledb.STRING, maxSize: 60, maxArraySize: MAX_PARAMETER_NUMBER},
+		names: {dir: oracledb.BIND_OUT, type: oracledb.STRING, maxSize: 60, maxArraySize: MAX_PROCEDURE_PARAMETERS},
+		types: {dir: oracledb.BIND_OUT, type: oracledb.STRING, maxSize: 60, maxArraySize: MAX_PROCEDURE_PARAMETERS},
 	};
 
 	/** @type {Result} */

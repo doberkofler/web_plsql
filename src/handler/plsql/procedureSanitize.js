@@ -5,6 +5,7 @@ import oracledb from 'oracledb';
 import z from 'zod';
 import {RequestError} from './requestError.js';
 import {errorToString} from '../../util/errorToString.js';
+import {OWA_RESOLVED_NAME_MAX_LEN} from '../../constants.js';
 
 /**
  * @typedef {import('express').Request} Request
@@ -77,7 +78,7 @@ const resolveProcedureName = async (procName, databaseConnection, procedureNameC
 
 	const bind = {
 		name: {dir: oracledb.BIND_IN, type: oracledb.STRING, val: procName},
-		resolved: {dir: oracledb.BIND_OUT, type: oracledb.STRING, maxSize: 400},
+		resolved: {dir: oracledb.BIND_OUT, type: oracledb.STRING, maxSize: OWA_RESOLVED_NAME_MAX_LEN},
 	};
 
 	try {
