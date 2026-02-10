@@ -1,6 +1,7 @@
 import {z} from 'zod';
 import {
 	statusSchema,
+	bucketSchema,
 	errorLogSchema,
 	accessLogResponseSchema,
 	traceEntrySchema,
@@ -8,7 +9,7 @@ import {
 	type ErrorLogResponse,
 	type AccessLogResponse,
 } from './schemas.js';
-import type {TraceEntry} from './types.js';
+import type {TraceEntry, HistoryBucket} from './types.js';
 
 /**
  * Validates response data against a Zod schema.
@@ -55,13 +56,30 @@ export const typedApi = {
 	/**
 	 * Get server status with validation.
 	 *
+	 * @param includeHistory - Whether to include full history.
 	 * @returns The validated status response.
 	 */
-	async getStatus(): Promise<StatusResponse> {
-		const res = await fetchWithRetry('api/status');
+	async getStatus(includeHistory = false): Promise<StatusResponse> {
+		const res = await fetchWithRetry(`api/status?history=${includeHistory}`);
 		if (!res.ok) throw new Error(`GET api/status failed: ${res.statusText}`);
 		const data: unknown = await res.json();
 		return validate(data, statusSchema, 'api/status');
+	},
+
+	/**
+	 * Get stats history with validation.
+	 *
+	 * @param limit - Max number of entries.
+	 * @returns The validated stats history.
+	 */
+	async getStatsHistory(limit = 100): Promise<HistoryBucket[]> {
+		const query = new URLSearchParams({
+			limit: limit.toString(),
+		});
+		const res = await fetchWithRetry(`api/stats/history?${query.toString()}`);
+		if (!res.ok) throw new Error(`GET api/stats/history failed: ${res.statusText}`);
+		const data: unknown = await res.json();
+		return validate(data, z.array(bucketSchema), 'api/stats/history') as unknown as HistoryBucket[];
 	},
 
 	/**

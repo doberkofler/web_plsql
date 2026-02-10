@@ -75,8 +75,9 @@ const readLastLines = async (filePath, n = 100, filter = '') => {
 };
 
 // GET /api/status
-handlerAdmin.get('/api/status', (_req, res) => {
+handlerAdmin.get('/api/status', (req, res) => {
 	const uptime = (new Date().getTime() - AdminContext.startTime.getTime()) / 1000;
+	const includeHistory = req.query.history === 'true';
 
 	const poolStats = AdminContext.pools.map((pool, index) => {
 		const cache = AdminContext.caches[index];
@@ -110,6 +111,10 @@ handlerAdmin.get('/api/status', (_req, res) => {
 	const cpuUsage = process.cpuUsage();
 	const summary = /** @type {StatsSummary} */ (AdminContext.statsManager.getSummary());
 
+	const history = AdminContext.statsManager.getHistory();
+	// If history is not requested, return only the last bucket for charts
+	const historyData = includeHistory ? history : history.slice(-1);
+
 	res.json({
 		version,
 		status: AdminContext.paused ? 'paused' : 'running',
@@ -124,7 +129,7 @@ handlerAdmin.get('/api/status', (_req, res) => {
 			maxResponseTime: summary.maxResponseTime,
 			maxRequestsPerSecond: summary.maxRequestsPerSecond,
 		},
-		history: AdminContext.statsManager.getHistory(),
+		history: historyData,
 		pools: poolStats,
 		system: {
 			nodeVersion: process.version,
@@ -158,6 +163,24 @@ handlerAdmin.get('/api/status', (_req, res) => {
 				}
 			: null,
 	});
+});
+
+// GET /api/stats/history
+handlerAdmin.get('/api/stats/history', (req, res) => {
+	const limitQuery = req.query.limit;
+	let limit = 100;
+	if (limitQuery !== undefined) {
+		const parsed = Number(limitQuery);
+		if (!isNaN(parsed)) {
+			limit = parsed;
+		}
+	}
+
+	const history = AdminContext.statsManager.getHistory();
+	// Return the last 'limit' entries, reversed (newest first)
+	// Create a copy to avoid mutating the original history array
+	const slice = limit > 0 ? history.slice(-limit) : [...history];
+	res.json(slice.reverse());
 });
 
 // GET /api/logs/error

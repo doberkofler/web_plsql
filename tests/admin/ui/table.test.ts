@@ -1,5 +1,5 @@
 import {describe, it, expect, vi, beforeEach, type Mock} from 'vitest';
-import {DataTable} from '../../../src/admin/js/ui/table.js';
+import {DataTable, TableColumn, TableOptions} from '../../../src/admin/js/ui/table.js';
 
 // Mock DOM elements
 class MockElement {
@@ -233,5 +233,198 @@ describe('DataTable', () => {
 
 		const tbody = tableElement.children.find((c) => c.tagName === 'tbody');
 		expect(tbody?.children[0]?.children[0]?.title).toBe('Value is val1');
+	});
+
+	it('should apply tableLayout option', () => {
+		dataTable = new DataTable<TestRow>('my-table', {columns, tableLayout: 'fixed'});
+		dataTable.render(data);
+		expect(tableElement.style.tableLayout).toBe('fixed');
+	});
+
+	it('should apply column width to header', () => {
+		const customColumns = [
+			{
+				id: 'col1',
+				header: 'Column 1',
+				accessor: (row: TestRow) => row.col1,
+				width: '150px',
+			},
+			{
+				id: 'col2',
+				header: 'Column 2',
+				accessor: (row: TestRow) => row.col2,
+			},
+		];
+		dataTable = new DataTable<TestRow>('my-table', {columns: customColumns});
+		dataTable.render(data);
+
+		const thead = tableElement.children.find((c) => c.tagName === 'thead');
+		expect(thead?.children[0]?.children[0]?.style.width).toBe('150px');
+	});
+
+	it('should apply align option to header and cell', () => {
+		const customColumns: TableColumn<TestRow>[] = [
+			{
+				id: 'col1',
+				header: 'Center Col',
+				accessor: (row: TestRow) => row.col1,
+				align: 'center',
+			},
+			{
+				id: 'col2',
+				header: 'Right Col',
+				accessor: (row: TestRow) => row.col2,
+				align: 'right',
+			},
+		];
+		dataTable = new DataTable<TestRow>('my-table', {columns: customColumns});
+		dataTable.render(data);
+
+		const thead = tableElement.children.find((c) => c.tagName === 'thead');
+		expect(thead?.children[0]?.children[0]?.style.textAlign).toBe('center');
+		expect(thead?.children[0]?.children[1]?.style.textAlign).toBe('right');
+
+		const tbody = tableElement.children.find((c) => c.tagName === 'tbody');
+		expect(tbody?.children[0]?.children[0]?.style.textAlign).toBe('center');
+		expect(tbody?.children[0]?.children[1]?.style.textAlign).toBe('right');
+	});
+
+	it('should create thead if it does not exist', () => {
+		tableElement = new MockElement('table');
+		tableElement.appendChild(new MockElement('tbody'));
+		mockDocument.getElementById.mockReturnValue(tableElement);
+
+		dataTable = new DataTable<TestRow>('my-table', {columns});
+		dataTable.render(data);
+
+		const thead = tableElement.children.find((c) => c.tagName === 'thead');
+		expect(thead).toBeDefined();
+		expect(thead?.children[0]?.children.length).toBe(2);
+	});
+
+	it('should create tbody if it does not exist', () => {
+		tableElement = new MockElement('table');
+		tableElement.appendChild(new MockElement('thead'));
+		mockDocument.getElementById.mockReturnValue(tableElement);
+
+		dataTable = new DataTable<TestRow>('my-table', {columns});
+		dataTable.render(data);
+
+		const tbody = tableElement.children.find((c) => c.tagName === 'tbody');
+		expect(tbody).toBeDefined();
+		expect(tbody?.children.length).toBe(2);
+	});
+
+	it('should use accessor for cell content without render function', () => {
+		dataTable = new DataTable<TestRow>('my-table', {columns});
+		dataTable.render(data);
+
+		const tbody = tableElement.children.find((c) => c.tagName === 'tbody');
+		expect(tbody?.children[0]?.children[0]?.textContent).toBe('val1');
+		expect(tbody?.children[0]?.children[1]?.textContent).toBe('val2');
+	});
+
+	it('should handle null element gracefully', () => {
+		mockDocument.getElementById.mockReturnValue(null);
+
+		dataTable = new DataTable<TestRow>('my-table', {columns});
+		dataTable.render(data);
+	});
+
+	it('should handle onRowClick becoming falsy after render', () => {
+		const onRowClick = vi.fn();
+		dataTable = new DataTable<TestRow>('my-table', {columns, onRowClick});
+		dataTable.render(data);
+
+		(dataTable as unknown as {options: TableOptions<TestRow>}).options.onRowClick = undefined as unknown as (row: TestRow) => void;
+
+		const tbody = tableElement.children.find((c) => c.tagName === 'tbody');
+		const row1 = tbody?.children[0];
+		row1?.click();
+	});
+
+	it('should handle accessor returning undefined', () => {
+		const customColumns: TableColumn<TestRow>[] = [
+			{
+				id: 'col1',
+				header: 'Undefined',
+				accessor: () => undefined,
+			},
+			{
+				id: 'col2',
+				header: 'Null',
+				accessor: () => null as unknown as string,
+			},
+		];
+		dataTable = new DataTable<TestRow>('my-table', {columns: customColumns});
+		dataTable.render(data);
+
+		const tbody = tableElement.children.find((c) => c.tagName === 'tbody');
+		expect(tbody?.children[0]?.children[0]?.textContent).toBe('');
+		expect(tbody?.children[0]?.children[1]?.textContent).toBe('');
+	});
+
+	it('should not call renderHeader or renderBody when element is null', () => {
+		const nullElementTable = new DataTable<TestRow>('non-existent', {columns});
+		const renderHeaderSpy = vi.spyOn(nullElementTable as unknown as {renderHeader: () => void}, 'renderHeader');
+		const renderBodySpy = vi.spyOn(nullElementTable as unknown as {renderBody: (data: TestRow[]) => void}, 'renderBody');
+
+		mockDocument.getElementById.mockReturnValue(null);
+
+		nullElementTable.render(data);
+
+		expect(renderHeaderSpy).not.toHaveBeenCalled();
+		expect(renderBodySpy).not.toHaveBeenCalled();
+	});
+
+	it('should render with column that has no render or accessor', () => {
+		const customColumns: TableColumn<TestRow>[] = [
+			{
+				id: 'col1',
+				header: 'No Content',
+			},
+		];
+		dataTable = new DataTable<TestRow>('my-table', {columns: customColumns});
+		dataTable.render(data);
+
+		const tbody = tableElement.children.find((c) => c.tagName === 'tbody');
+		expect(tbody?.children[0]?.children[0]?.textContent).toBe('');
+	});
+
+	it('should handle accessor returning undefined', () => {
+		const customColumns: TableColumn<TestRow>[] = [
+			{
+				id: 'col1',
+				header: 'Undefined',
+				accessor: () => undefined,
+			},
+			{
+				id: 'col2',
+				header: 'Null',
+				accessor: () => null as unknown as string,
+			},
+		];
+		dataTable = new DataTable<TestRow>('my-table', {columns: customColumns});
+		dataTable.render(data);
+
+		const tbody = tableElement.children.find((c) => c.tagName === 'tbody');
+		expect(tbody?.children[0]?.children[0]?.textContent).toBe('');
+		expect(tbody?.children[0]?.children[1]?.textContent).toBe('');
+	});
+
+	it('should not call renderHeader or renderBody when element is null', () => {
+		const nullElementTable = new DataTable<TestRow>('non-existent', {columns});
+		const renderHeaderSpy = vi.spyOn(nullElementTable as unknown as {renderHeader: () => void}, 'renderHeader');
+		const renderBodySpy = vi.spyOn(nullElementTable as unknown as {renderBody: (data: TestRow[]) => void}, 'renderBody');
+
+		mockDocument.getElementById.mockImplementation((id: string) => {
+			if (id === 'non-existent') return null;
+			return tableElement;
+		});
+
+		nullElementTable.render(data);
+
+		expect(renderHeaderSpy).not.toHaveBeenCalled();
+		expect(renderBodySpy).not.toHaveBeenCalled();
 	});
 });

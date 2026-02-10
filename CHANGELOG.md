@@ -11,12 +11,23 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Changed
 ### Fixed
 
+
+## [?.?.?] - ????-??-??
+
+### Added
+- Improved the UX of the stats page.
+
+### Fixed
+- Test coverage is now 98%.
+
+
 ## [1.2.0] - 2026-02-09
 
+### Added
 - Add "Request tracing" page for comprehensive request tracing.
 - Improved "Errors" page UX.
 - Improved "Access log" page UX.
-- Reduced amount of data needed for apage refreshes.
+- Reduced amount of data needed for page refreshes.
 - Detect loss of connection and add reconnection dialog.
 
 

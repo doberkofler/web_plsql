@@ -83,30 +83,30 @@ export async function refreshErrors(): Promise<void> {
 
 /**
  * Refresh the statistical history view.
- *
- * @param status - The status data.
  */
-export function refreshStats(status: Partial<State['status']>): void {
-	const tbody = document.querySelector('#stats-table tbody');
-	const limitSelect = document.getElementById('stats-row-limit') as HTMLSelectElement | null;
+export async function refreshStats(): Promise<void> {
+	const limitInput = document.getElementById('stats-limit') as HTMLInputElement | null;
 	const infoEl = document.getElementById('stats-history-info');
-	if (!tbody || !status.history) return;
+	const tbody = document.querySelector('#stats-table tbody');
 
-	const limit = limitSelect ? parseInt(limitSelect.value) : 50;
-	const history = [...status.history].reverse();
-	const displayed = limit > 0 ? history.slice(0, limit) : history;
+	if (!tbody) return;
 
-	if (infoEl) {
-		infoEl.textContent = `Showing latest ${displayed.length} of ${history.length} data points`;
-	}
+	const limit = limitInput ? parseInt(limitInput.value) : 50;
 
-	tbody.innerHTML = displayed
-		.map((b) => {
-			const time = new Date(b.timestamp).toLocaleTimeString();
-			const rss = (b.system.rss / 1024 / 1024).toFixed(1);
-			const heap = (b.system.heapUsed / 1024 / 1024).toFixed(1);
+	try {
+		const history = await typedApi.getStatsHistory(limit);
 
-			return `
+		if (infoEl) {
+			infoEl.textContent = `Showing latest ${history.length} data points`;
+		}
+
+		tbody.innerHTML = history
+			.map((b) => {
+				const time = new Date(b.timestamp).toLocaleTimeString();
+				const rss = (b.system.rss / 1024 / 1024).toFixed(1);
+				const heap = (b.system.heapUsed / 1024 / 1024).toFixed(1);
+
+				return `
 			<tr>
 				<td class="font-mono text-xs">${time}</td>
 				<td class="text-center font-bold text-bright">${b.requests}</td>
@@ -121,8 +121,12 @@ export function refreshStats(status: Partial<State['status']>): void {
 				<td class="text-right font-mono">${heap}</td>
 			</tr>
 		`;
-		})
-		.join('');
+			})
+			.join('');
+	} catch (err) {
+		console.error('Failed to load stats history:', err);
+		if (infoEl) infoEl.textContent = 'Failed to load stats';
+	}
 }
 
 /**

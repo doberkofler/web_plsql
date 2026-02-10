@@ -146,8 +146,10 @@ function stopCountdown(): void {
 
 /**
  * Update server status.
+ *
+ * @param fullHistory - Whether to fetch full history.
  */
-async function updateStatus(): Promise<void> {
+async function updateStatus(fullHistory = false): Promise<void> {
 	// Show spinner if manually triggered or retrying
 	const spinner = document.getElementById('reconnect-spinner');
 	const icon = document.getElementById('reconnect-icon');
@@ -159,7 +161,7 @@ async function updateStatus(): Promise<void> {
 
 	try {
 		const now = Date.now();
-		const newStatus = await typedApi.getStatus();
+		const newStatus = await typedApi.getStatus(fullHistory);
 
 		// Check if we were offline
 		const modal = document.getElementById('offline-modal');
@@ -280,7 +282,6 @@ async function updateStatus(): Promise<void> {
 		if (state.currentView === 'errors') await refreshErrors();
 		if (state.currentView === 'trace') await refreshTrace();
 		if (state.currentView === 'pools') refreshPools(newStatus);
-		if (state.currentView === 'stats') refreshStats(newStatus);
 		if (state.currentView === 'config') refreshConfig(state);
 		if (state.currentView === 'system') refreshSystem(newStatus, state);
 
@@ -396,7 +397,7 @@ document.querySelectorAll('nav button').forEach((btnEl) => {
 			if (view === 'errors') await refreshErrors();
 			if (view === 'trace') await refreshTrace();
 			if (view === 'pools') refreshPools(state.status);
-			if (view === 'stats') refreshStats(state.status);
+			if (view === 'stats') await refreshStats();
 			if (view === 'config') refreshConfig(state);
 			if (view === 'system') refreshSystem(state.status, state);
 		} catch (err) {
@@ -478,6 +479,7 @@ if (errorFilterInput) {
 bindLoadingButton('error-load-btn', refreshErrors);
 bindLoadingButton('trace-load-btn', refreshTrace);
 bindLoadingButton('access-load-btn', refreshAccess);
+bindLoadingButton('stats-load-btn', refreshStats);
 
 const traceFilterInput = document.getElementById('trace-filter') as HTMLInputElement | null;
 if (traceFilterInput) {
@@ -516,10 +518,10 @@ if (accessFilterInput) {
 	};
 }
 
-const statsRowLimitSelect = document.getElementById('stats-row-limit') as HTMLSelectElement | null;
-if (statsRowLimitSelect) {
-	statsRowLimitSelect.onchange = () => {
-		refreshStats(state.status);
+const statsLimitInput = document.getElementById('stats-limit') as HTMLInputElement | null;
+if (statsLimitInput) {
+	statsLimitInput.onkeydown = (e) => {
+		if (e.key === 'Enter') void refreshStats();
 	};
 }
 
@@ -605,7 +607,7 @@ if (lastView) {
 	}
 }
 
-void updateStatus()
+void updateStatus(true)
 	.then(() => {
 		if (autoRefreshToggle?.checked) {
 			startRefreshTimer();

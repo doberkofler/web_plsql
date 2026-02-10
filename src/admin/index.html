@@ -277,28 +277,16 @@
 				</section>
 
 				<section id="view-stats" class="view" style="display: none">
-					<div class="header-toolbar mb-4" style="justify-content: space-between">
-						<div class="flex items-center gap-4">
-							<small id="stats-history-info" class="text-main">Showing latest historical data points</small>
-							<select
-								id="stats-row-limit"
-								class="btn-sm"
-								style="
-									background: var(--bg-hover);
-									border: 1px solid var(--border);
-									border-radius: 4px;
-									color: var(--text-main);
-									font-size: 0.75rem;
-									padding: 2px 8px;
-								"
-							>
-								<option value="20">Latest 20</option>
-								<option value="50" selected>Latest 50</option>
-								<option value="100">Latest 100</option>
-								<option value="200">Latest 200</option>
-								<option value="0">All Points</option>
-							</select>
+					<div class="header-toolbar mb-4" style="justify-content: flex-start; gap: 12px">
+						<div class="flex items-center gap-2">
+							<label for="stats-limit" class="text-xs text-main">Max entries:</label>
+							<input type="number" id="stats-limit" value="50" min="1" max="1000" class="input-sm" style="width: 80px" />
 						</div>
+						<button id="stats-load-btn" class="btn btn-sm btn-primary">
+							<span class="material-symbols-rounded" style="font-size: 18px">refresh</span>
+							Load Stats
+						</button>
+						<small id="stats-history-info" class="text-main" style="margin-left: auto">No stats loaded</small>
 					</div>
 					<div class="table-container">
 						<table id="stats-table">
