@@ -1,3 +1,5 @@
+import {DEFAULT_CACHE_MAX_SIZE, CACHE_PRUNE_PERCENT} from '../constants.js';
+
 /**
  * @template T
  * @typedef {{hitCount: number, value: T}} cacheEntryType
@@ -11,7 +13,7 @@ export class Cache {
 	/**
 	 * @param {number} maxSize - Maximum number of entries in the cache.
 	 */
-	constructor(maxSize = 10000) {
+	constructor(maxSize = DEFAULT_CACHE_MAX_SIZE) {
 		/** @type {Map<string, cacheEntryType<T>>} */
 		this.cache = new Map();
 		this.maxSize = maxSize;
@@ -84,7 +86,7 @@ export class Cache {
 		entries.sort((a, b) => a[1].hitCount - b[1].hitCount);
 
 		// Remove the bottom 10%
-		const removeCount = Math.max(1, Math.floor(this.maxSize * 0.1));
+		const removeCount = Math.max(1, Math.floor(this.maxSize * CACHE_PRUNE_PERCENT));
 		const keysToRemove = entries.slice(0, removeCount).map(([key]) => key);
 
 		for (const key of keysToRemove) {
