@@ -188,6 +188,7 @@ async function updateStatus(fullHistory = false): Promise<void> {
 
 		// Use server provided interval stats if available
 		const latestBucket = newStatus.history?.[newStatus.history.length - 1];
+		// FIXME: This fallback should use STATS_INTERVAL_MS from a shared constants source
 		const intervalSec = (newStatus.intervalMs ?? 5000) / 1000;
 		const reqPerSec = latestBucket ? latestBucket.requests / intervalSec : 0;
 		const avgResponseTime = latestBucket ? latestBucket.durationAvg : newStatus.metrics.avgResponseTime;

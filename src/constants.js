@@ -116,3 +116,33 @@ export const OWA_STREAM_CHUNK_SIZE = 1000;
  *   - 400 is safe upper bound with margin
  */
 export const OWA_RESOLVED_NAME_MAX_LEN = 400;
+
+// =============================================================================
+// STATS COLLECTION
+// =============================================================================
+
+/**
+ * STATS_INTERVAL_MS = 5000
+ *
+ * Purpose: Duration of each statistical bucket in milliseconds.
+ *
+ * Defined In: src/util/statsManager.js:114
+ *   intervalMs: 5000,
+ *
+ * Used By:
+ *   - src/util/statsManager.js:165: setInterval(this.rotateBucket, this.config.intervalMs)
+ *   - src/handler/handlerAdmin.js:123: Exposed as intervalMs in /api/status response
+ *   - src/admin/js/app.ts:191: Fallback: newStatus.intervalMs ?? 5000
+ *   - src/admin/client/charts.ts:386: Fallback: state.status.intervalMs ?? 5000
+ *
+ * Related Values:
+ *   - MAX_HISTORY_BUCKETS (1000): At 5s per bucket = ~83 minutes of history
+ *   - MAX_PERCENTILE_SAMPLES (1000): Samples per bucket for P95/P99
+ *
+ * Implications:
+ *   - Bucket aggregation: request counts, durations, errors, system metrics
+ *   - Affects granularity of performance monitoring
+ *   - Lower values = more granular but more history entries
+ *   - Higher values = smoother averages but less detail
+ */
+export const STATS_INTERVAL_MS = 5000;

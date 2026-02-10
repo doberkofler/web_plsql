@@ -1,5 +1,6 @@
 import debugModule from 'debug';
 import os from 'node:os';
+import {STATS_INTERVAL_MS} from '../constants.js';
 
 const debug = debugModule('webplsql:statsManager');
 
@@ -111,7 +112,7 @@ export class StatsManager {
 	constructor(config = {}) {
 		/** @type {StatsConfig} */
 		this.config = {
-			intervalMs: 5000,
+			intervalMs: STATS_INTERVAL_MS,
 			maxHistoryPoints: 1000,
 			sampleSystem: true,
 			samplePools: true,

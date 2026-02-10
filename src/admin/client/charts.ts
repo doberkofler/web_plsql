@@ -383,6 +383,7 @@ export function hydrateHistory(state: State, history: HistoryBucket[]): void {
 
 	const maxPoints = state.maxHistoryPoints;
 	const recentHistory = history.slice(-maxPoints);
+	// FIXME: This fallback should use STATS_INTERVAL_MS from a shared constants source
 	const intervalSec = (state.status.intervalMs ?? 5000) / 1000;
 
 	recentHistory.forEach((b) => {
