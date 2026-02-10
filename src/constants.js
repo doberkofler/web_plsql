@@ -95,6 +95,35 @@ export const MAX_PROCEDURE_PARAMETERS = 1000;
  */
 export const OWA_STREAM_CHUNK_SIZE = 1000;
 
+// =============================================================================
+// STREAMING
+// =============================================================================
+
+/**
+ * OWA_STREAM_BUFFER_SIZE = 16384
+ *
+ * Purpose: Node.js Readable stream highWaterMark in bytes (16KB).
+ *
+ * Defined In: src/handler/plsql/owaPageStream.js:20
+ *   super({highWaterMark: 16384}); // 16KB buffer
+ *
+ * Used By: OWAPageStream class extends Readable stream
+ *
+ * Related Values:
+ *   - OWA_STREAM_CHUNK_SIZE (1000): Lines per fetch
+ *   - Default Node.js highWaterMark is 64KB (Readable stream default)
+ *   - OWAPageStream.push() converts lines to string buffer
+ *
+ * Implications:
+ *   - Smaller than default (64KB) = more frequent _read() callbacks
+ *   - Reduces memory footprint for large responses
+ *   - Improves backpressure handling responsiveness
+ *   - Trade-off: More CPU for _read() calls vs memory efficiency
+ *
+ * Duplicates: None
+ */
+export const OWA_STREAM_BUFFER_SIZE = 16384;
+
 /**
  * OWA_RESOLVED_NAME_MAX_LEN = 400
  *
