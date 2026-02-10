@@ -8,7 +8,7 @@ import globals from 'globals';
 
 export default defineConfig([
 	{
-		ignores: ['**/.*', 'examples/**', 'types/**', 'node_modules/**', 'coverage/**', 'src/admin/lib/**'],
+		ignores: ['**/.*', 'examples/**', 'types/**', 'node_modules/**', 'coverage/**', 'dist/**'],
 	},
 
 	{
@@ -23,7 +23,7 @@ export default defineConfig([
 	...tseslint.configs.stylisticTypeChecked,
 
 	// ================================================================================
-	// BACKEND (JAVSCRIPT)
+	// BACKEND (JAVASCRIPT/TYPESCRIPT)
 	// ================================================================================
 	{
 		languageOptions: {
@@ -70,6 +70,18 @@ export default defineConfig([
 	},
 
 	// ================================================================================
+	// TYPESCRIPT OVERRIDES (Disable JSDoc types)
+	// ================================================================================
+	{
+		files: ['src/**/*.ts', 'src/**/*.tsx'],
+		rules: {
+			'jsdoc/require-param-type': 'off',
+			'jsdoc/require-returns-type': 'off',
+			'jsdoc/require-property-type': 'off',
+		},
+	},
+
+	// ================================================================================
 	// FRONTEND (TYPESCRIPT)
 	// ================================================================================
 	{
@@ -85,8 +97,6 @@ export default defineConfig([
 		},
 		rules: {
 			'@typescript-eslint/no-deprecated': 'error',
-			'jsdoc/require-param-type': 'off',
-			'jsdoc/require-returns-type': 'off',
 		},
 	},
 

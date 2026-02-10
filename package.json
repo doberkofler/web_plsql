@@ -18,8 +18,7 @@
 	],
 	"homepage": "https://github.com/doberkofler/web_plsql",
 	"engines": {
-		"npm": ">=10.0.0",
-		"node": ">=22.0.0"
+		"node": ">=24"
 	},
 	"maintainers": [
 		{
@@ -35,28 +34,30 @@
 		"url": "git://github.com/doberkofler/web_plsql.git"
 	},
 	"files": [
-		"src/",
-		"examples/",
-		"types"
+		"dist/",
+		"examples/"
 	],
-	"main": "./src/index.js",
-	"types": "./types/index.d.ts",
+	"main": "./dist/index.mjs",
+	"types": "./dist/index.d.mts",
 	"type": "module",
 	"scripts": {
-		"build": "npm run build:admin",
-		"build:admin": "vite build",
+		"build": "npm run build:backend && npm run build:frontend",
+		"build:backend": "tsdown",
+		"build:frontend": "vite build",
 		"lint": "tsc --noEmit && eslint --no-cache . && prettier --check .",
 		"test": "vitest run",
-		"test:perf": "vitest run tests/performance.test.js",
+		"test:perf": "vitest run tests/performance.test.ts",
 		"test:coverage": "vitest run --coverage",
-		"stylelint": "stylelint \"src/admin/**/*.css\"",
-		"types": "rm -rf types && tsc  --noEmit false --declaration true --declarationDir types --emitDeclarationOnly true --allowJs true --target es2020 --module es2020 --moduleResolution node --allowSyntheticDefaultImports true src/*.js",
+		"test:e2e": "playwright test",
+		"test:e2e:ui": "playwright test --ui",
+		"test:e2e:debug": "playwright test --debug",
+		"stylelint": "stylelint \"src/frontend/**/*.css\"",
 		"clean": "shx rm -f *.tgz && shx rm -f *.log",
-		"version": "node update-version.js",
-		"ci": "npm run clean && npm run version && npm run types && npm run build && npm run lint && npm run stylelint && npm run test:coverage",
+		"ci": "npm run clean && npm run lint && npm run build && npm run stylelint && npm run test:coverage && npm run test:e2e",
 		"create-package": "npm run ci && shx rm -f *.tgz && npm pack",
 		"image-build": "docker build --no-cache --progress=plain --tag=web_plsql .",
-		"image-save": "docker save web_plsql | gzip > web_plsql.tar.gz"
+		"image-save": "docker save web_plsql | gzip > web_plsql.tar.gz",
+		"start": "node docker-main.js"
 	},
 	"peerDependencies": {
 		"oracledb": "6.10.0"
@@ -67,6 +68,7 @@
 		"cookie-parser": "1.4.7",
 		"debug": "4.4.3",
 		"express": "5.2.1",
+		"express-static-gzip": "^3.0.0",
 		"http-parser-js": "0.5.10",
 		"morgan": "1.10.1",
 		"multer": "2.0.2",
@@ -74,6 +76,7 @@
 		"zod": "^4.3.6"
 	},
 	"devDependencies": {
+		"@playwright/test": "^1.58.2",
 		"@tailwindcss/vite": "^4.1.18",
 		"@types/compression": "1.8.1",
 		"@types/cookie-parser": "1.4.10",
@@ -84,6 +87,7 @@
 		"@types/oracledb": "6.10.1",
 		"@types/supertest": "6.0.3",
 		"@vitest/coverage-v8": "^4.0.18",
+		"cheerio": "^1.2.0",
 		"eslint": "9.39.2",
 		"eslint-plugin-jsdoc": "62.5.4",
 		"oracledb": "6.10.0",
@@ -93,9 +97,11 @@
 		"stylelint-config-standard": "^40.0.0",
 		"supertest": "7.2.2",
 		"tailwindcss": "^4.1.18",
+		"tsdown": "^0.20.3",
 		"typescript": "5.9.3",
 		"typescript-eslint": "8.54.0",
 		"vite": "^7.3.1",
+		"vite-plugin-compression2": "^2.4.0",
 		"vitest": "^4.0.18"
 	}
 }

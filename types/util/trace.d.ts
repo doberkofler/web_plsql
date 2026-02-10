@@ -1,18 +1,11 @@
-export function inspect(value: unknown, depth?: number | null): string;
-export function toTable(head: string[], body: string[][]): outputType;
-export function logToFile(text: string): void;
-export function getBlock(title: string, body: string): string;
-export function getFormattedMessage(para: messageType): outputType;
-export function warningMessage(para: messageType): void;
-export type Request = import("express").Request;
-export type BindParameterConfig = import("../types.js").BindParameterConfig;
-export type environmentType = import("../types.js").environmentType;
+import type { Request } from 'express';
+import type { BindParameterConfig, environmentType } from '../types.ts';
 export type outputType = {
     html: string;
     text: string;
 };
 export type messageType = {
-    type: "error" | "warning" | "trace";
+    type: 'error' | 'warning' | 'trace';
     message: string;
     timestamp?: Date | null;
     req?: Request | null;
@@ -20,3 +13,43 @@ export type messageType = {
     sql?: string | null;
     bind?: BindParameterConfig | null;
 };
+/**
+ * Return a string representation of the value.
+ *
+ * @param value - Any value.
+ * @param depth - Specifies the number of times to recurse while formatting object.
+ * @returns The string representation.
+ */
+export declare const inspect: (value: unknown, depth?: number | null) => string;
+/**
+ * Return a tabular representation of the values.
+ *
+ * @param head - The header values.
+ * @param body - The row values.
+ * @returns The output.
+ */
+export declare const toTable: (head: string[], body: string[][]) => outputType;
+/**
+ * Log text to the console and to a file.
+ *
+ * @param text - Text to log.
+ */
+export declare const logToFile: (text: string) => void;
+/**
+ *	Get a block.
+ *	@param title - The name.
+ *	@param body - The name.
+ *	@returns The text.
+ */
+export declare const getBlock: (title: string, body: string) => string;
+/**
+ *	Get a formatted message.
+ *	@param para - The req object represents the HTTP request.
+ *	@returns The output.
+ */
+export declare const getFormattedMessage: (para: messageType) => outputType;
+/**
+ *	Log a warning message.
+ *	@param para - The req object represents the HTTP request.
+ */
+export declare const warningMessage: (para: messageType) => void;

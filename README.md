@@ -59,8 +59,8 @@ Access the console at `http://localhost:<port>/admin` (e.g., `http://localhost:8
 # Configuration
 
 There are 2 options on how to use the web_plsql express middleware:
-- Use the predefined `startServer` api in `src/server.js` like in the `examples/config-native.js` example
-- Hand craft a new Express server using the `handlerWebPlSql` middleware in `src/handlerPlSql.js`
+- Use the predefined `startServer` api in `dist/backend/index.js` like in the `examples/config-native.js` example
+- Hand craft a new Express server using the `handlerWebPlSql` middleware in `dist/backend/index.js`
 
 ## Use the predefined `startServer`
 
@@ -180,7 +180,7 @@ The following mod_plsql DAD configuration translates to the configuration option
 }
 ```
 
-## Create a custom Express application based on the default server implemented in `src/server.js`.
+## Create a custom Express application based on the default server implemented in `src/backend/server/server.ts`.
 
 ...
 

@@ -1,11 +1,11 @@
-export function errorPage(req: Request, res: Response, options: configPlSqlHandlerType, error: unknown): void;
-export type Request = import("express").Request;
-export type Response = import("express").Response;
-export type BindParameterConfig = import("../../types.js").BindParameterConfig;
-export type environmentType = import("../../types.js").environmentType;
-export type configPlSqlHandlerType = import("../../types.js").configPlSqlHandlerType;
-export type outputType = {
-    html: string;
-    text: string;
-};
-export type messageType = import("../../util/trace.js").messageType;
+import type { Request, Response } from 'express';
+import type { configPlSqlHandlerType } from '../../types.ts';
+/**
+ * Show an error page
+ *
+ * @param req - The req object represents the HTTP request.
+ * @param res - The res object represents the HTTP response that an Express app sends when it gets an HTTP request.
+ * @param options - The configuration options.
+ * @param error - The error.
+ */
+export declare const errorPage: (req: Request, res: Response, options: configPlSqlHandlerType, error: unknown) => void;

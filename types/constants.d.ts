@@ -22,7 +22,7 @@
  *   - Pruning: Removes least-frequently-used entries when full
  *   - Higher values = better cache hit rates but more memory
  */
-export const DEFAULT_CACHE_MAX_SIZE: 10000;
+export declare const DEFAULT_CACHE_MAX_SIZE = 10000;
 /**
  * CACHE_PRUNE_PERCENT = 0.1
  *
@@ -37,7 +37,7 @@ export const DEFAULT_CACHE_MAX_SIZE: 10000;
  *   - Balances between removing too few entries (frequent pruning) vs too many (evicting useful data)
  *   - 10% is a common pattern for cache eviction
  */
-export const CACHE_PRUNE_PERCENT: 0.1;
+export declare const CACHE_PRUNE_PERCENT = 0.1;
 /**
  * MAX_PROCEDURE_PARAMETERS = 1000
  *
@@ -59,7 +59,7 @@ export const CACHE_PRUNE_PERCENT: 0.1;
  *   - No error handling exists for this edge case
  *   - Practical limit: most procedures have <50 arguments
  */
-export const MAX_PROCEDURE_PARAMETERS: 1000;
+export declare const MAX_PROCEDURE_PARAMETERS = 1000;
 /**
  * OWA_STREAM_CHUNK_SIZE = 1000
  *
@@ -81,7 +81,7 @@ export const MAX_PROCEDURE_PARAMETERS: 1000;
  *   - Each line is a PL/SQL varchar2; total data per chunk depends on htp.htbuf_len (63 chars)
  *   - Estimated max data per chunk: 1000 lines × 63 chars = 63KB
  */
-export const OWA_STREAM_CHUNK_SIZE: 1000;
+export declare const OWA_STREAM_CHUNK_SIZE = 1000;
 /**
  * OWA_STREAM_BUFFER_SIZE = 16384
  *
@@ -102,7 +102,7 @@ export const OWA_STREAM_CHUNK_SIZE: 1000;
  *
  * Duplicates: None
  */
-export const OWA_STREAM_BUFFER_SIZE: 16384;
+export declare const OWA_STREAM_BUFFER_SIZE = 16384;
 /**
  * OWA_RESOLVED_NAME_MAX_LEN = 400
  *
@@ -123,7 +123,7 @@ export const OWA_STREAM_BUFFER_SIZE: 16384;
  *   - Canonical name: schema.package.procedure (max ~128+1+128+1+128 = 386)
  *   - 400 is safe upper bound with margin
  */
-export const OWA_RESOLVED_NAME_MAX_LEN: 400;
+export declare const OWA_RESOLVED_NAME_MAX_LEN = 400;
 /**
  * STATS_INTERVAL_MS = 5000
  *
@@ -145,7 +145,7 @@ export const OWA_RESOLVED_NAME_MAX_LEN: 400;
  *   - Lower values = more granular but more history entries
  *   - Higher values = smoother averages but less detail
  */
-export const STATS_INTERVAL_MS: 5000;
+export declare const STATS_INTERVAL_MS = 5000;
 /**
  * MAX_HISTORY_BUCKETS = 1000
  *
@@ -166,7 +166,7 @@ export const STATS_INTERVAL_MS: 5000;
  *   - Affects admin console chart history display
  *   - Higher = more historical context but more memory
  */
-export const MAX_HISTORY_BUCKETS: 1000;
+export declare const MAX_HISTORY_BUCKETS = 1000;
 /**
  * MAX_PERCENTILE_SAMPLES = 1000
  *
@@ -188,7 +188,7 @@ export const MAX_HISTORY_BUCKETS: 1000;
  *   - With STATS_INTERVAL_MS = 5000, 1000 samples ≈ 5 req/sec sustained
  *   - Under heavy load, older samples are discarded (FIFO)
  */
-export const MAX_PERCENTILE_SAMPLES: 1000;
+export declare const MAX_PERCENTILE_SAMPLES = 1000;
 /**
  * SHUTDOWN_GRACE_DELAY_MS = 100
  *
@@ -206,7 +206,7 @@ export const MAX_PERCENTILE_SAMPLES: 1000;
  *   - 100ms is short; may be insufficient under heavy load
  *   - Consider making configurable for high-traffic deployments
  */
-export const SHUTDOWN_GRACE_DELAY_MS: 100;
+export declare const SHUTDOWN_GRACE_DELAY_MS = 100;
 /**
  * TRACE_LOG_ROTATION_SIZE = '10M'
  *
@@ -223,7 +223,7 @@ export const SHUTDOWN_GRACE_DELAY_MS: 100;
  *   - Combined with daily rotation: ~10MB/day minimum
  *   - gzip compression reduces rotated file size by ~70-90%
  */
-export const TRACE_LOG_ROTATION_SIZE: "10M";
+export declare const TRACE_LOG_ROTATION_SIZE = "10M";
 /**
  * TRACE_LOG_ROTATION_INTERVAL = '1d'
  *
@@ -235,7 +235,7 @@ export const TRACE_LOG_ROTATION_SIZE: "10M";
  *   - Guarantees at least one rotation per day
  *   - Midnight-based or 24h from first write
  */
-export const TRACE_LOG_ROTATION_INTERVAL: "1d";
+export declare const TRACE_LOG_ROTATION_INTERVAL = "1d";
 /**
  * TRACE_LOG_MAX_ROTATED_FILES = 10
  *
@@ -247,7 +247,7 @@ export const TRACE_LOG_ROTATION_INTERVAL: "1d";
  *   - When exceeded, oldest rotated file is deleted
  *   - Maximum: ~10 files × 10MB = ~100MB (compressed: ~10-30MB)
  */
-export const TRACE_LOG_MAX_ROTATED_FILES: 10;
+export declare const TRACE_LOG_MAX_ROTATED_FILES = 10;
 /**
  * JSON_LOG_ROTATION_SIZE = '10M'
  *
@@ -264,7 +264,7 @@ export const TRACE_LOG_MAX_ROTATED_FILES: 10;
  *   - Combined with daily rotation: ~10MB/day minimum
  *   - gzip compression reduces rotated file size by ~70-90%
  */
-export const JSON_LOG_ROTATION_SIZE: "10M";
+export declare const JSON_LOG_ROTATION_SIZE = "10M";
 /**
  * JSON_LOG_ROTATION_INTERVAL = '1d'
  *
@@ -276,7 +276,7 @@ export const JSON_LOG_ROTATION_SIZE: "10M";
  *   - Guarantees at least one rotation per day
  *   - Midnight-based or 24h from first write
  */
-export const JSON_LOG_ROTATION_INTERVAL: "1d";
+export declare const JSON_LOG_ROTATION_INTERVAL = "1d";
 /**
  * JSON_LOG_MAX_ROTATED_FILES = 10
  *
@@ -288,4 +288,4 @@ export const JSON_LOG_ROTATION_INTERVAL: "1d";
  *   - When exceeded, oldest rotated file is deleted
  *   - Maximum: ~10 files × 10MB = ~100MB (compressed: ~10-30MB)
  */
-export const JSON_LOG_MAX_ROTATED_FILES: 10;
+export declare const JSON_LOG_MAX_ROTATED_FILES = 10;

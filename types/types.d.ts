@@ -1,45 +1,32 @@
-/**
- * @typedef {import('oracledb').BindParameter} BindParameter
- * @typedef {import('oracledb').Connection} Connection
- * @typedef {import('express').CookieOptions} CookieOptions
- * @typedef {import('express').Request} Request
- */
-/**
- * @typedef {'basic' | 'debug'} errorStyleType
- */
-export const z$errorStyleType: z.ZodEnum<{
+import z from 'zod';
+import type { BindParameter, Connection, Result } from 'oracledb';
+import type { CookieOptions, Request } from 'express';
+import type { Readable } from 'node:stream';
+export type { BindParameter, Connection, Result, CookieOptions, Request };
+export declare const z$errorStyleType: z.ZodEnum<{
     basic: "basic";
     debug: "debug";
 }>;
-/**
- * @typedef {object} configStaticType
- * @property {string} route - The Static route path.
- * @property {string} directoryPath - The Static directory.
- */
-export const z$configStaticType: z.ZodObject<{
+export type errorStyleType = z.infer<typeof z$errorStyleType>;
+export declare const z$configStaticType: z.ZodObject<{
     route: z.ZodString;
     directoryPath: z.ZodString;
 }, z.core.$strict>;
-/**
- * @typedef {(connection: Connection, procedure: string) => void | Promise<void>} transactionCallbackType
- * @typedef {'commit' | 'rollback' | transactionCallbackType | undefined | null} transactionModeType
- */
-/**
- * @typedef {object} configPlSqlHandlerType
- * @property {string} defaultPage - The default page.
- * @property {string} [pathAlias] - The path alias.
- * @property {string} [pathAliasProcedure] - The path alias.
- * @property {string} documentTable - The document table.
- * @property {string[]} [exclusionList] - The exclusion list.
- * @property {string} [requestValidationFunction] - The request validation function.
- * @property {Record<string, string>} [cgi] - The additional CGI.
- * @property {transactionModeType} [transactionMode] - Specifies an optional transaction mode.
- * "commit" this automatically commits any open transaction after each request. This is the defaults because this is what mod_plsql and ohs are doing.
- * "rollback" this automatically rolles back any open transaction after each request.
- * "transactionCallbackType" this allows to defined a custom handler as a JavaScript function.
- * @property {errorStyleType} errorStyle - The error style.
- */
-export const z$configPlSqlHandlerType: z.ZodObject<{
+export type configStaticType = z.infer<typeof z$configStaticType>;
+export type transactionCallbackType = (connection: Connection, procedure: string) => void | Promise<void>;
+export type transactionModeType = 'commit' | 'rollback' | transactionCallbackType | undefined | null;
+export type configPlSqlHandlerType = {
+    defaultPage: string;
+    pathAlias?: string;
+    pathAliasProcedure?: string;
+    documentTable: string;
+    exclusionList?: string[];
+    requestValidationFunction?: string;
+    transactionMode?: transactionModeType;
+    errorStyle: errorStyleType;
+    cgi?: Record<string, string>;
+};
+export declare const z$configPlSqlHandlerType: z.ZodObject<{
     defaultPage: z.ZodString;
     pathAlias: z.ZodOptional<z.ZodString>;
     pathAliasProcedure: z.ZodOptional<z.ZodString>;
@@ -52,23 +39,15 @@ export const z$configPlSqlHandlerType: z.ZodObject<{
         debug: "debug";
     }>;
 }, z.core.$strict>;
-/**
- * @typedef {object} configPlSqlConfigType
- * @property {string} route - The PL/SQL route path.
- * @property {string} user - The Oracle username.
- * @property {string} password - The Oracle password.
- * @property {string} connectString - The Oracle connect string.
- */
-export const z$configPlSqlConfigType: z.ZodObject<{
+export declare const z$configPlSqlConfigType: z.ZodObject<{
     route: z.ZodString;
     user: z.ZodString;
     password: z.ZodString;
     connectString: z.ZodString;
 }, z.core.$strict>;
-/**
- * @typedef {configPlSqlHandlerType & configPlSqlConfigType} configPlSqlType
- */
-export const z$configPlSqlType: z.ZodObject<{
+export type configPlSqlConfigType = z.infer<typeof z$configPlSqlConfigType>;
+export type configPlSqlType = configPlSqlHandlerType & configPlSqlConfigType;
+export declare const z$configPlSqlType: z.ZodObject<{
     route: z.ZodString;
     user: z.ZodString;
     password: z.ZodString;
@@ -85,18 +64,17 @@ export const z$configPlSqlType: z.ZodObject<{
         debug: "debug";
     }>;
 }, z.core.$strict>;
-/**
- * @typedef {object} configType
- * @property {number} port - The server port number.
- * @property {configStaticType[]} routeStatic - The static routes.
- * @property {configPlSqlType[]} routePlSql - The PL/SQL routes.
- * @property {number} [uploadFileSizeLimit] - Maximum size of each uploaded file in bytes or no limit if omitted.
- * @property {string} loggerFilename - name of the request logger filename or '' if not required.
- * @property {string} [adminRoute] - Optional route for the admin console (defaults to /admin).
- * @property {string} [adminUser] - Optional username for admin console basic auth.
- * @property {string} [adminPassword] - Optional password for admin console basic auth.
- */
-export const z$configType: z.ZodObject<{
+export type configType = {
+    port: number;
+    routeStatic: configStaticType[];
+    routePlSql: configPlSqlType[];
+    uploadFileSizeLimit?: number;
+    loggerFilename: string;
+    adminRoute?: string;
+    adminUser?: string;
+    adminPassword?: string;
+};
+export declare const z$configType: z.ZodObject<{
     port: z.ZodNumber;
     routeStatic: z.ZodArray<z.ZodObject<{
         route: z.ZodString;
@@ -125,117 +103,6 @@ export const z$configType: z.ZodObject<{
     adminUser: z.ZodOptional<z.ZodString>;
     adminPassword: z.ZodOptional<z.ZodString>;
 }, z.core.$strict>;
-export type BindParameter = import("oracledb").BindParameter;
-export type Connection = import("oracledb").Connection;
-export type CookieOptions = import("express").CookieOptions;
-export type Request = import("express").Request;
-export type errorStyleType = "basic" | "debug";
-export type configStaticType = {
-    /**
-     * - The Static route path.
-     */
-    route: string;
-    /**
-     * - The Static directory.
-     */
-    directoryPath: string;
-};
-export type transactionCallbackType = (connection: Connection, procedure: string) => void | Promise<void>;
-export type transactionModeType = "commit" | "rollback" | transactionCallbackType | undefined | null;
-export type configPlSqlHandlerType = {
-    /**
-     * - The default page.
-     */
-    defaultPage: string;
-    /**
-     * - The path alias.
-     */
-    pathAlias?: string;
-    /**
-     * - The path alias.
-     */
-    pathAliasProcedure?: string;
-    /**
-     * - The document table.
-     */
-    documentTable: string;
-    /**
-     * - The exclusion list.
-     */
-    exclusionList?: string[];
-    /**
-     * - The request validation function.
-     */
-    requestValidationFunction?: string;
-    /**
-     * - The additional CGI.
-     */
-    cgi?: Record<string, string>;
-    /**
-     * - Specifies an optional transaction mode.
-     * "commit" this automatically commits any open transaction after each request. This is the defaults because this is what mod_plsql and ohs are doing.
-     * "rollback" this automatically rolles back any open transaction after each request.
-     * "transactionCallbackType" this allows to defined a custom handler as a JavaScript function.
-     */
-    transactionMode?: transactionModeType;
-    /**
-     * - The error style.
-     */
-    errorStyle: errorStyleType;
-};
-export type configPlSqlConfigType = {
-    /**
-     * - The PL/SQL route path.
-     */
-    route: string;
-    /**
-     * - The Oracle username.
-     */
-    user: string;
-    /**
-     * - The Oracle password.
-     */
-    password: string;
-    /**
-     * - The Oracle connect string.
-     */
-    connectString: string;
-};
-export type configPlSqlType = configPlSqlHandlerType & configPlSqlConfigType;
-export type configType = {
-    /**
-     * - The server port number.
-     */
-    port: number;
-    /**
-     * - The static routes.
-     */
-    routeStatic: configStaticType[];
-    /**
-     * - The PL/SQL routes.
-     */
-    routePlSql: configPlSqlType[];
-    /**
-     * - Maximum size of each uploaded file in bytes or no limit if omitted.
-     */
-    uploadFileSizeLimit?: number;
-    /**
-     * - name of the request logger filename or '' if not required.
-     */
-    loggerFilename: string;
-    /**
-     * - Optional route for the admin console (defaults to /admin).
-     */
-    adminRoute?: string;
-    /**
-     * - Optional username for admin console basic auth.
-     */
-    adminUser?: string;
-    /**
-     * - Optional password for admin console basic auth.
-     */
-    adminPassword?: string;
-};
 /**
  * Environment variables as string key-value pairs
  */
@@ -249,63 +116,28 @@ export type BindParameterConfig = Record<string, BindParameter>;
  */
 export type argObjType = Record<string, string | string[]>;
 /**
+ * Argument types mapping (name -> type)
+ */
+export type argsType = Record<string, string>;
+/**
  * File upload metadata
  */
 export type fileUploadType = {
-    /**
-     * - The field value.
-     */
     fieldname: string;
-    /**
-     * - The filename.
-     */
     originalname: string;
-    /**
-     * - The encoding.
-     */
     encoding: string;
-    /**
-     * - The mimetype.
-     */
     mimetype: string;
-    /**
-     * - The filename.
-     */
     filename: string;
-    /**
-     * - The path.
-     */
     path: string;
-    /**
-     * - The size.
-     */
     size: number;
 };
 export type cookieType = {
-    /**
-     * - The name of the cookie.
-     */
     name: string;
-    /**
-     * - The value of the cookie.
-     */
     value: string;
-    /**
-     * - The cookie options.
-     */
     options: CookieOptions;
 };
-/**
- * - The page.
- */
 export type pageType = {
-    /**
-     * - The body of the page.
-     */
-    body: string | import("node:stream").Readable;
-    /**
-     * - The head of the page.
-     */
+    body: string | Readable;
     head: {
         cookies: cookieType[];
         contentType?: string;
@@ -316,13 +148,9 @@ export type pageType = {
         otherHeaders: Record<string, string>;
         server?: string;
     };
-    /**
-     * - The file.
-     */
     file: {
         fileType: string | null;
         fileSize: number | null;
-        fileBlob: import("node:stream").Readable | Buffer | null;
+        fileBlob: Readable | Buffer | null;
     };
 };
-import z from 'zod';

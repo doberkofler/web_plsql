@@ -1,8 +1,7 @@
-export class RequestError extends Error {
+export declare class RequestError extends Error {
+    timestamp: Date;
     /**
-     * @param {string} message - The error message.
+     * @param message - The error message.
      */
     constructor(message: string);
-    /** @type {Date} */
-    timestamp: Date;
 }

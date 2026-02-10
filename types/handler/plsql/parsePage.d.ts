@@ -1,3 +1,8 @@
-export function parsePage(text: string): pageType;
-export type pageType = import("../../types.js").pageType;
-export type cookieType = import("../../types.js").cookieType;
+import type { pageType } from '../../types.ts';
+/**
+ *	Parse the header and split it up into the individual components
+ *
+ * @param text - The text returned from the PL/SQL procedure.
+ * @returns The parsed page.
+ */
+export declare const parsePage: (text: string) => pageType;

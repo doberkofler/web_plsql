@@ -1,7 +1,10 @@
 import {existsSync} from 'node:fs';
 import {pathToFileURL} from 'node:url';
-import {startServerConfig} from './src/server/server.js';
+import {startServerConfig} from './dist/index.mjs';
 
+/**
+ * Main function
+ */
 const main = async () => {
 	const configFilename = process.env.WEB_PLSQL_CONFIG ?? 'config.json';
 	if (configFilename.trim().length === 0 || !existsSync(configFilename)) {

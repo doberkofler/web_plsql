@@ -5,7 +5,7 @@ Adhere strictly to these rules to ensure code quality, consistency, and stabilit
 
 ## 1. Build, Lint, and Test Commands
 
-This project is a Node.js application using ES Modules (ESM) and JSDoc for TypeScript type checking.
+This project is a Node.js application using TypeScript and ES Modules (ESM).
 
 ### Core Commands
 
@@ -13,20 +13,21 @@ This project is a Node.js application using ES Modules (ESM) and JSDoc for TypeS
 *   **Run All Tests**: `npm run test` (or `npm test`)
     *   Uses **Vitest** runner (`vitest run`).
     *   **Coverage**: Run `npm run test -- --coverage` to generate a coverage report.
-*   **Run Single Test**: `npx vitest run tests/path/to/test.js`
-    *   Example: `npx vitest run tests/version.test.js`
-    *   *Note*: The project uses Vitest, not the native Node.js test runner.
+*   **Run Single Test**: `npx vitest run tests/backend/version.test.ts`
+    *   Example: `npx vitest run tests/backend/version.test.ts`
+    *   *Note*: The project uses Vitest.
 *   **Lint & Format**: `npm run lint`
     *   Runs `prettier` (formatting), `eslint` (linting), and `tsc` (type checking).
     *   **Crucial**: Always run this before submitting changes.
 *   **Type Check**: `tsc --noEmit` (included in `npm run lint`).
-    *   Checks JSDoc types in `.js` files.
-*   **Generate Types**: `npm run types`
-    *   Generates `.d.ts` files in `types/`.
+*   **Build Backend**: `npm run build:backend`
+    *   Uses **tsdown** to bundle the backend into `dist/`.
+*   **Build Admin**: `npm run build:frontend`
+    *   Uses **Vite** to bundle the admin console.
 *   **Clean**: `npm run clean`
     *   Removes build artifacts and logs.
 *   **Full CI Check**: `npm run ci`
-    *   Runs clean, version check, type generation, lint, and coverage.
+    *   Runs clean, version check, build, lint, and coverage.
 
 ### Docker Commands
 
@@ -37,13 +38,11 @@ This project is a Node.js application using ES Modules (ESM) and JSDoc for TypeS
 
 ### Language & Typing
 
-*   **Language**: JavaScript (ESM).
-*   **Type Checking**: Strict TypeScript checking is enabled via JSDoc (`checkJs: true` in `tsconfig.json`).
-    *   **Do not write .ts files** for source code. Use `.js` with JSDoc.
-    *   Do not add `// @ts-check` to individual files (enabled globally).
+*   **Language**: TypeScript.
+*   **Type Checking**: Strict TypeScript checking.
 *   **Module System**: ES Modules (`type: "module"`).
-    *   **Requirement**: All imports must include the `.js` file extension.
-    *   Example: `import { foo } from './bar.js'`.
+    *   **Requirement**: All imports must include the `.ts` or `.js` file extension as required by the environment.
+    *   Example: `import { foo } from './bar.ts'`.
 
 ### Package Management
 
@@ -102,8 +101,8 @@ Group imports in the following order:
 ### Caching Strategy
 To ensure performance and stability, the middleware uses a robust caching mechanism:
 *   **Scoped Caching**: Caches are instantiated per handler (pool), preventing multi-tenant collisions.
-*   **LFU Policy**: The `Cache` utility (`src/util/cache.js`) implements a Least-Frequently-Used eviction policy to prevent memory overflows.
-*   **Invalidation**: Logic in `procedure.js` automatically clears cache entries when database errors indicating schema changes (`ORA-04068`, `ORA-06550`, etc.) are detected.
+*   **LFU Policy**: The `Cache` utility (`src/backend/util/cache.ts`) implements a Least-Frequently-Used eviction policy to prevent memory overflows.
+*   **Invalidation**: Logic in `procedure.ts` automatically clears cache entries when database errors indicating schema changes (`ORA-04068`, `ORA-06550`, etc.) are detected.
 
 ### Statelessness and `dbms_session`
 The middleware enforces a **stateless model** as defined in the Oracle mod_plsql documentation (**Section 3.4 Transaction Mode**).
@@ -132,31 +131,31 @@ The admin console is a Single Page Application (SPA) built with modern web techn
 - **Icons**: Heroicons (SVG).
 
 **Key Components**:
-- `src/admin/js/api.ts`: Typed client for the internal Admin API.
-- `src/admin/js/ui/views.ts`: View-specific rendering and refresh logic.
-- `src/admin/client/charts.ts`: Chart.js lifecycle management and real-time updates.
-- `src/admin/js/app.ts`: Main application logic and state management.
+- `src/frontend/api.ts`: Typed client for the internal Admin API.
+- `src/frontend/ui/views.ts`: View-specific rendering and refresh logic.
+- `src/frontend/charts.ts`: Chart.js lifecycle management and real-time updates.
+- `src/frontend/main.ts`: Main application logic and state management.
 
 **Build Process**:
-- `npm run build:admin`: Compiles TS, processes Tailwind CSS, and bundles all assets into `src/admin/lib/chart.bundle.js`.
+- `npm run build:frontend`: Compiles TS, processes Tailwind CSS, and bundles all assets into `src/frontend/lib/chart.bundle.js`.
 - The bundle includes Chart.js and all required logic, making the frontend self-contained.
-- **Note**: Always run this command after modifying any file in `src/admin/js/` or `src/admin/client/`.
+- **Note**: Always run this command after modifying any file in `src/frontend/`.
 
 **View Refresh Logic**:
-- Each view (errors, access, cache, pools, config, system) has a refresh function in `src/admin/js/ui/views.ts`
+- Each view (errors, access, cache, pools, config, system) has a refresh function in `src/frontend/ui/views.ts`
 - Views are refreshed when:
   1. The view is first clicked/opened
   2. Auto-refresh timer fires (if the view is currently active)
-- The navigation handler in `src/admin/js/app.ts` calls the appropriate refresh function for each view
+- The navigation handler in `src/frontend/main.ts` calls the appropriate refresh function for each view
 
 **Commands**:
-- `npm run build:admin` - Build the admin client bundle
-- `npm run build` - Alias for build:admin
+- `npm run build:frontend` - Build the admin client bundle
+- `npm run build` - Alias for build:frontend
 - `npm run prepack` - Automatically builds before publishing
 - `npm run ci` - Runs full CI including build
 
 **Files Excluded from Linting/Type Checking**:
-- `src/admin/lib/` - Build output directory (contains bundled JS/CSS)
+- `src/frontend/lib/` - Build output directory (contains bundled JS/CSS)
 
 ### Planned Enhancements
 Refer to `ENHANCEMENTS.md` for the full roadmap. Key priorities include:
@@ -168,10 +167,10 @@ Refer to `ENHANCEMENTS.md` for the full roadmap. Key priorities include:
 *   **Framework**: Vitest.
 *   **Imports**: `import { describe, it, assert, expect } from 'vitest';`
 *   **Location**: `tests/` directory.
-*   **File Naming**: `*.test.js`.
+*   **File Naming**: `*.test.ts`.
 *   **Console Output**: `console.warn` and `console.error` are suppressed by default during tests.
     *   To see full logs, run: `DEBUG=true npm test` or `VERBOSE=true npm test`.
-    *   See `tests/setup.js` for implementation.
+    *   See `tests/setup.ts` for implementation.
 
 **Example Test Pattern**:
 ```javascript
@@ -190,24 +189,27 @@ describe('myModule', () => {
 
 ## 5. Development Workflow
 
-1.  **Understand**: Read existing code. Search using `grep` and `glob`. Check `src/types.js` for data structures.
+1.  **Understand**: Read existing code. Search using `grep` and `glob`. Check `src/backend/types.ts` for data structures.
 2.  **Check Enhancements**: Consult `ENHANCEMENTS.md` to avoid reimplementing known issues or contradicting future plans.
 3.  **Consult References**: Check official docs and `thoth-gateway` (see below) for architectural alignment.
 4.  **Plan**: Outline changes. Check for existing tests.
-5.  **Implement**: Write code in `.js` files using JSDoc.
-6.  **Verify**:
+5. **Implement**: Write code in `.ts` files.
+6. **Verify**:
     *   Run `npm run lint` to fix formatting and type errors immediately.
-    *   Run `npx vitest run tests/relevant.test.js` to verify logic.
-7.  **Finalize**: Run `npm run ci` to ensure the full suite passes.
+    *   Run `npx vitest run tests/relevant.test.ts` to verify logic.
+7. **Finalize**: Run `npm run ci` to ensure the full suite passes.
 
 ## 6. Project Structure
 
 *   `src/`: Source code.
-    *   `handler/`: Request handlers (`handlerPlSql.js`).
-    *   `handler/plsql/`: PL/SQL execution logic (`procedure.js`, `parsePage.js`).
-    *   `server/`: Server setup.
-    *   `util/`: Utilities.
-*   `tests/`: Unit and integration tests.
+    *   `backend/`:
+        *   `handler/`: Request handlers (`handlerPlSql.ts`).
+        *   `handler/plsql/`: PL/SQL execution logic (`procedure.ts`, `parsePage.ts`).
+        *   `server/`: Server setup.
+        *   `util/`: Utilities.
+    *   `frontend/`: Admin console source.
+    *   `common/`: Shared constants and logic.
+*   `tests/`: Unit, integration, and e2e tests.
 *   `types/`: Generated TypeScript definitions (do not edit).
 *   `examples/`: Example configurations and SQL.
 

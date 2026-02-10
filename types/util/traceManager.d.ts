@@ -1,35 +1,33 @@
-export const traceManager: TraceManager;
-export type TraceEntry = import("../admin/js/types.js").TraceEntry;
-/**
- * @typedef {import('../admin/js/types.js').TraceEntry} TraceEntry
- */
+import type { TraceEntry } from '../admin/js/types.ts';
 declare class TraceManager {
     enabled: boolean;
     filename: string;
     maxEntries: number;
+    constructor();
     /**
      * Toggle tracing
-     * @param {boolean} enabled - New state
+     * @param enabled - New state
      */
     setEnabled(enabled: boolean): void;
     /**
      * Is tracing enabled?
-     * @returns {boolean} - The state
+     * @returns The state
      */
     isEnabled(): boolean;
     /**
      * Add a trace entry
-     * @param {object} entry - The trace entry
+     * @param entry - The trace entry
      */
-    addTrace(entry: object): void;
+    addTrace(entry: TraceEntry): void;
     /**
      * Clear all traces
      */
     clear(): void;
     /**
      * Get the full path to the trace file
-     * @returns {string} - The path
+     * @returns The path
      */
     getFilePath(): string;
 }
+export declare const traceManager: TraceManager;
 export {};

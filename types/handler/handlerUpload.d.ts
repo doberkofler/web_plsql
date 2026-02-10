@@ -1,7 +1,7 @@
-export function handlerUpload(uploadFileSizeLimit?: number): RequestHandler;
-export type RequestHandler = import("express").RequestHandler;
-export type Response = import("express").Response;
-export type NextFunction = import("express").NextFunction;
-export type Pool = import("oracledb").Pool;
-export type environmentType = import("../types.js").environmentType;
-export type configType = import("../types.js").configType;
+import type { RequestHandler } from 'express';
+/**
+ * Create the upload middleware.
+ * @param uploadFileSizeLimit - Maximum size of each uploaded file in bytes or no limit if omitted.
+ * @returns Request handler.
+ */
+export declare const handlerUpload: (uploadFileSizeLimit?: number) => RequestHandler;

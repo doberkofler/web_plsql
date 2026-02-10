@@ -1,17 +1,17 @@
-/**
- * @typedef {object} LogEntry
- * @property {string} timestamp - ISO string
- * @property {'error'|'info'|'warning'} type - Log level
- * @property {string} message - Error message
- * @property {object} [req] - Request details
- * @property {object} [details] - Additional details (stack, sql, etc)
- */
-export class JsonLogger {
-    constructor(filename?: string);
+import * as rotatingFileStream from 'rotating-file-stream';
+export type LogEntry = {
+    timestamp?: string;
+    type: 'error' | 'info' | 'warning';
+    message: string;
+    req?: object;
+    details?: object;
+};
+export declare class JsonLogger {
     stream: rotatingFileStream.RotatingFileStream;
+    constructor(filename?: string);
     /**
      * Log an entry as NDJSON.
-     * @param {LogEntry} entry - The entry to log.
+     * @param entry - The entry to log.
      */
     log(entry: LogEntry): void;
     /**
@@ -19,27 +19,4 @@ export class JsonLogger {
      */
     close(): void;
 }
-export const jsonLogger: JsonLogger;
-export type LogEntry = {
-    /**
-     * - ISO string
-     */
-    timestamp: string;
-    /**
-     * - Log level
-     */
-    type: "error" | "info" | "warning";
-    /**
-     * - Error message
-     */
-    message: string;
-    /**
-     * - Request details
-     */
-    req?: object;
-    /**
-     * - Additional details (stack, sql, etc)
-     */
-    details?: object;
-};
-import * as rotatingFileStream from 'rotating-file-stream';
+export declare const jsonLogger: JsonLogger;

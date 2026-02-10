@@ -32,5 +32,5 @@
 		"selector-attribute-quotes": null,
 		"value-keyword-case": null
 	},
-	"ignoreFiles": ["**/lib/**", "**/node_modules/**", "**/client/**"]
+	"ignoreFiles": ["**/node_modules/**", "**/client/**"]
 }

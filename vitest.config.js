@@ -3,16 +3,17 @@ import {defineConfig} from 'vitest/config';
 export default defineConfig({
 	test: {
 		include: ['tests/**/*.test.{js,ts}'],
-		setupFiles: ['./tests/setup.js'],
+		exclude: ['tests/e2e/**'], // E2E tests run with Playwright, not Vitest
+		setupFiles: ['./tests/setup.ts'],
 		coverage: {
 			provider: 'v8',
 			reporter: ['text', 'json', 'html', 'lcov'],
-			exclude: ['tests/**', '**/node_modules/**', '**/dist/**', '**/*.config.{js,ts}', '**/coverage/**'],
+			exclude: ['tests/**', '**/node_modules/**', '**/dist/**', '**/*.config.{js,ts}', '**/coverage/**', 'package.json', 'package-lock.json'],
 			thresholds: {
-				lines: 98,
-				functions: 98,
-				statements: 98,
-				branches: 88,
+				lines: 99,
+				functions: 99,
+				statements: 99,
+				branches: 90,
 			},
 		},
 	},

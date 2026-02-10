@@ -1,2 +1,6 @@
-export function showConfig(config: configType): void;
-export type configType = import("../types.js").configType;
+import type { configType } from '../types.ts';
+/**
+ * Show configuration.
+ * @param config - The config.
+ */
+export declare const showConfig: (config: configType) => void;
