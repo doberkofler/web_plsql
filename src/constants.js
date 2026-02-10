@@ -104,9 +104,6 @@ export const OWA_STREAM_CHUNK_SIZE = 1000;
  *
  * Purpose: Node.js Readable stream highWaterMark in bytes (16KB).
  *
- * Defined In: src/handler/plsql/owaPageStream.js:20
- *   super({highWaterMark: 16384}); // 16KB buffer
- *
  * Used By: OWAPageStream class extends Readable stream
  *
  * Related Values:
@@ -155,9 +152,6 @@ export const OWA_RESOLVED_NAME_MAX_LEN = 400;
  *
  * Purpose: Duration of each statistical bucket in milliseconds.
  *
- * Defined In: src/util/statsManager.js:114
- *   intervalMs: 5000,
- *
  * Used By:
  *   - src/util/statsManager.js:165: setInterval(this.rotateBucket, this.config.intervalMs)
  *   - src/handler/handlerAdmin.js:123: Exposed as intervalMs in /api/status response
@@ -175,3 +169,26 @@ export const OWA_RESOLVED_NAME_MAX_LEN = 400;
  *   - Higher values = smoother averages but less detail
  */
 export const STATS_INTERVAL_MS = 5000;
+
+// =============================================================================
+// SHUTDOWN
+// =============================================================================
+
+/**
+ * SHUTDOWN_GRACE_DELAY_MS = 100
+ *
+ * Purpose: Delay between initiating server shutdown and forced termination.
+ *
+ * Used By: POST /api/server/stop handler only
+ *
+ * Related Values:
+ *   - forceShutdown() at src/util/shutdown.js
+ *   - SIGTERM/SIGINT handlers at shutdown.js
+ *
+ * Implications:
+ *   - Allows graceful completion of in-flight requests
+ *   - Gives Express middleware time to send final responses
+ *   - 100ms is short; may be insufficient under heavy load
+ *   - Consider making configurable for high-traffic deployments
+ */
+export const SHUTDOWN_GRACE_DELAY_MS = 100;

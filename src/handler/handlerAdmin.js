@@ -5,6 +5,7 @@ import readline from 'node:readline';
 import {AdminContext} from '../server/adminContext.js';
 import {traceManager} from '../util/traceManager.js';
 import {getVersion} from '../version.js';
+import {SHUTDOWN_GRACE_DELAY_MS} from '../constants.js';
 
 const version = getVersion();
 import {forceShutdown} from '../util/shutdown.js';
@@ -257,7 +258,7 @@ handlerAdmin.post('/api/server/:action', (req, res) => {
 		res.json({message: 'Server shutting down...'});
 		setTimeout(() => {
 			forceShutdown();
-		}, 100);
+		}, SHUTDOWN_GRACE_DELAY_MS);
 	} else if (action === 'pause') {
 		AdminContext.paused = true;
 		res.json({message: 'Server paused', status: 'paused'});
