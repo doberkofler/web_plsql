@@ -116,25 +116,17 @@ export const startServer = async (config: configType, ssl?: sslConfig): Promise<
 
 	// Admin console
 	const adminRoute = internalConfig.adminRoute ?? '/admin';
-	// Find project root (where package.json lives) by walking up from __dirname
+
+	// Admin frontend must be built by vite into dist/frontend
+	// Find project root by walking up from __dirname (works in both src/ and dist/)
 	let projectRoot = __dirname;
-	while (projectRoot !== '/' && !existsSync(path.join(projectRoot, 'package.json'))) {
+	while (!existsSync(path.join(projectRoot, 'package.json')) && projectRoot !== '/') {
 		projectRoot = path.dirname(projectRoot);
 	}
-
-	// Priority: dist/frontend (built), dist/backend/frontend (bundled), src/frontend (dev fallback)
-	const check1 = path.resolve(__dirname, 'frontend'); // relative to current file (bundled)
-	const check2 = path.join(projectRoot, 'dist', 'frontend'); // project root dist
-	const check3 = path.join(projectRoot, 'src', 'frontend'); // project root src
-	const check4 = path.resolve(__dirname, '../../frontend'); // legacy fallback
-
-	const adminDirectory = existsSync(check1)
-		? check1 // dist/backend/frontend (bundled production)
-		: existsSync(check2)
-			? check2 // dist/frontend (built assets)
-			: existsSync(check3)
-				? check3 // src/frontend (dev source - should warn!)
-				: check4; // legacy fallback
+	const adminDirectory = path.join(projectRoot, 'dist', 'frontend');
+	if (!existsSync(adminDirectory)) {
+		throw new Error(`Admin console not built. Run 'npm run build:frontend' first.\nExpected: ${adminDirectory}`);
+	}
 	debug(`Admin directory: ${adminDirectory}`);
 
 	// Ensure trailing slash for admin route to support relative paths
