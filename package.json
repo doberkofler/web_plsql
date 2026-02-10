@@ -45,7 +45,7 @@
 	"scripts": {
 		"build": "npm run build:admin",
 		"build:admin": "vite build",
-		"lint": "prettier --check --experimental-cli . && eslint . && tsc --noEmit && eslint src/admin --config src/admin/js/eslint.config.js",
+		"lint": "tsc --noEmit && eslint --no-cache . && prettier --check .",
 		"test": "vitest run",
 		"test:perf": "vitest run tests/performance.test.js",
 		"test:coverage": "vitest run --coverage",

@@ -8,7 +8,7 @@ import globals from 'globals';
 
 export default defineConfig([
 	{
-		ignores: ['**/.*', 'examples/**', 'types/**', 'node_modules/**', 'coverage/**', 'lib/**', 'src/admin/lib/**'],
+		ignores: ['**/.*', 'examples/**', 'types/**', 'node_modules/**', 'coverage/**', 'src/admin/lib/**'],
 	},
 
 	{
@@ -21,17 +21,10 @@ export default defineConfig([
 	eslint.configs.recommended,
 	...tseslint.configs.strictTypeChecked,
 	...tseslint.configs.stylisticTypeChecked,
-	{
-		files: ['src/admin/**/*.js'],
-		languageOptions: {
-			globals: {
-				...globals.browser,
-			},
-		},
-		rules: {
-			'@typescript-eslint/no-unsafe-call': 'off',
-		},
-	},
+
+	// ================================================================================
+	// BACKEND (JAVSCRIPT)
+	// ================================================================================
 	{
 		languageOptions: {
 			globals: {
@@ -45,8 +38,9 @@ export default defineConfig([
 		rules: {
 			'@typescript-eslint/consistent-type-definitions': 'off',
 			'@typescript-eslint/no-confusing-void-expression': 'off',
-			'@typescript-eslint/no-deprecated': 'warn',
+			'@typescript-eslint/no-deprecated': 'error',
 			'@typescript-eslint/no-unnecessary-condition': 'off',
+			'@typescript-eslint/restrict-template-expressions': 'off',
 			'@typescript-eslint/no-unused-vars': [
 				'warn',
 				{
@@ -54,9 +48,9 @@ export default defineConfig([
 					argsIgnorePattern: '^_',
 				},
 			],
-			'@typescript-eslint/restrict-template-expressions': 'off',
 		},
 	},
+
 	{
 		files: ['src/**/*.{js,ts}'],
 		plugins: {jsdoc},
@@ -69,19 +63,36 @@ export default defineConfig([
 			...jsdoc.configs['flat/recommended-error'].rules,
 			'jsdoc/lines-before-block': 'off',
 			'jsdoc/tag-lines': 'off',
-			'jsdoc/require-param-description': 'warn',
-			'jsdoc/require-property-description': 'warn',
-			'jsdoc/require-returns-description': 'warn',
+			'jsdoc/require-param-description': 'error',
+			'jsdoc/require-property-description': 'error',
+			'jsdoc/require-returns-description': 'error',
 		},
 	},
+
+	// ================================================================================
+	// FRONTEND (TYPESCRIPT)
+	// ================================================================================
 	{
-		files: ['src/admin/**/*.ts'],
+		files: ['src/admin/**/*.{js,ts}'],
+		languageOptions: {
+			globals: {
+				...globals.browser,
+			},
+			parserOptions: {
+				projectService: true,
+				tsconfigRootDir: import.meta.dirname,
+			},
+		},
 		rules: {
-			// Disable JSDoc type requirements in TypeScript files
+			'@typescript-eslint/no-deprecated': 'error',
 			'jsdoc/require-param-type': 'off',
 			'jsdoc/require-returns-type': 'off',
 		},
 	},
+
+	// ================================================================================
+	// UNIT TESTS
+	// ================================================================================
 	{
 		files: ['tests/**/*.{js,ts}'],
 		rules: {
@@ -95,6 +106,7 @@ export default defineConfig([
 			'@typescript-eslint/no-unused-vars': 'off',
 			'@typescript-eslint/dot-notation': 'off',
 			'@typescript-eslint/prefer-nullish-coalescing': 'off',
+			'@typescript-eslint/no-unnecessary-condition': 'off',
 		},
 	},
 ]);
