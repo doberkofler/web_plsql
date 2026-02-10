@@ -147,6 +147,49 @@ export const OWA_RESOLVED_NAME_MAX_LEN: 400;
  */
 export const STATS_INTERVAL_MS: 5000;
 /**
+ * MAX_HISTORY_BUCKETS = 1000
+ *
+ * Purpose: Maximum number of statistical buckets retained in StatsManager ring buffer.
+ *
+ * Used By:
+ *   - src/util/statsManager.js: Ring buffer limit check
+ *     if (this.history.length > this.config.maxHistoryPoints) { this.history.shift(); }
+ *   - Exposed via /api/stats/history endpoint
+ *
+ * Related Values:
+ *   - STATS_INTERVAL_MS (5000): 5s per bucket = ~83 minutes total history
+ *   - Each bucket contains: timestamp, requestCount, errors, durations, system metrics
+ *   - Bucket memory estimate: ~100 bytes × 1000 = ~100KB
+ *
+ * Implications:
+ *   - Ring buffer: oldest bucket is removed when new one exceeds limit
+ *   - Affects admin console chart history display
+ *   - Higher = more historical context but more memory
+ */
+export const MAX_HISTORY_BUCKETS: 1000;
+/**
+ * MAX_PERCENTILE_SAMPLES = 1000
+ *
+ * Purpose: Maximum number of request duration samples collected per bucket
+ *          for calculating P95/P99 percentiles.
+ *
+ * Used By:
+ *   - src/util/statsManager.js: Array length check
+ *     if (b.durations.length < this.config.percentilePrecision)
+ *   - src/util/statsManager.js: P95/P99 calculation
+ *
+ * Related Values:
+ *   - Percentile calculation: floor(length × 0.95) and floor(length × 0.99)
+ *   - FIFO replacement: When exceeded, new samples replace oldest
+ *
+ * Implications:
+ *   - With 1000 samples, P95/P99 are statistically meaningful
+ *   - Higher = more accurate percentiles but more memory per bucket
+ *   - With STATS_INTERVAL_MS = 5000, 1000 samples ≈ 5 req/sec sustained
+ *   - Under heavy load, older samples are discarded (FIFO)
+ */
+export const MAX_PERCENTILE_SAMPLES: 1000;
+/**
  * SHUTDOWN_GRACE_DELAY_MS = 100
  *
  * Purpose: Delay between initiating server shutdown and forced termination.

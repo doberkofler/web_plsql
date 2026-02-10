@@ -1,6 +1,6 @@
 import debugModule from 'debug';
 import os from 'node:os';
-import {STATS_INTERVAL_MS} from '../constants.js';
+import {STATS_INTERVAL_MS, MAX_HISTORY_BUCKETS, MAX_PERCENTILE_SAMPLES} from '../constants.js';
 
 const debug = debugModule('webplsql:statsManager');
 
@@ -113,10 +113,10 @@ export class StatsManager {
 		/** @type {StatsConfig} */
 		this.config = {
 			intervalMs: STATS_INTERVAL_MS,
-			maxHistoryPoints: 1000,
+			maxHistoryPoints: MAX_HISTORY_BUCKETS,
 			sampleSystem: true,
 			samplePools: true,
-			percentilePrecision: 1000,
+			percentilePrecision: MAX_PERCENTILE_SAMPLES,
 			...config,
 		};
 
