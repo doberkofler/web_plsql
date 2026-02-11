@@ -26,7 +26,7 @@ jobs:
                   cache: 'npm'
             - run: npm ci
             - name: Install Playwright Browsers
-              run: npx playwright install --with-deps
+              run: npx playwright install chromium --with-deps
             - name: Run CI (lint, types, build, test, coverage)
               run: npm run ci
             - name: Coveralls
