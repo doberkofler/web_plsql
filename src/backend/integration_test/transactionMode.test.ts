@@ -1,6 +1,6 @@
 import {assert, describe, it} from 'vitest';
 import request from 'supertest';
-import {serverStart, serverStop, sqlExecuteProxy, PATH, DEFAULT_PAGE} from '../../server.ts';
+import {serverStart, serverStop, sqlExecuteProxy, PATH, DEFAULT_PAGE} from './server.ts';
 
 describe('transaction mode', () => {
 	it('callback', async () => {
@@ -8,7 +8,6 @@ describe('transaction mode', () => {
 
 		const serverConfig = await serverStart({
 			log: false,
-
 			transactionMode: (_connection, procedure) => {
 				assert.strictEqual(procedure, 'sample.pageIndex');
 				callbackInvokations++;

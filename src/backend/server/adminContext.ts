@@ -3,7 +3,7 @@ import type {Pool} from '../util/db.ts';
 import type {configType, argsType} from '../types.ts';
 import type {Cache} from '../util/cache.ts';
 
-export type AdminContextType = {
+type AdminContextType = {
 	startTime: Date;
 	config: configType | null;
 	pools: Pool[];

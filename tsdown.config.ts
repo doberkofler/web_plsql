@@ -8,7 +8,7 @@ export default defineConfig({
 	clean: true,
 	dts: true,
 	sourcemap: true,
-	external: ['compression', 'cookie-parser', 'debug', 'express', 'http-parser-js', 'morgan', 'multer', 'oracledb', 'rotating-file-stream', 'zod'],
+	external: ['compression', 'cookie-parser', 'debug', 'express', 'morgan', 'multer', 'oracledb', 'rotating-file-stream', 'zod'],
 	define: {
 		__VERSION__: JSON.stringify(pkg.version),
 	},

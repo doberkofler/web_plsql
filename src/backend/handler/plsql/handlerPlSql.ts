@@ -14,7 +14,7 @@ import type {RequestHandler, Request, Response, NextFunction} from 'express';
 import type {Pool} from '../../util/db.ts';
 import type {configPlSqlHandlerType, argsType} from '../../types.ts';
 
-export type WebPlSqlRequestHandler = RequestHandler & {
+type WebPlSqlRequestHandler = RequestHandler & {
 	procedureNameCache: Cache<string>;
 	argumentCache: Cache<argsType>;
 };

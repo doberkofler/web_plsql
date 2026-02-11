@@ -305,6 +305,36 @@ describe('util/trace', () => {
 			expect(output.text).toContain('10');
 			expect(output.text).toContain('2000');
 		});
+
+		it('isBindParameter should return false for null and non-object', () => {
+			const para: any = {
+				type: 'trace',
+				message: 'test',
+				sql: 'SELECT 1 FROM DUAL',
+				bind: {
+					p1: null,
+					p2: 'simple string',
+					p3: {not_a_bind_param: true},
+				},
+			};
+			const output = getFormattedMessage(para);
+			expect(output.text).toContain('simple string');
+			expect(output.text).toContain('string');
+			expect(output.text).toContain('not_a_bind_param');
+		});
+
+		it('toTable should handle potentially missing width index', () => {
+			// This is a bit tricky as widths is calculated from head, but we can try to force the condition if possible
+			// The current implementation is: const getWidth = (i: number): number => widths[i] ?? 0;
+			// Since textHeader uses head.map((h, i) => ...getWidth(i)), it should always have an index
+			// But we can test with a row that has more elements than head if that triggers anything
+			const head = ['H1'];
+			const body = [['v1', 'v2']];
+			const {text} = toTable(head, body);
+			expect(text).toContain('H1');
+			expect(text).toContain('v1');
+			expect(text).not.toContain('v2'); // Row is truncated by head.map
+		});
 	});
 
 	describe('logToFile', () => {

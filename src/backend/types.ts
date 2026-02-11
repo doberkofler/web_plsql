@@ -1,22 +1,22 @@
 import z from 'zod';
 import {configStaticSchema} from '../common/configStaticSchema.ts';
 import type {BindParameter, Connection, Result, BindParameterConfig} from './util/db.ts';
-import type {CookieOptions, Request} from 'express';
+import type {CookieOptions} from 'express';
 import type {Readable} from 'node:stream';
-export type {BindParameter, Connection, Result, CookieOptions, Request, BindParameterConfig};
+export type {BindParameter, Connection, Result, CookieOptions, BindParameterConfig};
+import type {Cache} from './util/cache.ts';
 
 /**
  * Defines the style of error reporting
  * 'basic': standard error messages
  * 'debug': detailed error messages including database context
  */
-export const z$errorStyleType = z.enum(['basic', 'debug']);
-export type errorStyleType = z.infer<typeof z$errorStyleType>;
+const z$errorStyleType = z.enum(['basic', 'debug']);
 
 /**
  * Custom callback signature for manual transaction handling
  */
-export type transactionCallbackType = (connection: Connection, procedure: string) => void | Promise<void>;
+type transactionCallbackType = (connection: Connection, procedure: string) => void | Promise<void>;
 
 /**
  * Defines how transactions are handled after procedure execution
@@ -24,7 +24,7 @@ export type transactionCallbackType = (connection: Connection, procedure: string
  * 'rollback': automatically rollback
  * callback: custom function for manual handling
  */
-export const transactionModeSchema = z.union([
+const transactionModeSchema = z.union([
 	z.custom<transactionCallbackType>((val) => typeof val === 'function', {
 		message: 'Invalid transaction callback',
 	}),
@@ -63,7 +63,7 @@ export type configPlSqlHandlerType = z.infer<typeof z$configPlSqlHandlerType>;
 /**
  * Database connection configuration for a PL/SQL route
  */
-export const z$configPlSqlConfigType = z.strictObject({
+const z$configPlSqlConfigType = z.strictObject({
 	/** URL route prefix for this database connection */
 	route: z.string(),
 	/** Database username */
@@ -79,7 +79,7 @@ export type configPlSqlConfigType = z.infer<typeof z$configPlSqlConfigType>;
  * Complete PL/SQL route configuration combining handler and connection settings
  */
 export type configPlSqlType = configPlSqlHandlerType & configPlSqlConfigType;
-export const z$configPlSqlType = z.strictObject({
+const z$configPlSqlType = z.strictObject({
 	...z$configPlSqlHandlerType.shape,
 	...z$configPlSqlConfigType.shape,
 });
@@ -191,3 +191,6 @@ export type pageType = {
 		fileBlob: Readable | Buffer | null;
 	};
 };
+
+export type ProcedureNameCache = Cache<string>;
+export type ArgumentCache = Cache<argsType>;

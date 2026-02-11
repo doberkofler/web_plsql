@@ -104,7 +104,7 @@ export default defineConfig([
 	// UNIT TESTS
 	// ================================================================================
 	{
-		files: ['tests/**/*.{js,ts}', 'src/**/*.test.ts'],
+		files: ['**/*.test.ts'],
 		rules: {
 			'@typescript-eslint/no-unsafe-argument': 'off',
 			'@typescript-eslint/no-unsafe-call': 'off',
@@ -117,6 +117,7 @@ export default defineConfig([
 			'@typescript-eslint/dot-notation': 'off',
 			'@typescript-eslint/prefer-nullish-coalescing': 'off',
 			'@typescript-eslint/no-unnecessary-condition': 'off',
+			'@typescript-eslint/unbound-method': 'off',
 		},
 	},
 ]);

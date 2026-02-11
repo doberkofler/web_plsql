@@ -30,7 +30,6 @@ describe('OWAPageStream', () => {
 		expect(chunks.length).toBe(2);
 		expect(chunks[0]).toBe(firstChunkLines.join(''));
 		expect(chunks[1]).toBe('Final Line\n');
-		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockConnection.execute).toHaveBeenCalledTimes(2);
 	});
 
@@ -49,7 +48,6 @@ describe('OWAPageStream', () => {
 		}
 
 		expect(chunks).toEqual([]);
-		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockConnection.execute).toHaveBeenCalledTimes(1);
 	});
 

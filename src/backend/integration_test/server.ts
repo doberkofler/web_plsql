@@ -4,13 +4,13 @@ import express, {type Express} from 'express';
 import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
 import compression from 'compression';
-import {handlerWebPlSql} from '../src/backend/handler/plsql/handlerPlSql.ts';
-import {handlerUpload} from '../src/backend/handler/handlerUpload.ts';
+import {handlerWebPlSql} from '../handler/plsql/handlerPlSql.ts';
+import {handlerUpload} from '../handler/handlerUpload.ts';
 import type {Server} from 'node:http';
-import {createPool, type Pool} from '../src/backend/util/db.ts';
-import {setExecuteCallback, type executeCallbackType} from '../src/backend/util/db-mock.ts';
-import type {BindParameterConfig, configPlSqlHandlerType, transactionModeType} from '../src/backend/types.ts';
-import type {IDbBindParameter} from '../src/backend/util/db-types.ts';
+import {createPool, type Pool} from '../util/db.ts';
+import {setExecuteCallback, type executeCallbackType} from '../util/db-mock.ts';
+import type {BindParameterConfig, configPlSqlHandlerType, transactionModeType} from '../types.ts';
+import type {IDbBindParameter} from '../util/db-types.ts';
 
 // Enable mock oracle
 process.env.MOCK_ORACLE = 'true';
@@ -61,8 +61,8 @@ const parameterFixedEqual = (bind: BindParameterConfig, parameters: paraType): b
 
 		if (Array.isArray(para.value)) {
 			return para.value.every((v, i) => {
-				const paramBind = (bind as Record<string, any>)[`p_${para.name}`] as IDbBindParameter;
-				const val = paramBind.val as unknown[];
+				const paramBind = (bind as Record<string, IDbBindParameter>)[`p_${para.name}`];
+				const val = paramBind?.val as unknown[];
 
 				const equal = paramBind ? v === val[i] : false;
 				if (!equal) {
@@ -72,7 +72,7 @@ const parameterFixedEqual = (bind: BindParameterConfig, parameters: paraType): b
 			});
 		}
 
-		const paramBind = (bind as Record<string, any>)[`p_${para.name}`] as IDbBindParameter;
+		const paramBind = (bind as Record<string, IDbBindParameter>)[`p_${para.name}`];
 		return paramBind ? para.value === paramBind.val : false;
 	});
 };
@@ -102,7 +102,7 @@ const parameterFlexibleEqual = (bind: BindParameterConfig, parameters: paraType)
 	return parameters.every((para) => {
 		const paramBind = bind[para.name] as IDbBindParameter;
 
-		return Array.isArray(para.value) && paramBind && arrayEqual(para.value, paramBind.val as any[]);
+		return Array.isArray(para.value) && paramBind && arrayEqual(para.value, paramBind.val as unknown[]);
 	});
 };
 
@@ -177,7 +177,7 @@ export const serverStart = async (config: configOptionsType = {}): Promise<serve
 		errorStyle: 'basic',
 	};
 
-	app.use([`${PATH}/:name`, PATH], handlerWebPlSql(connectionPool as any, options));
+	app.use([`${PATH}/:name`, PATH], handlerWebPlSql(connectionPool, options));
 
 	// serving static files
 	const staticResourcesPath = path.join(process.cwd(), 'tests', 'static');
@@ -190,7 +190,7 @@ export const serverStart = async (config: configOptionsType = {}): Promise<serve
 				app,
 				server,
 
-				connectionPool: connectionPool as any,
+				connectionPool,
 			});
 		});
 	});
@@ -208,18 +208,25 @@ export const serverStop = async (config: serverConfigType): Promise<void> => {
 /**
  *	Set the proxy for the next sql procedure to be executed
  *	@param config - The configuration.
+ *	@param config.proc - The procedure name.
+ *	@param config.para - The parameters.
+ *	@param config.lines - The lines.
+ *	@param config.error - The error.
  */
 export const sqlExecuteProxy = (config: {proc: string; para?: paraType; lines?: string[]; error?: string}): void => {
 	/**
 	 *	Proxy for the next sql procedure to be executed
+	 *	@param sql - The SQL statement.
+	 *	@param bindParams - The bind parameters.
+	 *	@returns The result.
 	 */
-	const sqlExecuteProxyCallback: executeCallbackType = (sql, bindParams) => {
+	const sqlExecuteProxyCallback: executeCallbackType = (sql: string, bindParams?: BindParameterConfig) => {
 		// New Check for Name Resolution (procedureSanitize.js)
 		if (sql.toLowerCase().includes('dbms_utility.name_resolve') && bindParams && 'resolved' in bindParams) {
 			// Extract the input name to return it as resolved (mocking success)
 			// bindParams.name.val holds the input procedure name
 			const nameParam = bindParams.name as IDbBindParameter;
-			const nameVal = nameParam?.val;
+			const nameVal: unknown = nameParam?.val;
 			const procName = (typeof nameVal === 'string' ? nameVal : '').toLowerCase();
 			return {
 				outBinds: {

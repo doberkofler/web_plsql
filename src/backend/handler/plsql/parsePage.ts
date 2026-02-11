@@ -51,7 +51,6 @@ export const parsePage = (text: string): pageType => {
 					{
 						const cookie = parseCookie(header.value);
 						debug(`oracle header "set-cookie" with value "${header.value}" was received has been parsed to ${JSON.stringify(cookie)}`);
-						/* v8 ignore else - parseCookie validation ensures non-null */
 						if (cookie !== null) {
 							page.head.cookies.push(cookie);
 						} else {
@@ -68,7 +67,6 @@ export const parsePage = (text: string): pageType => {
 				case 'x-db-content-length':
 					{
 						const contentLength = parseInt(header.value, 10);
-						/* v8 ignore else - parseInt validation */
 						if (!Number.isNaN(contentLength)) {
 							page.head.contentLength = contentLength;
 							debug(`oracle header "x-db-content-length" with value "${page.head.contentLength}" was parsed`);
@@ -81,12 +79,10 @@ export const parsePage = (text: string): pageType => {
 				case 'status':
 					{
 						const statusCode = parseInt(header.value, 10);
-						/* v8 ignore else - parseInt validation */
 						if (!Number.isNaN(statusCode)) {
 							page.head.statusCode = statusCode;
 							debug(`oracle header "status" with value "${page.head.statusCode}" was parsed`);
 							const index = header.value.indexOf(' ');
-							/* v8 ignore else - status code may not have description */
 							if (index !== -1) {
 								page.head.statusDescription = header.value.substring(index + 1);
 							}
@@ -139,7 +135,6 @@ const getHeader = (line: string): {name: string; value: string} | null => {
  */
 const parseCookie = (text: string): cookieType | null => {
 	// validate
-	/* v8 ignore next - input validation */
 	if (typeof text !== 'string' || text.trim().length === 0) {
 		return null;
 	}
@@ -156,7 +151,6 @@ const parseCookie = (text: string): cookieType | null => {
 		return null;
 	}
 	const index = firstElement.indexOf('=');
-	/* v8 ignore next - cookie format validation */
 	if (index <= 0) {
 		// if the index is -1, there is no equal sign and if it's 0 the name is empty
 		return null;
@@ -178,7 +172,6 @@ const parseCookie = (text: string): cookieType | null => {
 		} else if (element.toLowerCase().startsWith('domain=')) {
 			cookie.options.domain = element.substring(7);
 		} else if (element.toLowerCase().startsWith('secure')) {
-			/* v8 ignore next - secure cookie attribute */
 			cookie.options.secure = true;
 		} else if (element.toLowerCase().startsWith('expires=')) {
 			const date = tryDecodeDate(element.substring(8));
@@ -199,10 +192,9 @@ const parseCookie = (text: string): cookieType | null => {
  * @returns The decoded date or null.
  */
 const tryDecodeDate = (value: string): Date | null => {
-	try {
-		return new Date(value);
-	} catch {
-		/* v8 ignore next - invalid date format */
+	const result = new Date(value);
+	if (Number.isNaN(result.getTime())) {
 		return null;
 	}
+	return result;
 };

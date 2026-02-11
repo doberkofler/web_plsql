@@ -28,6 +28,8 @@ const TESTS_NUMBER = [
 
 describe('util', () => {
 	it('humanDuration', () => {
+		assert.strictEqual(humanDuration(NaN), 'invalid');
+		assert.strictEqual(humanDuration(Infinity), 'invalid');
 		assert.strictEqual(humanDuration(0), '0ms');
 		assert.strictEqual(humanDuration(1), '1ms');
 		assert.strictEqual(humanDuration(1000), '1s');
@@ -42,6 +44,10 @@ describe('util', () => {
 			const computed = stringToNumber(test.value);
 			assert.strictEqual(computed, test.expectedNumber);
 		});
+		assert.strictEqual(stringToNumber({}), null);
+		assert.strictEqual(stringToNumber([]), null);
+		assert.strictEqual(stringToNumber(null), null);
+		assert.strictEqual(stringToNumber(undefined), null);
 	});
 
 	it('stringToInteger', () => {

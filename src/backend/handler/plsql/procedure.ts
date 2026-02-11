@@ -24,11 +24,7 @@ import {traceManager} from '../../util/traceManager.ts';
 import type {TraceEntry} from '../../../frontend/types.ts';
 import type {Request, Response} from 'express';
 import type {Connection, Result, Lob} from '../../util/db.ts';
-import type {argObjType, fileUploadType, environmentType, configPlSqlHandlerType, BindParameterConfig, argsType} from '../../types.ts';
-import type {Cache} from '../../util/cache.ts';
-
-export type ProcedureNameCache = Cache<string>;
-export type ArgumentCache = Cache<argsType>;
+import type {argObjType, fileUploadType, environmentType, configPlSqlHandlerType, BindParameterConfig, ProcedureNameCache, ArgumentCache} from '../../types.ts';
 
 /**
  *	Get the procedure and arguments to execute

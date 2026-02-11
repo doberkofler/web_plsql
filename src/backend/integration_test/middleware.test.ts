@@ -1,8 +1,8 @@
 import {assert, describe, it, beforeAll, afterAll, beforeEach} from 'vitest';
 import request from 'supertest';
 import {setExecuteCallback} from '../../../src/backend/util/db-mock.ts';
-import {serverStart, serverStop, sqlExecuteProxy, PATH, DEFAULT_PAGE} from '../../server.ts';
-import type {serverConfigType} from '../../server.ts';
+import {serverStart, serverStop, sqlExecuteProxy, PATH, DEFAULT_PAGE} from './server.ts';
+import type {serverConfigType} from './server.ts';
 
 describe('middleware', () => {
 	let serverConfig: serverConfigType;

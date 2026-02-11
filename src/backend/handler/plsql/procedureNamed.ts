@@ -14,8 +14,7 @@ import {toTable, warningMessage} from '../../util/trace.ts';
 import {MAX_PROCEDURE_PARAMETERS} from '../../../common/constants.ts';
 import type {Request} from 'express';
 import type {Connection, Result, BindParameter} from '../../util/db.ts';
-import type {argObjType, BindParameterConfig, argsType} from '../../types.ts';
-import type {ArgumentCache} from './request.ts';
+import type {argObjType, BindParameterConfig, argsType, ArgumentCache} from '../../types.ts';
 
 const SQL_GET_ARGUMENT = [
 	'DECLARE',

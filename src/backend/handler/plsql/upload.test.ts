@@ -94,7 +94,6 @@ describe('handler/plsql/upload', () => {
 			vi.mocked(fileUtils.removeFile).mockResolvedValue(undefined);
 
 			await expect(uploadFile(mockFile, 'DOCTAB', mockConn)).resolves.toBeUndefined();
-			// eslint-disable-next-line @typescript-eslint/unbound-method
 			expect(mockConn.execute).toHaveBeenCalled();
 		});
 	});

@@ -13,11 +13,7 @@ import {RequestError} from './requestError.ts';
 import {isStringOrArrayOfString} from '../../util/type.ts';
 import type {Request, Response} from 'express';
 import type {Pool} from '../../util/db.ts';
-import type {argObjType, configPlSqlHandlerType, argsType} from '../../types.ts';
-import type {Cache} from '../../util/cache.ts';
-
-export type ProcedureNameCache = Cache<string>;
-export type ArgumentCache = Cache<argsType>;
+import type {argObjType, configPlSqlHandlerType, ProcedureNameCache, ArgumentCache} from '../../types.ts';
 
 /**
  *	Normalize the body by making sure that only "simple" parameters and no nested objects are submitted

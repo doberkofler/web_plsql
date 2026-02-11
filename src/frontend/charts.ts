@@ -6,11 +6,6 @@ import type {StatusResponse} from './schemas.js';
 // Register Chart.js components
 Chart.register(LineController, LineElement, PointElement, LinearScale, CategoryScale, Filler, Tooltip, Legend, PieController, ArcElement);
 
-/**
- * Cache pie chart instances.
- */
-const cachePieInstances = new Map<HTMLCanvasElement, Chart>();
-
 type PoolInfo = StatusResponse['pools'][number];
 
 /**
@@ -546,54 +541,4 @@ export function updateCharts(state: State, timeLabel: string, reqPerSec: number,
 		});
 		poolChart.update();
 	}
-}
-
-/**
- * Render a cache statistics pie chart.
- *
- * @param canvas - The canvas element.
- */
-export function renderCachePie(canvas: HTMLCanvasElement): void {
-	const hits = parseInt(canvas.dataset.hits ?? '0');
-	const misses = parseInt(canvas.dataset.misses ?? '0');
-
-	const existingChart = cachePieInstances.get(canvas);
-	if (existingChart?.data.datasets[0]) {
-		existingChart.data.datasets[0].data = [hits, misses];
-		existingChart.update();
-		return;
-	}
-
-	const chart = new Chart(canvas, {
-		type: 'pie',
-		data: {
-			labels: ['Hits', 'Misses'],
-			datasets: [
-				{
-					data: [hits, misses],
-					backgroundColor: ['#10b981', '#ef4444'],
-					borderColor: 'transparent',
-				},
-			],
-		},
-		options: {
-			responsive: true,
-			maintainAspectRatio: true,
-			plugins: {
-				legend: {display: false},
-				tooltip: {
-					callbacks: {
-						label: (context) => {
-							const value = context.raw as number;
-							const total = hits + misses;
-							const pct = total > 0 ? ((value / total) * 100).toFixed(1) : '0';
-							return `${context.label ?? ''}: ${value} (${pct}%)`;
-						},
-					},
-				},
-			},
-		},
-	});
-
-	cachePieInstances.set(canvas, chart);
 }

@@ -6,9 +6,8 @@ import z from 'zod';
 import {RequestError} from './requestError.ts';
 import {errorToString} from '../../util/errorToString.ts';
 import {OWA_RESOLVED_NAME_MAX_LEN} from '../../../common/constants.ts';
-import type {Connection, Result, BindParameterConfig, configPlSqlHandlerType} from '../../types.ts';
+import type {Connection, Result, BindParameterConfig, configPlSqlHandlerType, ProcedureNameCache} from '../../types.ts';
 import {Cache} from '../../util/cache.ts';
-import type {ProcedureNameCache} from './request.ts';
 
 const DEFAULT_EXCLUSION_LIST = ['sys.', 'dbms_', 'utl_', 'owa_', 'htp.', 'htf.', 'wpg_docload.', 'ctxsys.', 'mdsys.'];
 

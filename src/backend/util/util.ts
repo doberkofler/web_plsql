@@ -40,8 +40,7 @@ export const stringToNumber = (value: unknown): number | null => {
 	}
 
 	// Convert value to a number
-	const num = Number(value);
-	return Number.isNaN(num) ? null : num;
+	return Number(value);
 };
 
 /**

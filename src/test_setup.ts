@@ -14,10 +14,9 @@ const originalLog = console.log;
 const shouldLog = () => process.env.DEBUG ?? process.env.VERBOSE;
 
 /**
- * @param originalImpl
- * @returns Mock
+ * @param originalImpl - The original console method
+ * @returns Mock function
  */
-
 const mockConsole = (originalImpl: (...args: unknown[]) => void) => {
 	return (...args: unknown[]) => {
 		if (shouldLog()) {

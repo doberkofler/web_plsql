@@ -4,7 +4,7 @@ import {STATS_INTERVAL_MS, MAX_HISTORY_BUCKETS, MAX_PERCENTILE_SAMPLES} from '..
 
 const debug = debugModule('webplsql:statsManager');
 
-export type StatsConfig = {
+type StatsConfig = {
 	intervalMs: number;
 	maxHistoryPoints: number;
 	sampleSystem: boolean;
@@ -12,7 +12,7 @@ export type StatsConfig = {
 	percentilePrecision: number;
 };
 
-export type CacheStats = {
+type CacheStats = {
 	size: number;
 	hits: number;
 	misses: number;
@@ -30,7 +30,7 @@ export type PoolSnapshot = {
 	cache?: PoolCacheSnapshot;
 };
 
-export type Bucket = {
+type Bucket = {
 	timestamp: number;
 	requests: number;
 	errors: number;
@@ -49,7 +49,7 @@ export type Bucket = {
 	pools: PoolSnapshot[];
 };
 
-export type CurrentBucket = {
+type CurrentBucket = {
 	count: number;
 	errors: number;
 	durationSum: number;
@@ -58,14 +58,14 @@ export type CurrentBucket = {
 	durations: number[];
 };
 
-export type MemoryLifetime = {
+type MemoryLifetime = {
 	heapUsedMax: number;
 	heapTotalMax: number;
 	rssMax: number;
 	externalMax: number;
 };
 
-export type LifetimeStats = {
+type LifetimeStats = {
 	totalRequests: number;
 	totalErrors: number;
 	minDuration: number;
@@ -80,7 +80,7 @@ export type LifetimeStats = {
 	};
 };
 
-export type StatsSummary = {
+type StatsSummary = {
 	startTime: Date;
 	totalRequests: number;
 	totalErrors: number;

@@ -20,7 +20,7 @@
 
 import {describe, it, beforeAll, afterAll, beforeEach, expect} from 'vitest';
 import {performance} from 'node:perf_hooks';
-import {setExecuteCallback} from '../src/backend/util/db-mock.ts';
+import {setExecuteCallback} from '../util/db-mock.ts';
 import {serverStart, serverStop, sqlExecuteProxy, PATH, DEFAULT_PAGE, PORT} from './server.ts';
 import type {serverConfigType} from './server.ts';
 

@@ -1,60 +1,7 @@
-/**
- * Cache statistics for a cache type.
- */
-export type CacheStats = {
-	hits: number;
-	misses: number;
-};
+import type {StatusResponse, ErrorLogResponse} from './schemas.js';
 
-/**
- * Cache information for a specific cache type.
- */
-export type CacheInfo = {
-	size: number;
-	stats: CacheStats;
-};
-
-/**
- * Cache data for a connection pool.
- */
-export type CacheData = {
-	poolName: string;
-	procedureNameCache: CacheInfo;
-	argumentCache: CacheInfo;
-};
-
-/**
- * Pool statistics.
- */
-export type PoolStats = {
-	totalRequests: number;
-	totalTimeouts: number;
-	totalRequestsEnqueued: number | undefined;
-	totalRequestsDequeued: number | undefined;
-	totalRequestsFailed: number | undefined;
-};
-
-/**
- * Pool information.
- */
-export type PoolInfo = {
-	name: string;
-	connectionsInUse: number;
-	connectionsOpen: number;
-	stats: PoolStats | null;
-};
-
-/**
- * Server metrics.
- */
-export type Metrics = {
-	requestCount: number;
-	errorCount: number;
-	avgResponseTime: number;
-	minResponseTime: number;
-	maxResponseTime: number;
-	maxRequestsPerSecond: number;
-};
+// Re-export types from schemas
+export type {StatusResponse, ErrorLogResponse};
 
 /**
  * Server configuration - route.
@@ -92,20 +39,6 @@ export type ServerConfig = {
 };
 
 /**
- * Server status response.
- */
-export type Status = {
-	version: string;
-	status: 'running' | 'paused' | 'stopped';
-	uptime: number;
-	startTime: string;
-	intervalMs?: number;
-	metrics: Metrics;
-	pools: PoolInfo[];
-	config: Partial<ServerConfig>;
-};
-
-/**
  * Resident Set Size - total memory used by the process
  */
 export type HistoryBucket = {
@@ -134,7 +67,7 @@ export type HistoryBucket = {
 /**
  * Historical data for charts.
  */
-export type HistoryData = {
+type HistoryData = {
 	labels: string[];
 	requests: number[];
 	avgResponseTimes: number[];
@@ -146,7 +79,7 @@ export type HistoryData = {
 /**
  * Chart grid options.
  */
-export type ChartGridOptions = {
+type ChartGridOptions = {
 	color?: string;
 	display?: boolean;
 	drawBorder?: boolean;
@@ -156,7 +89,7 @@ export type ChartGridOptions = {
 /**
  * Chart ticks options.
  */
-export type ChartTicksOptions = {
+type ChartTicksOptions = {
 	color?: string;
 	display?: boolean;
 	stepSize?: number;
@@ -169,7 +102,7 @@ export type ChartTicksOptions = {
 /**
  * Chart scale options.
  */
-export type ChartScaleOptions = {
+type ChartScaleOptions = {
 	display?: boolean;
 	grid?: ChartGridOptions;
 	ticks?: ChartTicksOptions;
@@ -191,7 +124,7 @@ export type ChartScaleOptions = {
 /**
  * Chart options.
  */
-export type ChartOptions = {
+type ChartOptions = {
 	responsive?: boolean;
 	maintainAspectRatio?: boolean;
 	scales?: {
@@ -232,7 +165,7 @@ export type ChartOptions = {
 /**
  * Chart dataset.
  */
-export type ChartDataset = {
+type ChartDataset = {
 	label: string;
 	data: number[];
 	borderColor: string;
@@ -249,7 +182,7 @@ export type ChartDataset = {
 /**
  * Chart data.
  */
-export type ChartData = {
+type ChartData = {
 	labels: string[];
 	datasets: ChartDataset[];
 };
@@ -289,11 +222,6 @@ export type TraceEntry = {
 	cgi?: Record<string, string> | undefined;
 	error?: string | undefined;
 };
-
-import type {StatusResponse, ErrorLogResponse, AccessLogResponse} from './schemas.js';
-
-// Re-export types from schemas
-export type {StatusResponse, ErrorLogResponse, AccessLogResponse};
 
 /**
  * System metrics for tracking min/max.

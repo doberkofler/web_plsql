@@ -4,7 +4,7 @@ import {configStaticSchema} from '../common/configStaticSchema.ts';
 /**
  * Cache statistics schema.
  */
-export const cacheStatsSchema = z.object({
+const cacheStatsSchema = z.object({
 	size: z.number(),
 	hits: z.number(),
 	misses: z.number(),
@@ -13,7 +13,7 @@ export const cacheStatsSchema = z.object({
 /**
  * Pool cache snapshot schema.
  */
-export const poolCacheSnapshotSchema = z.object({
+const poolCacheSnapshotSchema = z.object({
 	procedureName: cacheStatsSchema,
 	argument: cacheStatsSchema,
 });
@@ -21,7 +21,7 @@ export const poolCacheSnapshotSchema = z.object({
 /**
  * Pool statistics schema.
  */
-export const poolStatsSchema = z.object({
+const poolStatsSchema = z.object({
 	totalRequests: z.number(),
 	totalTimeouts: z.number(),
 	totalRequestsEnqueued: z.number().optional(),
@@ -32,7 +32,7 @@ export const poolStatsSchema = z.object({
 /**
  * Pool information schema.
  */
-export const poolInfoSchema = z.object({
+const poolInfoSchema = z.object({
 	name: z.string(),
 	connectionsInUse: z.number(),
 	connectionsOpen: z.number(),
@@ -43,7 +43,7 @@ export const poolInfoSchema = z.object({
 /**
  * Server metrics schema.
  */
-export const metricsSchema = z.object({
+const metricsSchema = z.object({
 	requestCount: z.number(),
 	errorCount: z.number(),
 	avgResponseTime: z.number(),
@@ -84,7 +84,7 @@ export const bucketSchema = z.object({
 /**
  * Route configuration schema.
  */
-export const routeConfigSchema = z.object({
+const routeConfigSchema = z.object({
 	route: z.string(),
 	// PL/SQL specific
 	user: z.string().optional(),
@@ -105,7 +105,7 @@ export const routeConfigSchema = z.object({
 /**
  * Server configuration schema.
  */
-export const serverConfigSchema = z.object({
+const serverConfigSchema = z.object({
 	port: z.number(),
 	adminRoute: z.string().optional(),
 	adminUser: z.string().optional(),
@@ -119,7 +119,7 @@ export const serverConfigSchema = z.object({
 /**
  * System information schema.
  */
-export const systemInfoSchema = z.object({
+const systemInfoSchema = z.object({
 	nodeVersion: z.string(),
 	platform: z.string(),
 	arch: z.string(),

@@ -23,7 +23,7 @@ const isBindParameter = (row: unknown): row is BindParameter => {
 	return 'dir' in row || 'type' in row || 'val' in row || 'maxSize' in row || 'maxArraySize' in row;
 };
 
-export type outputType = {
+type outputType = {
 	html: string;
 	text: string;
 };
