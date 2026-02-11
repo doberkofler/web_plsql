@@ -1,6 +1,5 @@
 # Ignore artifacts:
 *.md
 node_modules
+docker
 types
-lib
-test-results
