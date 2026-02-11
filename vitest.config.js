@@ -2,7 +2,7 @@ import {defineConfig} from 'vitest/config';
 
 export default defineConfig({
 	test: {
-		include: ['tests/**/*.test.{js,ts}'],
+		include: ['tests/**/*.test.{js,ts}', 'src/**/*.test.{js,ts}'],
 		exclude: ['tests/e2e/**'], // E2E tests run with Playwright, not Vitest
 		setupFiles: ['./tests/setup.ts'],
 		coverage: {

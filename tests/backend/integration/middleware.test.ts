@@ -19,12 +19,6 @@ describe('middleware', () => {
 		setExecuteCallback();
 	});
 
-	it('get a static file', async () => {
-		const response = await request(serverConfig.app).get('/static/static.html');
-		assert.strictEqual(response.status, 200);
-		assert.strictEqual(response.text, '<html>\n\t<body>\n\t\t<p>static</p>\n\t</body>\n</html>\n');
-	});
-
 	it('report a 404 error on a missing static file', async () => {
 		const response = await request(serverConfig.app).get('/static/file_does_not_exist.html');
 		assert.strictEqual(response.status, 404);

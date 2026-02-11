@@ -104,7 +104,7 @@ export default defineConfig([
 	// UNIT TESTS
 	// ================================================================================
 	{
-		files: ['tests/**/*.{js,ts}'],
+		files: ['tests/**/*.{js,ts}', 'src/**/*.test.ts'],
 		rules: {
 			'@typescript-eslint/no-unsafe-argument': 'off',
 			'@typescript-eslint/no-unsafe-call': 'off',

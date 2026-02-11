@@ -164,28 +164,85 @@ Refer to `ENHANCEMENTS.md` for the full roadmap. Key priorities include:
 
 ## 4. Testing Guidelines
 
+### Test Organization
+
 *   **Framework**: Vitest.
-*   **Imports**: `import { describe, it, assert, expect } from 'vitest';`
-*   **Location**: `tests/` directory.
-*   **File Naming**: `*.test.ts`.
-*   **Console Output**: `console.warn` and `console.error` are suppressed by default during tests.
+*   **Unit Tests**: Colocated with source files in `src/` directory.
+    *   Each module should have one test file named `<module>.test.ts` alongside `<module>.ts`.
+    *   Example: `src/backend/util/cache.test.ts` tests `src/backend/util/cache.ts`.
+*   **Integration Tests**: Located in `tests/backend/integration/`.
+    *   Tests that require full middleware stack or database mocking.
+    *   File naming: `*.test.ts`.
+*   **E2E Tests**: Located in `tests/e2e/`.
+    *   Browser-based tests using Playwright.
+    *   File naming: `*.e2e.test.ts`.
+*   **Performance Tests**: Located in `tests/`.
+    *   File naming: `performance.test.ts`.
+
+### Test File Naming
+
+*   **Unit Tests**: `<source-name>.test.ts` (e.g., `cache.test.ts` tests `cache.ts`).
+*   **Integration Tests**: `*.test.ts` in `tests/backend/integration/`.
+*   **E2E Tests**: `*.e2e.test.ts` in `tests/e2e/`.
+
+### Test Configuration
+
+*   **Vitest Config**: `vitest.config.js` includes both patterns:
+    ```javascript
+    include: ['tests/**/*.test.{js,ts}', 'src/**/*.test.{js,ts}']
+    ```
+*   **ESLint Config**: `eslint.config.js` applies relaxed test rules to both:
+    ```javascript
+    files: ['tests/**/*.{js,ts}', 'src/**/*.test.ts']
+    ```
+
+### Coverage Requirements
+
+*   Unit tests should aim for 100% coverage for modules they test.
+*   Integration and E2E tests contribute to overall coverage but have separate thresholds.
+
+### Console Output
+
+*   `console.warn` and `console.error` are suppressed by default during tests.
     *   To see full logs, run: `DEBUG=true npm test` or `VERBOSE=true npm test`.
     *   See `tests/setup.ts` for implementation.
 
-**Example Test Pattern**:
-```javascript
-import { describe, it, assert } from 'vitest';
-import { myFunction } from '../src/myModule.js';
+### Example Test Patterns
+
+**Unit Test Pattern**:
+```typescript
+import { describe, it, expect } from 'vitest';
+import { myFunction } from './myModule.js';
 
 describe('myModule', () => {
     it('should return expected value', () => {
         const result = myFunction();
-        assert.strictEqual(result, 'expected');
+        expect(result).toBe('expected');
     });
 });
 ```
 
-*   **Linting in Tests**: TypeScript strict rules are slightly relaxed in `tests/` (e.g., `no-explicit-any` is off).
+**Integration Test Pattern** (in `tests/backend/integration/`):
+```typescript
+import { describe, it, beforeAll, afterAll } from 'vitest';
+import request from 'supertest';
+import { serverStart, serverStop } from '../../src/backend/server/server.js';
+
+describe('middleware', () => {
+    let server;
+    beforeAll(async () => { server = await serverStart({...}); });
+    afterAll(async () => { await serverStop(server); });
+    it('should handle request', async () => {
+        const res = await request(server.app).get('/');
+        expect(res.status).toBe(200);
+    });
+});
+```
+
+### Linting in Tests
+
+*   TypeScript strict rules are relaxed for test files (see `eslint.config.js`).
+*   Allowed in tests: `no-explicit-any`, `no-unsafe-argument`, `dot-notation`, etc.
 
 ## 5. Development Workflow
 

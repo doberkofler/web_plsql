@@ -1,6 +1,6 @@
 import {typedApi} from '../api.js';
 import {formatDuration, formatDateTime, formatMs} from '../util/format.js';
-import {poolCard} from '../templates/index.js';
+import {poolCard} from '../templates/poolCard.js';
 import {renderConfig} from '../templates/config.js';
 import type {State, ServerConfig, SystemMetrics, ErrorLogResponse, TraceEntry} from '../types.js';
 import {DataTable, type TableColumn} from './table.js';
