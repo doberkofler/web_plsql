@@ -62,7 +62,7 @@ There are 2 options on how to use the web_plsql express middleware:
 - Use the predefined `startServer` api in `dist/backend/index.js` like in the `examples/config-native.js` example
 - Hand craft a new Express server using the `handlerWebPlSql` middleware in `dist/backend/index.js`
 
-## Use the predefined `startServer`
+## Use the predefined `startServer` function
 
 The `startServer` api uses the following configuration object:
 

@@ -9,11 +9,11 @@ services:
             - '8888:8888'
         volumes:
             - type: bind
-              source: ./examples/static
+              source: ../examples/static
               target: /opt/server/static
               read_only: true
             - type: bind
-              source: ./examples/config-docker.json
+              source: ../examples/config-docker.json
               target: /opt/server/config.json
               read_only: true
         extra_hosts:

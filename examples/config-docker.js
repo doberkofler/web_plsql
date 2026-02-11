@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 
-// @ts-expect-error NOTE: the following import would show an error because the path does not exist
-import {startHttpServer} from './src/index.js';
+import {startHttpServer} from 'web_plsql';
 
 void startHttpServer({
 	port: 8888,

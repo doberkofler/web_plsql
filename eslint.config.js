@@ -8,7 +8,7 @@ import globals from 'globals';
 
 export default defineConfig([
 	{
-		ignores: ['**/.*', 'examples/**', 'types/**', 'node_modules/**', 'coverage/**', 'dist/**'],
+		ignores: ['**/.*', 'examples/**', 'docker', 'types/**', 'node_modules/**', 'coverage/**', 'dist/**'],
 	},
 
 	{

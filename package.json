@@ -54,10 +54,8 @@
 		"stylelint": "stylelint \"src/frontend/**/*.css\"",
 		"clean": "shx rm -f *.tgz && shx rm -f *.log",
 		"ci": "npm run clean && npm run lint && npm run build && npm run stylelint && npm run test:coverage && npm run test:e2e",
-		"create-package": "npm run ci && shx rm -f *.tgz && npm pack",
-		"image-build": "docker build --no-cache --progress=plain --tag=web_plsql .",
-		"image-save": "docker save web_plsql | gzip > web_plsql.tar.gz",
-		"start": "node docker-main.js"
+		"image-build": "cd docker && docker build --no-cache --progress=plain --tag=web_plsql .",
+		"image-save": "cd docker && docker save web_plsql > web_plsql.tar"
 	},
 	"peerDependencies": {
 		"oracledb": "6.10.0"

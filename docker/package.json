@@ -1,0 +1,15 @@
+{
+  "name": "webplsql_server",
+  "version": "1.0.0",
+  "description": "",
+  "license": "ISC",
+  "author": "",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "web_plsql": "^1.2.0"
+  }
+}
