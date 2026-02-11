@@ -1,7 +1,7 @@
 import {describe, it, expect, vi} from 'vitest';
 import {getFiles, uploadFile} from '../../../../src/backend/handler/plsql/upload.ts';
 import * as fileUtils from '../../../../src/backend/util/file.ts';
-import type {Connection} from 'oracledb';
+import type {Connection} from '../../../../src/backend/util/db.ts';
 
 vi.mock('../../../../src/backend/util/file.ts');
 

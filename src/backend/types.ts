@@ -1,9 +1,9 @@
 import z from 'zod';
 import {configStaticSchema} from '../common/configStaticSchema.ts';
-import type {BindParameter, Connection, Result} from 'oracledb';
+import type {BindParameter, Connection, Result, BindParameterConfig} from './util/db.ts';
 import type {CookieOptions, Request} from 'express';
 import type {Readable} from 'node:stream';
-export type {BindParameter, Connection, Result, CookieOptions, Request};
+export type {BindParameter, Connection, Result, CookieOptions, Request, BindParameterConfig};
 
 /**
  * Defines the style of error reporting
@@ -104,6 +104,8 @@ export const z$configType = z.strictObject({
 	adminUser: z.string().optional(),
 	/** Password for admin console authentication */
 	adminPassword: z.string().optional(),
+	/** Developer mode (skips frontend build check, enables CORS) */
+	devMode: z.boolean().optional(),
 });
 export type configType = z.infer<typeof z$configType>;
 
@@ -111,11 +113,6 @@ export type configType = z.infer<typeof z$configType>;
  * Environment variables as string key-value pairs
  */
 export type environmentType = Record<string, string>;
-
-/**
- * Oracle database bind parameter configuration
- */
-export type BindParameterConfig = Record<string, BindParameter>;
 
 /**
  * HTTP arguments mapping with support for multi-value parameters

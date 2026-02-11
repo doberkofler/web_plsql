@@ -275,7 +275,7 @@ export type TraceEntry = {
 	status: string;
 	duration: number;
 	procedure?: string | undefined;
-	parameters?: Record<string, unknown> | undefined;
+	parameters?: Record<string, unknown> | unknown[] | undefined;
 	uploads?: {originalname: string; mimetype: string; size: number}[] | undefined;
 	downloads?:
 		| {

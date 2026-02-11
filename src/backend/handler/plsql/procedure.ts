@@ -5,7 +5,7 @@
 import debugModule from 'debug';
 const debug = debugModule('webplsql:procedure');
 
-import oracledb from 'oracledb';
+import {DB} from '../../util/db.ts';
 import stream from 'node:stream';
 import z from 'zod';
 
@@ -23,7 +23,7 @@ import {OWAPageStream} from './owaPageStream.ts';
 import {traceManager} from '../../util/traceManager.ts';
 import type {TraceEntry} from '../../../frontend/types.ts';
 import type {Request, Response} from 'express';
-import type {Connection, Result} from 'oracledb';
+import type {Connection, Result, Lob} from '../../util/db.ts';
 import type {argObjType, fileUploadType, environmentType, configPlSqlHandlerType, BindParameterConfig, argsType} from '../../types.ts';
 import type {Cache} from '../../util/cache.ts';
 
@@ -58,7 +58,7 @@ const getProcedure = async (
 		return {
 			sql: `${options.pathAliasProcedure}(p_path=>:p_path)`,
 			bind: {
-				p_path: {dir: oracledb.BIND_IN, type: oracledb.STRING, val: procName},
+				p_path: {dir: DB.BIND_IN, type: DB.STRING, val: procName},
 			},
 		};
 	}
@@ -108,9 +108,9 @@ const procedurePrepare = async (cgiObj: environmentType, databaseConnection: Con
 	// For the newer AL32UTF8 Unicode, it's 4 bytes per character, and the limit should be 63.
 	sqlStatement = 'BEGIN owa.init_cgi_env(:cgicount, :cginames, :cgivalues); htp.init; htp.htbuf_len := 63; END;';
 	const bindParameter: BindParameterConfig = {
-		cgicount: {dir: oracledb.BIND_IN, type: oracledb.NUMBER, val: Object.keys(cgiObj).length},
-		cginames: {dir: oracledb.BIND_IN, type: oracledb.STRING, val: Object.keys(cgiObj)},
-		cgivalues: {dir: oracledb.BIND_IN, type: oracledb.STRING, val: Object.values(cgiObj)},
+		cgicount: {dir: DB.BIND_IN, type: DB.NUMBER, val: Object.keys(cgiObj).length},
+		cginames: {dir: DB.BIND_IN, type: DB.STRING, val: Object.keys(cgiObj)},
+		cgivalues: {dir: DB.BIND_IN, type: DB.STRING, val: Object.values(cgiObj)},
 	};
 	try {
 		await databaseConnection.execute(sqlStatement, bindParameter);
@@ -146,13 +146,13 @@ const procedureExecute = async (para: {sql: string; bind: BindParameterConfig}, 
  * @returns Promise resolving to the result.
  */
 const procedureDownloadFiles = async (
-	fileBlob: oracledb.Lob,
+	fileBlob: Lob,
 	databaseConnection: Connection,
 ): Promise<{fileType: string; fileSize: number; fileBlob: stream.Readable | null}> => {
 	const bindParameter: BindParameterConfig = {
-		fileType: {dir: oracledb.BIND_OUT, type: oracledb.STRING},
-		fileSize: {dir: oracledb.BIND_OUT, type: oracledb.NUMBER},
-		fileBlob: {dir: oracledb.BIND_INOUT, type: oracledb.BLOB, val: fileBlob},
+		fileType: {dir: DB.BIND_OUT, type: DB.STRING},
+		fileSize: {dir: DB.BIND_OUT, type: DB.NUMBER},
+		fileBlob: {dir: DB.BIND_INOUT, type: DB.BLOB, val: fileBlob},
 	};
 
 	const sqlStatement = `
@@ -172,7 +172,7 @@ BEGIN
 END;
 `;
 
-	let result: Result<unknown> | null = null;
+	let result: Result | null = null;
 	try {
 		result = await databaseConnection.execute(sqlStatement, bindParameter);
 	} catch (err) {
@@ -275,7 +275,7 @@ export const invokeProcedure = async (
 
 		if (traceData) {
 			traceData.procedure = para.resolvedName;
-			traceData.parameters = para.bind;
+			traceData.parameters = para.bind as Record<string, unknown> | unknown[];
 		}
 
 		// 3) prepare the session
@@ -330,7 +330,7 @@ export const invokeProcedure = async (
 		// 6) download files
 
 		debug('invokeProcedure: download files');
-		const fileBlob = await databaseConnection.createLob(oracledb.BLOB);
+		const fileBlob = await databaseConnection.createLob(DB.BLOB);
 
 		try {
 			const fileDownload = await procedureDownloadFiles(fileBlob, databaseConnection);

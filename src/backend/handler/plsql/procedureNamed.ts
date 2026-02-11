@@ -5,7 +5,7 @@
 import debugModule from 'debug';
 const debug = debugModule('webplsql:procedureNamed');
 
-import oracledb from 'oracledb';
+import {DB} from '../../util/db.ts';
 import z from 'zod';
 import {RequestError} from './requestError.ts';
 import {errorToString} from '../../util/errorToString.ts';
@@ -13,7 +13,7 @@ import {stringToNumber} from '../../util/util.ts';
 import {toTable, warningMessage} from '../../util/trace.ts';
 import {MAX_PROCEDURE_PARAMETERS} from '../../../common/constants.ts';
 import type {Request} from 'express';
-import type {Connection, Result, BindParameter} from 'oracledb';
+import type {Connection, Result, BindParameter} from '../../util/db.ts';
 import type {argObjType, BindParameterConfig, argsType} from '../../types.ts';
 import type {ArgumentCache} from './request.ts';
 
@@ -63,12 +63,12 @@ const DATA_TYPES = Object.freeze({
  */
 const loadArguments = async (procedure: string, databaseConnection: Connection): Promise<argsType> => {
 	const bind: BindParameterConfig = {
-		name: {dir: oracledb.BIND_IN, type: oracledb.STRING, val: procedure},
-		names: {dir: oracledb.BIND_OUT, type: oracledb.STRING, maxSize: 60, maxArraySize: MAX_PROCEDURE_PARAMETERS},
-		types: {dir: oracledb.BIND_OUT, type: oracledb.STRING, maxSize: 60, maxArraySize: MAX_PROCEDURE_PARAMETERS},
+		name: {dir: DB.BIND_IN, type: DB.STRING, val: procedure},
+		names: {dir: DB.BIND_OUT, type: DB.STRING, maxSize: 60, maxArraySize: MAX_PROCEDURE_PARAMETERS},
+		types: {dir: DB.BIND_OUT, type: DB.STRING, maxSize: 60, maxArraySize: MAX_PROCEDURE_PARAMETERS},
 	};
 
-	let result: Result<unknown> = {};
+	let result: Result = {};
 	try {
 		result = await databaseConnection.execute(SQL_GET_ARGUMENT, bind);
 	} catch (err) {
@@ -162,11 +162,11 @@ const findArguments = async (procedure: string, databaseConnection: Connection, 
  */
 export const getBinding = (argName: string, argValue: unknown, argType: string): BindParameter => {
 	if (argType === DATA_TYPES.VARCHAR2 || argType === DATA_TYPES.CHAR) {
-		return {dir: oracledb.BIND_IN, type: oracledb.DB_TYPE_VARCHAR, val: argValue};
+		return {dir: DB.BIND_IN, type: DB.DB_TYPE_VARCHAR, val: argValue};
 	}
 
 	if (argType === DATA_TYPES.CLOB) {
-		return {dir: oracledb.BIND_IN, type: oracledb.DB_TYPE_CLOB, val: argValue};
+		return {dir: DB.BIND_IN, type: DB.DB_TYPE_CLOB, val: argValue};
 	}
 
 	if (argType === DATA_TYPES.NUMBER || argType === DATA_TYPES.BINARY_INTEGER) {
@@ -175,7 +175,7 @@ export const getBinding = (argName: string, argValue: unknown, argType: string):
 			throw new Error(`Error in named parameter "${argName}": invalid value "${argValue}" for type "${argType}"`);
 		}
 
-		return {dir: oracledb.BIND_IN, type: oracledb.DB_TYPE_NUMBER, val: value};
+		return {dir: DB.BIND_IN, type: DB.DB_TYPE_NUMBER, val: value};
 	}
 
 	if (argType === DATA_TYPES.DATE) {
@@ -187,13 +187,13 @@ export const getBinding = (argName: string, argValue: unknown, argType: string):
 			throw new Error(`Error in named parameter "${argName}": invalid value "${argValue}" for type "${argType}"`);
 		}
 
-		return {dir: oracledb.BIND_IN, type: oracledb.DB_TYPE_VARCHAR, val: value};
+		return {dir: DB.BIND_IN, type: DB.DB_TYPE_VARCHAR, val: value};
 	}
 
 	if (argType === DATA_TYPES.PL_SQL_TABLE || Array.isArray(argValue)) {
 		const value = typeof argValue === 'string' ? [argValue] : argValue;
 
-		return {dir: oracledb.BIND_IN, type: oracledb.DB_TYPE_DATE, val: value};
+		return {dir: DB.BIND_IN, type: DB.DB_TYPE_DATE, val: value};
 	}
 
 	throw new Error(`Error in named parameter "${argName}": invalid binding type "${argType}"`);
@@ -245,7 +245,7 @@ export const getProcedureNamed = async (
 		const parameterName = `p_${key}`;
 		const argValue = argObj[key];
 		const argType = argTypes[key.toLowerCase()];
-		let bind: BindParameter = {dir: oracledb.BIND_IN, type: oracledb.DB_TYPE_VARCHAR, val: argValue};
+		let bind: BindParameter = {dir: DB.BIND_IN, type: DB.DB_TYPE_VARCHAR, val: argValue};
 
 		if (argType) {
 			bind = getBinding(key, argValue, argType);

@@ -6,12 +6,13 @@ import path from 'node:path';
 import {existsSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 import express, {type Express, type Request, type Response, type NextFunction} from 'express';
+import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import compression from 'compression';
 import expressStaticGzip from 'express-static-gzip';
 import {z$configType, type configType, type configPlSqlType} from '../types.ts';
 import {installShutdown} from '../util/shutdown.ts';
-import {poolCreate, poolsClose, type Pool} from '../util/oracle.ts';
+import {createPool, poolsClose, type Pool} from '../util/db.ts';
 import {handlerUpload} from '../handler/handlerUpload.ts';
 import {handlerLogger} from '../handler/handlerLogger.ts';
 import {handlerWebPlSql} from '../handler/plsql/handlerPlSql.ts';
@@ -72,6 +73,14 @@ export const startServer = async (config: configType, ssl?: sslConfig): Promise<
 	const app = express();
 
 	// Default middleware
+	if (internalConfig.devMode) {
+		app.use(
+			cors({
+				origin: 'http://localhost:5173',
+				credentials: true,
+			}),
+		);
+	}
 	app.use(handlerUpload(internalConfig.uploadFileSizeLimit));
 	app.use(express.json({limit: '50mb'}));
 	app.use(express.urlencoded({limit: '50mb', extended: true}));
@@ -124,7 +133,7 @@ export const startServer = async (config: configType, ssl?: sslConfig): Promise<
 		projectRoot = path.dirname(projectRoot);
 	}
 	const adminDirectory = path.join(projectRoot, 'dist', 'frontend');
-	if (!existsSync(adminDirectory)) {
+	if (!internalConfig.devMode && !existsSync(adminDirectory)) {
 		throw new Error(`Admin console not built. Run 'npm run build:frontend' first.\nExpected: ${adminDirectory}`);
 	}
 	debug(`Admin directory: ${adminDirectory}`);
@@ -140,13 +149,15 @@ export const startServer = async (config: configType, ssl?: sslConfig): Promise<
 	});
 
 	app.use(adminRoute, handlerAdmin);
-	app.use(
-		adminRoute,
-		expressStaticGzip(adminDirectory, {
-			enableBrotli: true,
-			orderPreference: ['br'],
-		}),
-	);
+	if (existsSync(adminDirectory)) {
+		app.use(
+			adminRoute,
+			expressStaticGzip(adminDirectory, {
+				enableBrotli: true,
+				orderPreference: ['br'],
+			}),
+		);
+	}
 
 	// Serving static files
 	for (const i of internalConfig.routeStatic) {
@@ -166,7 +177,11 @@ export const startServer = async (config: configType, ssl?: sslConfig): Promise<
 	// Oracle pl/sql express middleware
 	for (const i of internalConfig.routePlSql) {
 		// Allocate the Oracle database pool
-		const pool = await poolCreate(i.user, i.password, i.connectString);
+		const pool = await createPool({
+			user: i.user,
+			password: i.password,
+			connectString: i.connectString,
+		});
 		connectionPools.push(pool);
 
 		const {defaultPage, pathAlias, pathAliasProcedure, documentTable, exclusionList, requestValidationFunction, transactionMode, errorStyle, cgi} =

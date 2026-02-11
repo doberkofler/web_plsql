@@ -1,6 +1,5 @@
-// libraries
-import oracledb from 'oracledb';
-export {oracledb};
+// database
+export * from './util/db.ts';
 
 // server
 export {getVersion} from './version.ts';
@@ -11,9 +10,6 @@ export * from './util/shutdown.ts';
 export {handlerWebPlSql} from './handler/plsql/handlerPlSql.ts';
 export {handlerLogger} from './handler/handlerLogger.ts';
 export {handlerUpload} from './handler/handlerUpload.ts';
-
-// oracle
-export * from './util/oracle.ts';
 
 // util
 export * from './util/file.ts';

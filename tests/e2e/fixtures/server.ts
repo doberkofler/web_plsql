@@ -15,27 +15,27 @@ type ServerFixture = {
 	baseURL: string;
 };
 
+const config: configType = {
+	port: 8082,
+	routeStatic: [],
+	routePlSql: [
+		{
+			route: '/pls',
+			user: 'test',
+			password: 'test',
+			connectString: 'localhost:1521/TEST',
+			defaultPage: 'test.page',
+			documentTable: 'docs',
+			errorStyle: 'debug',
+		},
+	],
+	loggerFilename: '',
+	adminRoute: '/admin',
+};
+
 export const test = base.extend<ServerFixture>({
 	// eslint-disable-next-line no-empty-pattern -- Playwright fixture pattern requires empty destructuring
 	server: async ({}, use) => {
-		const config: configType = {
-			port: 8082,
-			routeStatic: [],
-			routePlSql: [
-				{
-					route: '/pls',
-					user: 'test',
-					password: 'test',
-					connectString: 'localhost:1521/TEST',
-					defaultPage: 'test.page',
-					documentTable: 'docs',
-					errorStyle: 'debug',
-				},
-			],
-			loggerFilename: '',
-			adminRoute: '/admin',
-		};
-
 		const server = await startServer(config);
 		await use(server);
 

@@ -1,6 +1,6 @@
 import {assert, describe, it, beforeAll, afterAll, beforeEach} from 'vitest';
 import request from 'supertest';
-import * as oracledb from '../../mock/oracledb.ts';
+import {setExecuteCallback} from '../../../src/backend/util/db-mock.ts';
 import {serverStart, serverStop, sqlExecuteProxy, PATH, DEFAULT_PAGE} from '../../server.ts';
 import type {serverConfigType} from '../../server.ts';
 
@@ -16,7 +16,7 @@ describe('middleware', () => {
 	});
 
 	beforeEach(() => {
-		oracledb.setExecuteCallback();
+		setExecuteCallback();
 	});
 
 	it('get a static file', async () => {

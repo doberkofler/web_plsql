@@ -7,7 +7,7 @@ const debug = debugModule('webplsql:fileUpload');
 
 import {readFile, removeFile} from '../../util/file.ts';
 import {errorToString} from '../../util/errorToString.ts';
-import oracledb, {type Connection} from 'oracledb';
+import {DB, type Connection} from '../../util/db.ts';
 import z from 'zod';
 import type {Request} from 'express';
 import type {fileUploadType} from '../../types.ts';
@@ -85,7 +85,7 @@ export const uploadFile = async (file: fileUploadType, doctable: string, databas
 		doc_size: file.size,
 		blob_content: {
 			val: blobContent,
-			type: oracledb.BUFFER,
+			type: DB.BUFFER,
 		},
 	};
 	try {

@@ -1,5 +1,6 @@
 import {assert, describe, it, beforeEach, beforeAll, afterAll} from 'vitest';
-import * as oracledb from '../../mock/oracledb.ts';
+import {createPool, DB} from '../../../src/backend/util/db.ts';
+import {setExecuteCallback, MockPool, MockConnection, MockLob} from '../../../src/backend/util/db-mock.ts';
 
 describe('oracledb', () => {
 	let connectionPool: any;
@@ -7,22 +8,23 @@ describe('oracledb', () => {
 	let connection: any;
 
 	it('createPool', async () => {
-		connectionPool = await oracledb.createPool({
+		process.env.MOCK_ORACLE = 'true';
+		connectionPool = await createPool({
 			user: 'sample',
 			password: 'sample',
 			connectString: 'localhost:1521/TEST',
 		});
-		assert.strictEqual(connectionPool instanceof oracledb.Pool, true);
+		assert.strictEqual(connectionPool instanceof MockPool, true);
 	});
 
 	it('getConnection', async () => {
 		connection = await connectionPool.getConnection();
-		assert.strictEqual(connection instanceof oracledb.Connection, true);
+		assert.strictEqual(connection instanceof MockConnection, true);
 	});
 
 	it('createLob', async () => {
-		const lob = await connection.createLob(oracledb.BLOB);
-		assert.strictEqual(lob instanceof oracledb.Lob, true);
+		const lob = await connection.createLob(DB.BLOB);
+		assert.strictEqual(lob instanceof MockLob, true);
 		await lob.destroy();
 	});
 
@@ -49,7 +51,8 @@ describe('Connection.execute', () => {
 	let connection: any;
 
 	beforeAll(async () => {
-		connectionPool = await oracledb.createPool({
+		process.env.MOCK_ORACLE = 'true';
+		connectionPool = await createPool({
 			user: 'sample',
 			password: 'sample',
 			connectString: 'localhost:1521/TEST',
@@ -63,21 +66,21 @@ describe('Connection.execute', () => {
 	});
 
 	beforeEach(() => {
-		oracledb.setExecuteCallback();
+		setExecuteCallback();
 	});
 
 	it('execute', async () => {
 		const result = await connection.execute('select * from dual');
-		assert.deepStrictEqual(result, {});
+		assert.deepStrictEqual(result, {rows: []});
 	});
 
 	it('execute with execution callback', async () => {
 		const SQL = 'select * from dual';
 
 		// register an execute callback
-		oracledb.setExecuteCallback((sql) => {
+		setExecuteCallback((sql: string) => {
 			assert.strictEqual(sql, SQL);
-			return {sql: SQL};
+			return {sql: SQL} as any;
 		});
 
 		const result = await connection.execute(SQL);

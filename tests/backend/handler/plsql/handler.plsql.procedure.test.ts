@@ -1,5 +1,5 @@
 import {describe, it, expect, vi, beforeEach} from 'vitest';
-import oracledb, {type Connection} from 'oracledb';
+import {DB, type Connection} from '../../../../src/backend/util/db.ts';
 import {Readable} from 'node:stream';
 import {invokeProcedure} from '../../../../src/backend/handler/plsql/procedure.ts';
 import {ProcedureError} from '../../../../src/backend/handler/plsql/procedureError.ts';
@@ -160,7 +160,7 @@ describe('handler/plsql/procedure', () => {
 
 		await invokeProcedure(req, res, {}, {}, [], options, mockConn as Connection, mockNameCache, mockArgCache);
 
-		expect(mockConn.createLob).toHaveBeenCalledWith(oracledb.BLOB);
+		expect(mockConn.createLob).toHaveBeenCalledWith(DB.BLOB);
 		expect(mockLob.destroy).toHaveBeenCalled();
 	});
 

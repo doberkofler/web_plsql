@@ -5,11 +5,23 @@
 import * as rotatingFileStream from 'rotating-file-stream';
 import type {Request} from 'express';
 import util from 'node:util';
-import oracledb from 'oracledb';
+import {DB} from './db.ts';
 import {escapeHtml, convertAsciiToHtml} from './html.ts';
 import {errorToString} from './errorToString.ts';
 import {TRACE_LOG_ROTATION_SIZE, TRACE_LOG_ROTATION_INTERVAL, TRACE_LOG_MAX_ROTATED_FILES} from '../../common/constants.ts';
-import type {BindParameterConfig, environmentType} from '../types.ts';
+import type {BindParameter, BindParameterConfig, environmentType} from '../types.ts';
+
+/**
+ * Type guard for BindParameter
+ * @param row - The row to check
+ * @returns True if row is a BindParameter
+ */
+const isBindParameter = (row: unknown): row is BindParameter => {
+	if (typeof row !== 'object' || row === null) {
+		return false;
+	}
+	return 'dir' in row || 'type' in row || 'val' in row || 'maxSize' in row || 'maxArraySize' in row;
+};
 
 export type outputType = {
 	html: string;
@@ -136,11 +148,11 @@ const inspectRequest = (req: Request): string => {
  */
 const dirToString = (dir: number | undefined): string => {
 	switch (dir) {
-		case oracledb.BIND_IN:
+		case DB.BIND_IN:
 			return 'IN';
-		case oracledb.BIND_OUT:
+		case DB.BIND_OUT:
 			return 'OUT';
-		case oracledb.BIND_INOUT:
+		case DB.BIND_INOUT:
 			return 'INOUT';
 		default:
 			return '';
@@ -152,9 +164,9 @@ const dirToString = (dir: number | undefined): string => {
  *	@param type - The type.
  *	@returns The string.
  */
-const bindTypeToString = (type: oracledb.DbType | string | number | undefined): string => {
-	if (typeof type === 'object' && 'name' in type) {
-		return type.name;
+const bindTypeToString = (type: unknown): string => {
+	if (typeof type === 'object' && type !== null && 'name' in type) {
+		return (type as {name: string}).name;
 	}
 
 	if (typeof type === 'string') {
@@ -181,12 +193,24 @@ const inspectBindParameter = (output: outputType, bind: BindParameterConfig): vo
 	}
 
 	const body = rows.map(([id, row]) => {
-		const dir = dirToString(row.dir);
-		const maxArraySize = row.maxArraySize ? row.maxArraySize.toString() : '';
-		const maxSize = row.maxSize ? row.maxSize.toString() : '';
-		const bindType = bindTypeToString(row.type);
-		const value = inspect(row.val);
-		const valueType = typeof row.val;
+		let dir = '';
+		let maxArraySize = '';
+		let maxSize = '';
+		let bindType = '';
+		let value = '';
+		let valueType = '';
+
+		if (isBindParameter(row)) {
+			dir = dirToString(row.dir);
+			maxArraySize = row.maxArraySize ? row.maxArraySize.toString() : '';
+			maxSize = row.maxSize ? row.maxSize.toString() : '';
+			bindType = bindTypeToString(row.type);
+			value = inspect(row.val);
+			valueType = typeof row.val;
+		} else {
+			value = inspect(row);
+			valueType = typeof row;
+		}
 
 		return [id, dir, maxArraySize, maxSize, bindType, value, valueType];
 	});

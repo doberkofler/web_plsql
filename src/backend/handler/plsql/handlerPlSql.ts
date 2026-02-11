@@ -11,7 +11,7 @@ import {RequestError} from './requestError.ts';
 import {errorPage} from './errorPage.ts';
 import {Cache} from '../../util/cache.ts';
 import type {RequestHandler, Request, Response, NextFunction} from 'express';
-import type {Pool} from 'oracledb';
+import type {Pool} from '../../util/db.ts';
 import type {configPlSqlHandlerType, argsType} from '../../types.ts';
 
 export type WebPlSqlRequestHandler = RequestHandler & {

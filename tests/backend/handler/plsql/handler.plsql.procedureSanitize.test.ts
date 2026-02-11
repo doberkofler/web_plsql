@@ -3,7 +3,7 @@ import {describe, it, vi, expect} from 'vitest';
 import {sanitizeProcName} from '../../../../src/backend/handler/plsql/procedureSanitize.ts';
 import {RequestError} from '../../../../src/backend/handler/plsql/requestError.ts';
 import {Cache} from '../../../../src/backend/util/cache.ts';
-import type {Connection} from 'oracledb';
+import type {Connection} from '../../../../src/backend/util/db.ts';
 import type {configPlSqlHandlerType} from '../../../../src/backend/types.ts';
 
 describe('handler/plsql/procedureSanitize', () => {

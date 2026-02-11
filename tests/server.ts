@@ -4,12 +4,16 @@ import express, {type Express} from 'express';
 import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
 import compression from 'compression';
-import * as oracledb from './mock/oracledb.ts';
 import {handlerWebPlSql} from '../src/backend/handler/plsql/handlerPlSql.ts';
 import {handlerUpload} from '../src/backend/handler/handlerUpload.ts';
 import type {Server} from 'node:http';
-import type {Pool} from 'oracledb';
+import {createPool, type Pool} from '../src/backend/util/db.ts';
+import {setExecuteCallback, type executeCallbackType} from '../src/backend/util/db-mock.ts';
 import type {BindParameterConfig, configPlSqlHandlerType, transactionModeType} from '../src/backend/types.ts';
+import type {IDbBindParameter} from '../src/backend/util/db-types.ts';
+
+// Enable mock oracle
+process.env.MOCK_ORACLE = 'true';
 
 export const PORT = 8765;
 const DOC_TABLE = 'docTable';
@@ -57,9 +61,10 @@ const parameterFixedEqual = (bind: BindParameterConfig, parameters: paraType): b
 
 		if (Array.isArray(para.value)) {
 			return para.value.every((v, i) => {
-				const paramBind = bind[`p_${para.name}`];
+				const paramBind = (bind as Record<string, any>)[`p_${para.name}`] as IDbBindParameter;
+				const val = paramBind.val as unknown[];
 
-				const equal = paramBind ? v === paramBind.val[i] : false;
+				const equal = paramBind ? v === val[i] : false;
 				if (!equal) {
 					proxyError(`===> The value "${v}" of parameter "${para.name}" is different`);
 				}
@@ -67,7 +72,7 @@ const parameterFixedEqual = (bind: BindParameterConfig, parameters: paraType): b
 			});
 		}
 
-		const paramBind = bind[`p_${para.name}`];
+		const paramBind = (bind as Record<string, any>)[`p_${para.name}`] as IDbBindParameter;
 		return paramBind ? para.value === paramBind.val : false;
 	});
 };
@@ -95,7 +100,7 @@ const parameterFlexibleEqual = (bind: BindParameterConfig, parameters: paraType)
 	}
 
 	return parameters.every((para) => {
-		const paramBind = bind[para.name];
+		const paramBind = bind[para.name] as IDbBindParameter;
 
 		return Array.isArray(para.value) && paramBind && arrayEqual(para.value, paramBind.val as any[]);
 	});
@@ -141,7 +146,7 @@ const proxyError = (title: string, description?: string): void => {
  */
 export const serverStart = async (config: configOptionsType = {}): Promise<serverConfigType> => {
 	const {log = false, transactionMode} = config;
-	const connectionPool = await oracledb.createPool({
+	const connectionPool = await createPool({
 		user: 'sample',
 		password: 'sample',
 		connectString: 'localhost:1521/TEST',
@@ -208,12 +213,13 @@ export const sqlExecuteProxy = (config: {proc: string; para?: paraType; lines?: 
 	/**
 	 *	Proxy for the next sql procedure to be executed
 	 */
-	const sqlExecuteProxyCallback: oracledb.executeCallbackType = (sql, bindParams) => {
+	const sqlExecuteProxyCallback: executeCallbackType = (sql, bindParams) => {
 		// New Check for Name Resolution (procedureSanitize.js)
 		if (sql.toLowerCase().includes('dbms_utility.name_resolve') && bindParams && 'resolved' in bindParams) {
 			// Extract the input name to return it as resolved (mocking success)
 			// bindParams.name.val holds the input procedure name
-			const nameVal = bindParams.name?.val;
+			const nameParam = bindParams.name as IDbBindParameter;
+			const nameVal = nameParam?.val;
 			const procName = (typeof nameVal === 'string' ? nameVal : '').toLowerCase();
 			return {
 				outBinds: {
@@ -296,5 +302,5 @@ export const sqlExecuteProxy = (config: {proc: string; para?: paraType; lines?: 
 		process.exit(1);
 	};
 
-	oracledb.setExecuteCallback(sqlExecuteProxyCallback);
+	setExecuteCallback(sqlExecuteProxyCallback);
 };

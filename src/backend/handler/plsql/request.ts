@@ -12,7 +12,7 @@ import {getFiles} from './upload.ts';
 import {RequestError} from './requestError.ts';
 import {isStringOrArrayOfString} from '../../util/type.ts';
 import type {Request, Response} from 'express';
-import type {Pool} from 'oracledb';
+import type {Pool} from '../../util/db.ts';
 import type {argObjType, configPlSqlHandlerType, argsType} from '../../types.ts';
 import type {Cache} from '../../util/cache.ts';
 

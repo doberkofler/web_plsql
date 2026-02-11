@@ -1,0 +1,15 @@
+import oracledb from 'oracledb';
+console.log('BIND_IN:', oracledb.BIND_IN);
+console.log('BIND_OUT:', oracledb.BIND_OUT);
+console.log('BIND_INOUT:', oracledb.BIND_INOUT);
+console.log('STRING:', oracledb.STRING);
+console.log('NUMBER:', oracledb.NUMBER);
+console.log('DATE:', oracledb.DATE);
+console.log('CURSOR:', oracledb.CURSOR);
+console.log('BUFFER:', oracledb.BUFFER);
+console.log('CLOB:', oracledb.CLOB);
+console.log('BLOB:', oracledb.BLOB);
+console.log('DB_TYPE_VARCHAR:', oracledb.DB_TYPE_VARCHAR);
+console.log('DB_TYPE_CLOB:', oracledb.DB_TYPE_CLOB);
+console.log('DB_TYPE_NUMBER:', oracledb.DB_TYPE_NUMBER);
+console.log('DB_TYPE_DATE:', oracledb.DB_TYPE_DATE);

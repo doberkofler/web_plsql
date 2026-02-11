@@ -5,7 +5,7 @@
 import debugModule from 'debug';
 const debug = debugModule('webplsql:procedureVariable');
 
-import oracledb from 'oracledb';
+import {DB} from '../../util/db.ts';
 import type {Request} from 'express';
 import type {argObjType, BindParameterConfig} from '../../types.ts';
 
@@ -42,8 +42,8 @@ export const getProcedureVariable = (_req: Request, procName: string, argObj: ar
 	return {
 		sql: `${procName}(:argnames, :argvalues)`,
 		bind: {
-			argnames: {dir: oracledb.BIND_IN, type: oracledb.STRING, val: names},
-			argvalues: {dir: oracledb.BIND_IN, type: oracledb.STRING, val: values},
+			argnames: {dir: DB.BIND_IN, type: DB.STRING, val: names},
+			argvalues: {dir: DB.BIND_IN, type: DB.STRING, val: values},
 		},
 	};
 };

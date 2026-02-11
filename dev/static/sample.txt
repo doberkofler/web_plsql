@@ -1,0 +1,2 @@
+This is a sample text file served from the static assets route.
+It demonstrates that the web_plsql dev server can serve static content.

@@ -1,7 +1,7 @@
 import debugModule from 'debug';
 const debug = debugModule('webplsql:procedureSanitize');
 
-import oracledb from 'oracledb';
+import {DB} from '../../util/db.ts';
 import z from 'zod';
 import {RequestError} from './requestError.ts';
 import {errorToString} from '../../util/errorToString.ts';
@@ -65,8 +65,8 @@ const resolveProcedureName = async (procName: string, databaseConnection: Connec
 	`;
 
 	const bind: BindParameterConfig = {
-		name: {dir: oracledb.BIND_IN, type: oracledb.STRING, val: procName},
-		resolved: {dir: oracledb.BIND_OUT, type: oracledb.STRING, maxSize: OWA_RESOLVED_NAME_MAX_LEN},
+		name: {dir: DB.BIND_IN, type: DB.STRING, val: procName},
+		resolved: {dir: DB.BIND_OUT, type: DB.STRING, maxSize: OWA_RESOLVED_NAME_MAX_LEN},
 	};
 
 	try {
@@ -194,8 +194,8 @@ const removeSpecialCharacters = (str: string | null | undefined): string => {
  */
 const loadRequestValid = async (procName: string, requestValidationFunction: string, databaseConnection: Connection): Promise<boolean> => {
 	const bind: BindParameterConfig = {
-		proc: {dir: oracledb.BIND_IN, type: oracledb.STRING, val: procName},
-		valid: {dir: oracledb.BIND_OUT, type: oracledb.NUMBER},
+		proc: {dir: DB.BIND_IN, type: DB.STRING, val: procName},
+		valid: {dir: DB.BIND_OUT, type: DB.NUMBER},
 	};
 
 	const SQL = [
@@ -209,7 +209,7 @@ const loadRequestValid = async (procName: string, requestValidationFunction: str
 		'END;',
 	].join('\n');
 
-	let result: Result<unknown> = {};
+	let result: Result = {};
 	try {
 		result = await databaseConnection.execute(SQL, bind);
 	} catch (err) {

@@ -1,5 +1,5 @@
 import {Readable} from 'node:stream';
-import oracledb from 'oracledb';
+import {DB} from '../../util/db.ts';
 import z from 'zod';
 import debugModule from 'debug';
 import {ProcedureError} from './procedureError.ts';
@@ -32,8 +32,8 @@ export class OWAPageStream extends Readable {
 		if (this.isDone) return [];
 
 		const bindParameter: BindParameterConfig = {
-			lines: {dir: oracledb.BIND_OUT, type: oracledb.STRING, maxArraySize: this.chunkSize},
-			irows: {dir: oracledb.BIND_INOUT, type: oracledb.NUMBER, val: this.chunkSize},
+			lines: {dir: DB.BIND_OUT, type: DB.STRING, maxArraySize: this.chunkSize},
+			irows: {dir: DB.BIND_INOUT, type: DB.NUMBER, val: this.chunkSize},
 		};
 
 		const sqlStatement = 'BEGIN owa.get_page(thepage=>:lines, irows=>:irows); END;';

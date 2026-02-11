@@ -1,5 +1,5 @@
 import {StatsManager} from '../util/statsManager.ts';
-import type {Pool} from 'oracledb';
+import type {Pool} from '../util/db.ts';
 import type {configType, argsType} from '../types.ts';
 import type {Cache} from '../util/cache.ts';
 

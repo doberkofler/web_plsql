@@ -26,6 +26,27 @@ export default defineConfig({
 			},
 		},
 	},
+	server: {
+		// Development server configuration
+		port: 5173,
+		proxy: {
+			// Proxy admin API requests to dev backend server
+			'/admin/api': {
+				target: 'http://localhost:3001',
+				changeOrigin: true,
+			},
+			// Proxy PL/SQL routes to dev backend server
+			'/sample': {
+				target: 'http://localhost:3001',
+				changeOrigin: true,
+			},
+			// Proxy static assets to dev backend server
+			'/static': {
+				target: 'http://localhost:3001',
+				changeOrigin: true,
+			},
+		},
+	},
 	define: {
 		'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV),
 		__BUILD_TIME__: JSON.stringify(new Date().toLocaleString()),
