@@ -1,12 +1,12 @@
-import {typedApi} from './api.js';
-import {initCharts, updateCharts, hydrateHistory} from './charts.js';
-import {formatDuration, formatDateTime} from './util/format.js';
-import {updateMinMaxMetrics} from './util/metrics.js';
-import {initTheme} from './ui/theme.js';
-import {refreshErrors, refreshTrace, refreshAccess, refreshConfig, refreshPools, refreshSystem, refreshStats} from './ui/views.js';
-import {bindLoadingButton, withLoading} from './ui/components.js';
+import {typedApi} from './api.ts';
+import {initCharts, updateCharts, hydrateHistory} from './charts.ts';
+import {formatDuration, formatDateTime} from './util/format.ts';
+import {updateMinMaxMetrics} from './util/metrics.ts';
+import {initTheme} from './ui/theme.ts';
+import {refreshErrors, refreshTrace, refreshAccess, refreshConfig, refreshPools, refreshSystem, refreshStats} from './ui/views.ts';
+import {bindLoadingButton, withLoading} from './ui/components.ts';
 import {STATS_INTERVAL_MS} from '../common/constants.ts';
-import type {State, SystemMetrics} from './types.js';
+import type {State, SystemMetrics} from './types.ts';
 import './tailwind.css';
 
 /**

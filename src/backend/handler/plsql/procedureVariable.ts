@@ -5,9 +5,10 @@
 import debugModule from 'debug';
 const debug = debugModule('webplsql:procedureVariable');
 
-import {DB} from '../../util/db.ts';
+import {BIND_IN, STRING} from '../../util/oracledb-provider.ts';
 import type {Request} from 'express';
-import type {argObjType, BindParameterConfig} from '../../types.ts';
+import type {argObjType} from '../../types.ts';
+import type {BindParameters} from 'oracledb';
 
 /**
  *	Get the sql statement and bindings for the procedure to execute for a variable number of arguments
@@ -16,7 +17,7 @@ import type {argObjType, BindParameterConfig} from '../../types.ts';
  *	@param argObj - The arguments to pass to the procedure
  *	@returns The SQL statement and bindings for the procedure to execute
  */
-export const getProcedureVariable = (_req: Request, procName: string, argObj: argObjType): {sql: string; bind: BindParameterConfig} => {
+export const getProcedureVariable = (_req: Request, procName: string, argObj: argObjType): {sql: string; bind: BindParameters} => {
 	/* v8 ignore start */
 	if (debug.enabled) {
 		debug(`getProcedureVariable: ${procName} arguments=`, argObj);
@@ -42,8 +43,8 @@ export const getProcedureVariable = (_req: Request, procName: string, argObj: ar
 	return {
 		sql: `${procName}(:argnames, :argvalues)`,
 		bind: {
-			argnames: {dir: DB.BIND_IN, type: DB.STRING, val: names},
-			argvalues: {dir: DB.BIND_IN, type: DB.STRING, val: values},
+			argnames: {dir: BIND_IN, type: STRING, val: names},
+			argvalues: {dir: BIND_IN, type: STRING, val: values},
 		},
 	};
 };

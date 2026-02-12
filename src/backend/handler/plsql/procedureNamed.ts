@@ -5,7 +5,7 @@
 import debugModule from 'debug';
 const debug = debugModule('webplsql:procedureNamed');
 
-import {DB} from '../../util/db.ts';
+import {BIND_IN, BIND_OUT, STRING, DB_TYPE_VARCHAR, DB_TYPE_CLOB, DB_TYPE_NUMBER, DB_TYPE_DATE} from '../../util/oracledb-provider.ts';
 import z from 'zod';
 import {RequestError} from './requestError.ts';
 import {errorToString} from '../../util/errorToString.ts';
@@ -13,8 +13,8 @@ import {stringToNumber} from '../../util/util.ts';
 import {toTable, warningMessage} from '../../util/trace.ts';
 import {MAX_PROCEDURE_PARAMETERS} from '../../../common/constants.ts';
 import type {Request} from 'express';
-import type {Connection, Result, BindParameter} from '../../util/db.ts';
-import type {argObjType, BindParameterConfig, argsType, ArgumentCache} from '../../types.ts';
+import type {Connection, Result, BindParameter, BindParameters} from 'oracledb';
+import type {argObjType, argsType, ArgumentCache} from '../../types.ts';
 
 const SQL_GET_ARGUMENT = [
 	'DECLARE',
@@ -61,13 +61,13 @@ const DATA_TYPES = Object.freeze({
  *	@returns The argument types
  */
 const loadArguments = async (procedure: string, databaseConnection: Connection): Promise<argsType> => {
-	const bind: BindParameterConfig = {
-		name: {dir: DB.BIND_IN, type: DB.STRING, val: procedure},
-		names: {dir: DB.BIND_OUT, type: DB.STRING, maxSize: 60, maxArraySize: MAX_PROCEDURE_PARAMETERS},
-		types: {dir: DB.BIND_OUT, type: DB.STRING, maxSize: 60, maxArraySize: MAX_PROCEDURE_PARAMETERS},
+	const bind: BindParameters = {
+		name: {dir: BIND_IN, type: STRING, val: procedure},
+		names: {dir: BIND_OUT, type: STRING, maxSize: 60, maxArraySize: MAX_PROCEDURE_PARAMETERS},
+		types: {dir: BIND_OUT, type: STRING, maxSize: 60, maxArraySize: MAX_PROCEDURE_PARAMETERS},
 	};
 
-	let result: Result = {};
+	let result: Result<unknown> = {};
 	try {
 		result = await databaseConnection.execute(SQL_GET_ARGUMENT, bind);
 	} catch (err) {
@@ -161,11 +161,11 @@ const findArguments = async (procedure: string, databaseConnection: Connection, 
  */
 export const getBinding = (argName: string, argValue: unknown, argType: string): BindParameter => {
 	if (argType === DATA_TYPES.VARCHAR2 || argType === DATA_TYPES.CHAR) {
-		return {dir: DB.BIND_IN, type: DB.DB_TYPE_VARCHAR, val: argValue};
+		return {dir: BIND_IN, type: DB_TYPE_VARCHAR, val: argValue};
 	}
 
 	if (argType === DATA_TYPES.CLOB) {
-		return {dir: DB.BIND_IN, type: DB.DB_TYPE_CLOB, val: argValue};
+		return {dir: BIND_IN, type: DB_TYPE_CLOB, val: argValue};
 	}
 
 	if (argType === DATA_TYPES.NUMBER || argType === DATA_TYPES.BINARY_INTEGER) {
@@ -174,7 +174,7 @@ export const getBinding = (argName: string, argValue: unknown, argType: string):
 			throw new Error(`Error in named parameter "${argName}": invalid value "${argValue}" for type "${argType}"`);
 		}
 
-		return {dir: DB.BIND_IN, type: DB.DB_TYPE_NUMBER, val: value};
+		return {dir: BIND_IN, type: DB_TYPE_NUMBER, val: value};
 	}
 
 	if (argType === DATA_TYPES.DATE) {
@@ -186,13 +186,13 @@ export const getBinding = (argName: string, argValue: unknown, argType: string):
 			throw new Error(`Error in named parameter "${argName}": invalid value "${argValue}" for type "${argType}"`);
 		}
 
-		return {dir: DB.BIND_IN, type: DB.DB_TYPE_VARCHAR, val: value};
+		return {dir: BIND_IN, type: DB_TYPE_VARCHAR, val: value};
 	}
 
 	if (argType === DATA_TYPES.PL_SQL_TABLE || Array.isArray(argValue)) {
 		const value = typeof argValue === 'string' ? [argValue] : argValue;
 
-		return {dir: DB.BIND_IN, type: DB.DB_TYPE_DATE, val: value};
+		return {dir: BIND_IN, type: DB_TYPE_DATE, val: value};
 	}
 
 	throw new Error(`Error in named parameter "${argName}": invalid binding type "${argType}"`);
@@ -229,7 +229,7 @@ export const getProcedureNamed = async (
 	argObj: argObjType,
 	databaseConnection: Connection,
 	argumentCache: ArgumentCache,
-): Promise<{sql: string; bind: BindParameterConfig}> => {
+): Promise<{sql: string; bind: BindParameters}> => {
 	debug(`getProcedureNamed: ${procName} arguments=`, argObj);
 
 	// get the types of the arguments
@@ -237,14 +237,14 @@ export const getProcedureNamed = async (
 
 	const sqlParameter: string[] = [];
 
-	const bindings: BindParameterConfig = {};
+	const bindings: BindParameters = {};
 
 	// bindings for the statement
 	for (const key in argObj) {
 		const parameterName = `p_${key}`;
 		const argValue = argObj[key];
 		const argType = argTypes[key.toLowerCase()];
-		let bind: BindParameter = {dir: DB.BIND_IN, type: DB.DB_TYPE_VARCHAR, val: argValue};
+		let bind: BindParameter = {dir: BIND_IN, type: DB_TYPE_VARCHAR, val: argValue};
 
 		if (argType) {
 			bind = getBinding(key, argValue, argType);

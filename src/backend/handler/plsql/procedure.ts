@@ -5,7 +5,7 @@
 import debugModule from 'debug';
 const debug = debugModule('webplsql:procedure');
 
-import {DB} from '../../util/db.ts';
+import {BIND_IN, BIND_OUT, BIND_INOUT, STRING, NUMBER, BLOB} from '../../util/oracledb-provider.ts';
 import stream from 'node:stream';
 import z from 'zod';
 
@@ -23,8 +23,8 @@ import {OWAPageStream} from './owaPageStream.ts';
 import {traceManager} from '../../util/traceManager.ts';
 import type {procedureTraceEntry} from '../../../frontend/types.ts';
 import type {Request, Response} from 'express';
-import type {Connection, Result, Lob} from '../../util/db.ts';
-import type {argObjType, fileUploadType, environmentType, configPlSqlHandlerType, BindParameterConfig, ProcedureNameCache, ArgumentCache} from '../../types.ts';
+import type {Connection, Result, Lob, BindParameters} from 'oracledb';
+import type {argObjType, fileUploadType, environmentType, configPlSqlHandlerType, ProcedureNameCache, ArgumentCache} from '../../types.ts';
 
 /**
  *	Get the procedure and arguments to execute
@@ -45,7 +45,7 @@ const getProcedure = async (
 	databaseConnection: Connection,
 	procedureNameCache: ProcedureNameCache,
 	argumentCache: ArgumentCache,
-): Promise<{sql: string; bind: BindParameterConfig; resolvedName?: string}> => {
+): Promise<{sql: string; bind: BindParameters; resolvedName?: string}> => {
 	// path alias
 	if (options.pathAlias?.toLowerCase() === procName.toLowerCase()) {
 		/* v8 ignore start */
@@ -54,7 +54,7 @@ const getProcedure = async (
 		return {
 			sql: `${options.pathAliasProcedure}(p_path=>:p_path)`,
 			bind: {
-				p_path: {dir: DB.BIND_IN, type: DB.STRING, val: procName},
+				p_path: {dir: BIND_IN, type: STRING, val: procName},
 			},
 		};
 	}
@@ -102,11 +102,12 @@ const procedurePrepare = async (cgiObj: environmentType, databaseConnection: Con
 	// For most character sets, this will be 2 bytes per character, so the limit would be 127.
 	// For UTF8 Unicode, it's 3 bytes per character, meaning the limit should be 85.
 	// For the newer AL32UTF8 Unicode, it's 4 bytes per character, and the limit should be 63.
-	sqlStatement = 'BEGIN owa.init_cgi_env(:cgicount, :cginames, :cgivalues); htp.init; htp.htbuf_len := 63; END;';
-	const bindParameter: BindParameterConfig = {
-		cgicount: {dir: DB.BIND_IN, type: DB.NUMBER, val: Object.keys(cgiObj).length},
-		cginames: {dir: DB.BIND_IN, type: DB.STRING, val: Object.keys(cgiObj)},
-		cgivalues: {dir: DB.BIND_IN, type: DB.STRING, val: Object.values(cgiObj)},
+	sqlStatement = 'BEGIN owa.init_cgi_env(:cgicount, :cginames, :cgivalues); owa.user_id := :remote_user; htp.init; htp.htbuf_len := 63; END;';
+	const bindParameter: BindParameters = {
+		cgicount: {dir: BIND_IN, type: NUMBER, val: Object.keys(cgiObj).length},
+		cginames: {dir: BIND_IN, type: STRING, val: Object.keys(cgiObj)},
+		cgivalues: {dir: BIND_IN, type: STRING, val: Object.values(cgiObj)},
+		remote_user: {dir: BIND_IN, type: STRING, val: (cgiObj.REMOTE_USER ?? '').substring(0, 30)},
 	};
 	try {
 		await databaseConnection.execute(sqlStatement, bindParameter);
@@ -124,7 +125,7 @@ const procedurePrepare = async (cgiObj: environmentType, databaseConnection: Con
  * @param databaseConnection - Database connection.
  * @returns Promise resolving to void.
  */
-const procedureExecute = async (para: {sql: string; bind: BindParameterConfig}, databaseConnection: Connection): Promise<void> => {
+const procedureExecute = async (para: {sql: string; bind: BindParameters}, databaseConnection: Connection): Promise<void> => {
 	const sqlStatement = `BEGIN ${para.sql}; END;`;
 
 	try {
@@ -145,10 +146,10 @@ const procedureDownloadFiles = async (
 	fileBlob: Lob,
 	databaseConnection: Connection,
 ): Promise<{fileType: string; fileSize: number; fileBlob: stream.Readable | null}> => {
-	const bindParameter: BindParameterConfig = {
-		fileType: {dir: DB.BIND_OUT, type: DB.STRING},
-		fileSize: {dir: DB.BIND_OUT, type: DB.NUMBER},
-		fileBlob: {dir: DB.BIND_INOUT, type: DB.BLOB, val: fileBlob},
+	const bindParameter: BindParameters = {
+		fileType: {dir: BIND_OUT, type: STRING},
+		fileSize: {dir: BIND_OUT, type: NUMBER},
+		fileBlob: {dir: BIND_INOUT, type: BLOB, val: fileBlob},
 	};
 
 	const sqlStatement = `
@@ -168,7 +169,7 @@ BEGIN
 END;
 `;
 
-	let result: Result | null = null;
+	let result: Result<unknown> | null = null;
 	try {
 		result = await databaseConnection.execute(sqlStatement, bindParameter);
 	} catch (err) {
@@ -327,7 +328,7 @@ export const invokeProcedure = async (
 		// 6) download files
 
 		debug('invokeProcedure: download files');
-		const fileBlob = await databaseConnection.createLob(DB.BLOB);
+		const fileBlob = await databaseConnection.createLob(BLOB);
 
 		try {
 			const fileDownload = await procedureDownloadFiles(fileBlob, databaseConnection);

@@ -60,7 +60,8 @@
 		"clean": "shx rm -f *.tgz && shx rm -f *.log",
 		"ci": "npm run clean && npm run lint && npm run build && npm run stylelint && npm run knip:backend && npm run knip:frontend && npm run test:coverage && npm run test:e2e",
 		"image-build": "cd docker && docker build --no-cache --progress=plain --tag=web_plsql .",
-		"image-save": "cd docker && docker save web_plsql > web_plsql.tar"
+		"image-save": "cd docker && docker save web_plsql > web_plsql.tar",
+		"pack:dev": "VERSION=$(node -p 'require(\"./package.json\").version'); npm pack; mv web_plsql-$VERSION.tgz web_plsql-dev.tgz"
 	},
 	"peerDependencies": {
 		"oracledb": "6.10.0"

@@ -1,5 +1,5 @@
 import {describe, it, expect} from 'vitest';
-import {renderConfig} from './config.js';
+import {renderConfig} from './config.ts';
 
 describe('templates/config', () => {
 	describe('renderConfig', () => {

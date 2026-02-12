@@ -1,7 +1,7 @@
 import {describe, it, expect, vi} from 'vitest';
 import {OWAPageStream} from './owaPageStream.ts';
 import {OWA_STREAM_CHUNK_SIZE} from '../../../common/constants.ts';
-import type {Connection} from '../../util/db.ts';
+import type {Connection} from 'oracledb';
 
 describe('OWAPageStream', () => {
 	it('should stream data in chunks', async () => {

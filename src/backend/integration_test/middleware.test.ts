@@ -1,6 +1,6 @@
 import {assert, describe, it, beforeAll, afterAll, beforeEach} from 'vitest';
 import request from 'supertest';
-import {setExecuteCallback} from '../../../src/backend/util/db-mock.ts';
+import {setExecuteCallback} from '../util/oracledb-provider.ts';
 import {serverStart, serverStop, sqlExecuteProxy, PATH, DEFAULT_PAGE} from './server.ts';
 import type {serverConfigType} from './server.ts';
 
@@ -16,7 +16,7 @@ describe('middleware', () => {
 	});
 
 	beforeEach(() => {
-		setExecuteCallback();
+		setExecuteCallback(null);
 	});
 
 	it('report a 404 error on a missing static file', async () => {

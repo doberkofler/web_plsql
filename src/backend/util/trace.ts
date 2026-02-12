@@ -5,11 +5,12 @@
 import * as rotatingFileStream from 'rotating-file-stream';
 import type {Request} from 'express';
 import util from 'node:util';
-import {DB} from './db.ts';
+import oracledb from 'oracledb';
 import {escapeHtml, convertAsciiToHtml} from './html.ts';
 import {errorToString} from './errorToString.ts';
 import {TRACE_LOG_ROTATION_SIZE, TRACE_LOG_ROTATION_INTERVAL, TRACE_LOG_MAX_ROTATED_FILES} from '../../common/constants.ts';
-import type {BindParameter, BindParameterConfig, environmentType} from '../types.ts';
+import type {environmentType} from '../types.ts';
+import type {BindParameter, BindParameters} from 'oracledb';
 
 /**
  * Type guard for BindParameter
@@ -35,7 +36,7 @@ export type messageType = {
 	req?: Request | null;
 	environment?: environmentType | null;
 	sql?: string | null;
-	bind?: BindParameterConfig | null;
+	bind?: BindParameters | null;
 };
 
 const SEPARATOR_H1 = '='.repeat(100);
@@ -148,11 +149,11 @@ const inspectRequest = (req: Request): string => {
  */
 const dirToString = (dir: number | undefined): string => {
 	switch (dir) {
-		case DB.BIND_IN:
+		case oracledb.BIND_IN:
 			return 'IN';
-		case DB.BIND_OUT:
+		case oracledb.BIND_OUT:
 			return 'OUT';
-		case DB.BIND_INOUT:
+		case oracledb.BIND_INOUT:
 			return 'INOUT';
 		default:
 			return '';
@@ -185,7 +186,7 @@ const bindTypeToString = (type: unknown): string => {
  *	@param output - The output.
  *	@param bind - The bind parameters.
  */
-const inspectBindParameter = (output: outputType, bind: BindParameterConfig): void => {
+const inspectBindParameter = (output: outputType, bind: BindParameters): void => {
 	const rows = Object.entries(bind);
 
 	if (rows.length === 0) {
@@ -287,7 +288,7 @@ const addHeader = (output: outputType, text: string): void => {
  *	@param sql - The SQL to execute.
  *	@param bind - The bind parameters.
  */
-const addProcedure = (output: outputType, sql: string, bind: BindParameterConfig): void => {
+const addProcedure = (output: outputType, sql: string, bind: BindParameters): void => {
 	output.html += `${sql}<br><br>`;
 	output.text += `${sql}\n\n`;
 

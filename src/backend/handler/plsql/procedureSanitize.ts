@@ -1,12 +1,13 @@
 import debugModule from 'debug';
 const debug = debugModule('webplsql:procedureSanitize');
 
-import {DB} from '../../util/db.ts';
+import {BIND_IN, BIND_OUT, STRING, NUMBER} from '../../util/oracledb-provider.ts';
 import z from 'zod';
 import {RequestError} from './requestError.ts';
 import {errorToString} from '../../util/errorToString.ts';
 import {OWA_RESOLVED_NAME_MAX_LEN} from '../../../common/constants.ts';
-import type {Connection, Result, BindParameterConfig, configPlSqlHandlerType, ProcedureNameCache} from '../../types.ts';
+import type {Connection, Result, BindParameters} from 'oracledb';
+import type {configPlSqlHandlerType, ProcedureNameCache} from '../../types.ts';
 import {Cache} from '../../util/cache.ts';
 
 const DEFAULT_EXCLUSION_LIST = ['sys.', 'dbms_', 'utl_', 'owa_', 'htp.', 'htf.', 'wpg_docload.', 'ctxsys.', 'mdsys.'];
@@ -63,9 +64,9 @@ const resolveProcedureName = async (procName: string, databaseConnection: Connec
 		END;
 	`;
 
-	const bind: BindParameterConfig = {
-		name: {dir: DB.BIND_IN, type: DB.STRING, val: procName},
-		resolved: {dir: DB.BIND_OUT, type: DB.STRING, maxSize: OWA_RESOLVED_NAME_MAX_LEN},
+	const bind: BindParameters = {
+		name: {dir: BIND_IN, type: STRING, val: procName},
+		resolved: {dir: BIND_OUT, type: STRING, maxSize: OWA_RESOLVED_NAME_MAX_LEN},
 	};
 
 	try {
@@ -192,9 +193,9 @@ const removeSpecialCharacters = (str: string | null | undefined): string => {
  * @returns Promise resolving to final procedure name.
  */
 const loadRequestValid = async (procName: string, requestValidationFunction: string, databaseConnection: Connection): Promise<boolean> => {
-	const bind: BindParameterConfig = {
-		proc: {dir: DB.BIND_IN, type: DB.STRING, val: procName},
-		valid: {dir: DB.BIND_OUT, type: DB.NUMBER},
+	const bind: BindParameters = {
+		proc: {dir: BIND_IN, type: STRING, val: procName},
+		valid: {dir: BIND_OUT, type: NUMBER},
 	};
 
 	const SQL = [
@@ -208,7 +209,7 @@ const loadRequestValid = async (procName: string, requestValidationFunction: str
 		'END;',
 	].join('\n');
 
-	let result: Result = {};
+	let result: Result<unknown> = {};
 	try {
 		result = await databaseConnection.execute(SQL, bind);
 	} catch (err) {

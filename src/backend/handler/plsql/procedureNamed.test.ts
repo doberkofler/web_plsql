@@ -1,10 +1,11 @@
 import assert from 'node:assert';
 import {describe, it, vi, afterEach} from 'vitest';
-import {DB, type Connection} from '../../util/db.ts';
+import oracledb from 'oracledb';
 import {getBinding, getProcedureNamed} from '../../handler/plsql/procedureNamed.ts';
 import {Cache} from '../../util/cache.ts';
 import type {Request} from 'express';
 import type {argsType} from '../../types.ts';
+import type {Connection} from 'oracledb';
 
 describe('handler/plsql/procedureNamed', () => {
 	afterEach(() => {
@@ -14,19 +15,19 @@ describe('handler/plsql/procedureNamed', () => {
 	describe('getBinding', () => {
 		it('should return VARCHAR2 binding', () => {
 			const bind = getBinding('p1', 'val', 'VARCHAR2');
-			assert.strictEqual(bind.dir, DB.BIND_IN);
-			assert.strictEqual(bind.type, DB.DB_TYPE_VARCHAR);
+			assert.strictEqual(bind.dir, oracledb.BIND_IN);
+			assert.strictEqual(bind.type, oracledb.DB_TYPE_VARCHAR);
 			assert.strictEqual(bind.val, 'val');
 		});
 
 		it('should return CLOB binding', () => {
 			const bind = getBinding('p1', 'val', 'CLOB');
-			assert.strictEqual(bind.type, DB.DB_TYPE_CLOB);
+			assert.strictEqual(bind.type, oracledb.DB_TYPE_CLOB);
 		});
 
 		it('should return NUMBER binding', () => {
 			const bind = getBinding('p1', '123', 'NUMBER');
-			assert.strictEqual(bind.type, DB.DB_TYPE_NUMBER);
+			assert.strictEqual(bind.type, oracledb.DB_TYPE_NUMBER);
 			assert.strictEqual(bind.val, 123);
 		});
 
@@ -39,7 +40,7 @@ describe('handler/plsql/procedureNamed', () => {
 		it('should return DATE binding', () => {
 			const dateStr = '2023-01-01';
 			const result = getBinding('p1', dateStr, 'DATE');
-			assert.strictEqual(result.type, DB.DB_TYPE_VARCHAR);
+			assert.strictEqual(result.type, oracledb.DB_TYPE_VARCHAR);
 			assert.ok(result.val instanceof Date);
 		});
 
@@ -51,8 +52,8 @@ describe('handler/plsql/procedureNamed', () => {
 
 		it('should return PL/SQL TABLE binding', () => {
 			const bind = getBinding('p1', ['val1', 'val2'], 'PL/SQL TABLE');
-			assert.strictEqual(bind.dir, DB.BIND_IN);
-			assert.strictEqual(bind.type, DB.DB_TYPE_DATE); // Wait, DB_TYPE_DATE?
+			assert.strictEqual(bind.dir, oracledb.BIND_IN);
+			assert.strictEqual(bind.type, oracledb.DB_TYPE_DATE); // Wait, DB_TYPE_DATE?
 			// Line 232 says: return {dir: oracledb.BIND_IN, type: oracledb.DB_TYPE_DATE, val: value};
 			// That seems weird for PL/SQL TABLE, but I must follow the code.
 			assert.deepStrictEqual(bind.val, ['val1', 'val2']);
@@ -212,7 +213,7 @@ describe('handler/plsql/procedureNamed', () => {
 
 			const bind = result.bind as Record<string, any>;
 			assert.strictEqual(bind.p_P2?.val, 'val');
-			assert.strictEqual(bind.p_P2?.type, DB.DB_TYPE_VARCHAR);
+			assert.strictEqual(bind.p_P2?.type, oracledb.DB_TYPE_VARCHAR);
 		});
 	});
 });

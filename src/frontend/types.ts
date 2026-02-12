@@ -88,7 +88,6 @@ export const bucketSchema = z.strictObject({
  */
 const routeConfigSchema = z.strictObject({
 	route: z.string(),
-	// PL/SQL specific
 	user: z.string().optional(),
 	password: z.string().optional(),
 	connectString: z.string().optional(),
@@ -100,7 +99,6 @@ const routeConfigSchema = z.strictObject({
 	requestValidationFunction: z.string().optional(),
 	transactionMode: z.unknown().optional(),
 	errorStyle: z.string().optional(),
-	// Static specific
 	directoryPath: z.string().optional(),
 });
 

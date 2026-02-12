@@ -1,9 +1,8 @@
 import z from 'zod';
 import {configStaticSchema} from '../common/configStaticSchema.ts';
-import type {BindParameter, Connection, Result, BindParameterConfig} from './util/db.ts';
+import type {Connection} from 'oracledb';
 import type {CookieOptions} from 'express';
 import type {Readable} from 'node:stream';
-export type {BindParameter, Connection, Result, CookieOptions, BindParameterConfig};
 import type {Cache} from './util/cache.ts';
 
 export {procedureTraceEntrySchema, type procedureTraceEntry} from '../common/procedureTraceEntry.ts';
@@ -39,6 +38,27 @@ const transactionModeSchema = z.union([
 export type transactionModeType = z.infer<typeof transactionModeSchema>;
 
 /**
+ * Authentication callback signature.
+ * Returns the identity string on success, or null on failure.
+ * @public
+ */
+export type AuthCallback = (credentials: {username: string; password?: string | undefined}) => Promise<string | null>;
+
+/**
+ * Authentication configuration for a PL/SQL route
+ */
+const z$authSchema = z.strictObject({
+	/** Authentication type */
+	type: z.literal('basic'),
+	/** Callback function to validate credentials */
+	callback: z.custom<AuthCallback>((val) => typeof val === 'function', {
+		message: 'Invalid auth callback',
+	}),
+	/** Authentication realm */
+	realm: z.string().optional(),
+});
+
+/**
  * PL/SQL handler behavior configuration
  */
 export const z$configPlSqlHandlerType = z.strictObject({
@@ -60,6 +80,8 @@ export const z$configPlSqlHandlerType = z.strictObject({
 	errorStyle: z$errorStyleType,
 	/** Static CGI environment variables to be passed to the session */
 	cgi: z.record(z.string(), z.string()).optional(),
+	/** Authentication settings */
+	auth: z$authSchema.optional(),
 });
 export type configPlSqlHandlerType = z.infer<typeof z$configPlSqlHandlerType>;
 

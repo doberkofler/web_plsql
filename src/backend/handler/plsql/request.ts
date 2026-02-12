@@ -12,7 +12,7 @@ import {getFiles} from './upload.ts';
 import {RequestError} from './requestError.ts';
 import {isStringOrArrayOfString} from '../../util/type.ts';
 import type {Request, Response} from 'express';
-import type {Pool} from '../../util/db.ts';
+import type {Pool} from 'oracledb';
 import type {argObjType, configPlSqlHandlerType, ProcedureNameCache, ArgumentCache} from '../../types.ts';
 
 /**
@@ -52,6 +52,7 @@ const normalizeBody = (req: Request): Record<string, string | string[]> => {
  * @param connectionPool - The connection pool.
  * @param procedureNameCache - The procedure name cache.
  * @param argumentCache - The argument cache.
+ * @param authenticatedUser - The authenticated user identity.
  * @returns Promise resolving to th page
  */
 export const processRequest = async (
@@ -61,6 +62,7 @@ export const processRequest = async (
 	connectionPool: Pool,
 	procedureNameCache: ProcedureNameCache,
 	argumentCache: ArgumentCache,
+	authenticatedUser: string | null = null,
 ): Promise<void> => {
 	debug('processRequest: ENTER');
 
@@ -73,7 +75,7 @@ export const processRequest = async (
 	const connection = await connectionPool.getConnection();
 
 	// Get the CGI
-	const cgiObj = getCGI(req, options.documentTable, options.cgi ?? {});
+	const cgiObj = getCGI(req, options.documentTable, options.cgi ?? {}, authenticatedUser);
 	debug('processRequest: cgiObj=', cgiObj);
 
 	// Does the request contain any files

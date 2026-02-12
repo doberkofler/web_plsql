@@ -1,5 +1,5 @@
-import type {executeCallbackType} from '../src/backend/util/db-mock.ts';
-import type {IDbBindParameterConfig, IDbBindParameter} from '../src/backend/util/db-types.ts';
+import type {BindParameters, BindParameter} from 'oracledb';
+import type {ExecuteCallback} from '../src/backend/util/oracledb-provider.ts';
 
 /**
  * Check if procedure name matches JSON response pattern.
@@ -319,7 +319,7 @@ const simulateError = (errorType: string, params: Record<string, unknown>): {del
  *
  * @returns The execute callback function.
  */
-export const createMockProcedureCallback = (): executeCallbackType => {
+export const createMockProcedureCallback = (): ExecuteCallback => {
 	// Track last executed procedure and its response
 	let lastProcedureName = '';
 	let lastParams: Record<string, unknown> = {};
@@ -327,7 +327,8 @@ export const createMockProcedureCallback = (): executeCallbackType => {
 	let lastResponse: string[] = [];
 	let delayMs = 0;
 
-	return (sql: string, bindParams?: IDbBindParameterConfig) => {
+	// eslint-disable-next-line @typescript-eslint/require-await
+	return async (sql: string, bindParams?: BindParameters) => {
 		const sqlLower = sql.toLowerCase();
 
 		// STRATEGY: Check bind parameter structure FIRST (most reliable)
@@ -339,7 +340,7 @@ export const createMockProcedureCallback = (): executeCallbackType => {
 		// SQL: DECLARE ... BEGIN dbms_utility.name_resolve(...); :resolved := l_schema || '.' || l_part1 || '.' || l_part2; END;
 		// Bind: {name: IN, resolved: OUT}
 		if (bindParams && 'resolved' in bindParams && 'name' in bindParams && !('names' in bindParams)) {
-			const nameParam = bindParams.name as IDbBindParameter;
+			const nameParam = bindParams.name as BindParameter;
 			const nameVal: unknown = nameParam?.val;
 			const procName = (typeof nameVal === 'string' ? nameVal : '').toLowerCase();
 
@@ -377,7 +378,7 @@ export const createMockProcedureCallback = (): executeCallbackType => {
 		// SQL: DECLARE l_valid NUMBER := 0; BEGIN IF (validation_func(:proc)) THEN l_valid := 1; END IF; :valid := l_valid; END;
 		// Bind: {proc: IN, valid: OUT}
 		if (bindParams && 'valid' in bindParams && 'proc' in bindParams) {
-			const procParam = bindParams.proc as IDbBindParameter;
+			const procParam = bindParams.proc as BindParameter;
 			const procName: unknown = procParam?.val;
 			const procNameStr = typeof procName === 'string' ? procName.toLowerCase() : '';
 
@@ -456,8 +457,8 @@ export const createMockProcedureCallback = (): executeCallbackType => {
 					for (const [key, value] of Object.entries(bindParams)) {
 						if (key.startsWith('p_')) {
 							const paramName = key.substring(2); // Remove 'p_' prefix
-							// NOTE: assuming value is IDbBindParameter for now as that is what our procedure handlers use
-							const param = value as IDbBindParameter;
+							// NOTE: assuming value is BindParameter for now as that is what our procedure handlers use
+							const param = value as BindParameter;
 							lastParams[paramName] = param.val;
 						}
 					}

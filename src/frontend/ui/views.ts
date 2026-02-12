@@ -1,9 +1,9 @@
-import {typedApi} from '../api.js';
-import {formatDuration, formatDateTime, formatMs} from '../util/format.js';
-import {poolCard} from '../templates/poolCard.js';
-import {renderConfig} from '../templates/config.js';
-import type {State, ServerConfig, SystemMetrics, logEntryType, procedureTraceEntry} from '../types.js';
-import {DataTable, type TableColumn} from './table.js';
+import {typedApi} from '../api.ts';
+import {formatDuration, formatDateTime, formatMs} from '../util/format.ts';
+import {poolCard} from '../templates/poolCard.ts';
+import {renderConfig} from '../templates/config.ts';
+import type {State, ServerConfig, SystemMetrics, logEntryType, procedureTraceEntry} from '../types.ts';
+import {DataTable, type TableColumn} from './table.ts';
 
 /**
  * Refresh the error logs view.

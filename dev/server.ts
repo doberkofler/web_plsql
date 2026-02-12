@@ -12,7 +12,7 @@ process.env.MOCK_ORACLE = 'true';
 
 // Dynamic imports to ensure env var is picked up
 const {startServer} = await import('../src/backend/server/server.ts');
-const {setExecuteCallback} = await import('../src/backend/util/db-mock.ts');
+const {setExecuteCallback} = await import('../src/backend/util/oracledb-provider.ts');
 const {createMockProcedureCallback} = await import('./mockProcedures.ts');
 const pkg = (await import('../package.json', {with: {type: 'json'}})).default;
 

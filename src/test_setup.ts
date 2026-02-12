@@ -1,6 +1,25 @@
 import {vi, afterEach, beforeAll} from 'vitest';
 import pkg from '../package.json' with {type: 'json'};
 
+// Mock oracledb for all unit tests
+vi.mock('oracledb', async () => {
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	const actual: any = await vi.importActual('oracledb');
+	const mock = await import('./backend/util/oracledb-mock.ts');
+	// eslint-disable-next-line @typescript-eslint/no-unsafe-return
+	return {
+		...actual,
+		...mock, // Spread named exports from mock (MockConnection, MockPool, setExecuteCallback)
+		// Override default export to include constants AND mock functions
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+		default: {
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+			...actual.default,
+			...mock.default,
+		},
+	};
+});
+
 beforeAll(() => {
 	// @ts-expect-error - __VERSION__ is injected by tsdown/esbuild at build time
 	globalThis.__VERSION__ = pkg.version;

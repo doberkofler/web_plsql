@@ -1,5 +1,5 @@
 import {describe, it, expect} from 'vitest';
-import {escapeHtml, convertAsciiToHtml, getHtmlPage} from './html.js';
+import {escapeHtml, convertAsciiToHtml, getHtmlPage} from './html.ts';
 
 describe('html', () => {
 	describe('escapeHtml', () => {

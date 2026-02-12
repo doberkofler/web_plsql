@@ -1,4 +1,4 @@
-import type {StatusResponse} from '../types.js';
+import type {StatusResponse} from '../types.ts';
 
 type PoolInfo = StatusResponse['pools'][number];
 

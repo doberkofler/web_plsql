@@ -1,26 +1,42 @@
 import debugModule from 'debug';
 const debug = debugModule('webplsql:server');
+
 import http from 'node:http';
 import https from 'node:https';
 import path from 'node:path';
 import {existsSync} from 'node:fs';
+import type {Socket} from 'node:net';
 import {fileURLToPath} from 'node:url';
 import express, {type Express, type Request, type Response, type NextFunction} from 'express';
+import type {Pool} from 'oracledb';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import compression from 'compression';
 import expressStaticGzip from 'express-static-gzip';
-import {z$configType, type configType, type configPlSqlType} from '../types.ts';
-import {installShutdown} from '../util/shutdown.ts';
-import {createPool, poolsClose, type Pool} from '../util/db.ts';
-import {handlerUpload} from '../handler/handlerUpload.ts';
-import {handlerLogger} from '../handler/handlerLogger.ts';
-import {handlerWebPlSql} from '../handler/plsql/handlerPlSql.ts';
-import {handlerAdmin} from '../handler/handlerAdmin.ts';
-import {readFileSyncUtf8, getJsonFile} from '../util/file.ts';
-import {showConfig} from './config.ts';
-import {AdminContext} from './adminContext.ts';
-import type {Socket} from 'node:net';
+
+import {
+	handlerWebPlSql,
+	handlerUpload,
+	handlerLogger,
+	handlerAdmin,
+	AdminContext,
+	showConfig,
+	readFileSyncUtf8,
+	getJsonFile,
+	installShutdown,
+	z$configType,
+	type configType,
+	type configPlSqlType,
+	oracledb,
+} from '../index.ts';
+
+/**
+ * Close multiple pools.
+ * @param pools - The pools to close.
+ */
+export const poolsClose = async (pools: Pool[]): Promise<void> => {
+	await Promise.all(pools.map((pool) => pool.close(0)));
+};
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -177,7 +193,7 @@ export const startServer = async (config: configType, ssl?: sslConfig): Promise<
 	// Oracle pl/sql express middleware
 	for (const i of internalConfig.routePlSql) {
 		// Allocate the Oracle database pool
-		const pool = await createPool({
+		const pool = await oracledb.createPool({
 			user: i.user,
 			password: i.password,
 			connectString: i.connectString,

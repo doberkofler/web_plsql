@@ -1,5 +1,5 @@
 import {describe, it, expect} from 'vitest';
-import {poolCard} from './poolCard.js';
+import {poolCard} from './poolCard.ts';
 
 describe('templates/poolCard', () => {
 	it('should render pool card with stats', () => {

@@ -56,7 +56,7 @@ describe('cgi', () => {
 
 		const cgi = getCGI(req, DOCUMENT_TABLE_NAME, {});
 
-		assert.strictEqual(Object.keys(cgi).length, 29);
+		assert.strictEqual(Object.keys(cgi).length, 30);
 
 		assert.deepStrictEqual(cgi, {
 			PLSQL_GATEWAY: 'WebDb',
@@ -72,6 +72,7 @@ describe('cgi', () => {
 			SERVER_PROTOCOL: 'HTTP/1.1',
 			REQUEST_PROTOCOL: 'HTTP',
 			REMOTE_USER: '',
+			AUTH_TYPE: '',
 			HTTP_USER_AGENT: 'USER-AGENT',
 			HTTP_X_FORWARDED_FOR: '',
 			HTTP_HOST: 'HOST',
@@ -89,6 +90,24 @@ describe('cgi', () => {
 			SCRIPT_PREFIX: '/pls',
 			HTTP_COOKIE: 'cookie1=value1;cookie2=value2;',
 		});
+	});
+
+	it('with authenticated user', () => {
+		const req = {
+			protocol: 'http',
+			originalUrl: '/pls/base/proc',
+			method: 'GET',
+			params: {name: 'proc'},
+			httpVersion: '1.1',
+			get: () => '',
+			cookies: {},
+			socket: {localPort: 80},
+		} as unknown as Request;
+
+		const cgi = getCGI(req, 'table', {}, 'TEST_USER');
+
+		assert.strictEqual(cgi.REMOTE_USER, 'TEST_USER');
+		assert.strictEqual(cgi.AUTH_TYPE, 'Basic');
 	});
 
 	it('with minimal configuration to cover fallback branches', () => {

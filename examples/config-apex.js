@@ -1,4 +1,4 @@
-import {startServer} from '../src/index.js';
+import {startServer} from '../src/index.ts';
 
 void startServer({
 	port: 80,

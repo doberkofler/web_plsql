@@ -1,4 +1,4 @@
-import type {logEntryType} from '../types.js';
+import type {logEntryType} from '../types.ts';
 
 /**
  * Error log row template.

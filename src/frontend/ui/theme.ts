@@ -1,4 +1,4 @@
-import type {State, ChartInstance} from '../types.js';
+import type {State, ChartInstance} from '../types.ts';
 
 /**
  * Theme colors for charts based on theme mode.

@@ -1,6 +1,6 @@
 import assert from 'node:assert';
 import {describe, it} from 'vitest';
-import {DB} from '../../util/db.ts';
+import oracledb from 'oracledb';
 import {getProcedureVariable} from '../../handler/plsql/procedureVariable.ts';
 import type {Request} from 'express';
 
@@ -14,7 +14,7 @@ describe('handler/plsql/procedureVariable', () => {
 
 		assert.strictEqual(result.sql, 'my_proc(:argnames, :argvalues)');
 		const bind = result.bind as Record<string, any>;
-		assert.strictEqual(bind.argnames?.type, DB.STRING);
+		assert.strictEqual(bind.argnames?.type, oracledb.STRING);
 		assert.deepStrictEqual(bind.argnames?.val, ['p1', 'p2']);
 		assert.deepStrictEqual(bind.argvalues?.val, ['v1', 'v2']);
 	});

@@ -1,5 +1,5 @@
-import type {procedureTraceEntry} from '../types.js';
-import {formatMs} from '../util/format.js';
+import type {procedureTraceEntry} from '../types.ts';
+import {formatMs} from '../util/format.ts';
 
 /**
  * Render a single trace row for the trace table.

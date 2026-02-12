@@ -1,11 +1,11 @@
 import {Readable} from 'node:stream';
-import {DB} from '../../util/db.ts';
+import {BIND_OUT, BIND_INOUT, STRING, NUMBER} from '../../util/oracledb-provider.ts';
 import z from 'zod';
 import debugModule from 'debug';
 import {ProcedureError} from './procedureError.ts';
 import {errorToString} from '../../util/errorToString.ts';
 import {OWA_STREAM_CHUNK_SIZE, OWA_STREAM_BUFFER_SIZE} from '../../../common/constants.ts';
-import type {Connection, BindParameterConfig} from '../../types.ts';
+import type {Connection, BindParameters} from 'oracledb';
 
 const debug = debugModule('webplsql:owaPageStream');
 
@@ -31,9 +31,9 @@ export class OWAPageStream extends Readable {
 	async fetchChunk(): Promise<string[]> {
 		if (this.isDone) return [];
 
-		const bindParameter: BindParameterConfig = {
-			lines: {dir: DB.BIND_OUT, type: DB.STRING, maxArraySize: this.chunkSize},
-			irows: {dir: DB.BIND_INOUT, type: DB.NUMBER, val: this.chunkSize},
+		const bindParameter: BindParameters = {
+			lines: {dir: BIND_OUT, type: STRING, maxArraySize: this.chunkSize},
+			irows: {dir: BIND_INOUT, type: NUMBER, val: this.chunkSize},
 		};
 
 		const sqlStatement = 'BEGIN owa.get_page(thepage=>:lines, irows=>:irows); END;';

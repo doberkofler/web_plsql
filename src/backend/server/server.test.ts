@@ -61,14 +61,13 @@ vi.mock('oracledb', () => ({
 
 import {createServer, startServer, loadConfig} from '../server/server.ts';
 import {AdminContext} from '../server/adminContext.ts';
-import * as oracleUtils from '../util/db.ts';
+import oracledb from 'oracledb';
 import * as fileUtils from '../util/file.ts';
 import * as shutdownUtils from '../util/shutdown.ts';
 import type {configType} from '../types.ts';
 import http from 'node:http';
 import https from 'node:https';
 
-vi.mock('../util/db.ts');
 vi.mock('../util/file.ts');
 vi.mock('../util/shutdown.ts');
 
@@ -130,7 +129,7 @@ describe('server/server', () => {
 		AdminContext.pools = [];
 		AdminContext.caches = [];
 		AdminContext.paused = false;
-		vi.mocked(oracleUtils.createPool).mockResolvedValue({close: vi.fn()} as any);
+		vi.mocked(oracledb.createPool).mockResolvedValue({close: vi.fn()} as any);
 	});
 
 	describe('createServer', () => {
@@ -164,7 +163,7 @@ describe('server/server', () => {
 
 			const webServer = await startServer(validConfig);
 			expect(webServer.server).toBeDefined();
-			expect(oracleUtils.createPool).toHaveBeenCalled();
+			expect(oracledb.createPool).toHaveBeenCalled();
 			expect(shutdownUtils.installShutdown).toHaveBeenCalled();
 			await webServer.shutdown();
 		});

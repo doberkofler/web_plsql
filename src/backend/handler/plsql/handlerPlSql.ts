@@ -11,7 +11,7 @@ import {RequestError} from './requestError.ts';
 import {errorPage} from './errorPage.ts';
 import {Cache} from '../../util/cache.ts';
 import type {RequestHandler, Request, Response, NextFunction} from 'express';
-import type {Pool} from '../../util/db.ts';
+import type {Pool} from 'oracledb';
 import type {configPlSqlHandlerType, argsType} from '../../types.ts';
 
 type WebPlSqlRequestHandler = RequestHandler & {
@@ -39,6 +39,25 @@ const requestHandler = async (
 	argumentCache: Cache<argsType>,
 ): Promise<void> => {
 	try {
+		let authenticatedUser: string | null = null;
+
+		// authentication logic
+		if (options.auth?.type === 'basic') {
+			const b64auth = (req.headers.authorization ?? '').split(' ')[1] ?? '';
+			const [login, password] = Buffer.from(b64auth, 'base64').toString().split(':');
+
+			if (login) {
+				authenticatedUser = await options.auth.callback({username: login, password});
+			}
+
+			if (authenticatedUser === null) {
+				const realm = options.auth.realm ?? 'PL/SQL Gateway';
+				res.set('WWW-Authenticate', `Basic realm="${realm}"`);
+				res.status(401).send('Authentication required.');
+				return;
+			}
+		}
+
 		// should we switch to the default page if there is one defined
 		if (typeof req.params.name !== 'string' || req.params.name.length === 0) {
 			if (typeof options.defaultPage === 'string' && options.defaultPage.length > 0) {
@@ -50,7 +69,7 @@ const requestHandler = async (
 			}
 		} else {
 			// request handler
-			await processRequest(req, res, options, connectionPool, procedureNameCache, argumentCache);
+			await processRequest(req, res, options, connectionPool, procedureNameCache, argumentCache, authenticatedUser);
 		}
 	} catch (err) {
 		errorPage(req, res, options, err);

@@ -1,4 +1,4 @@
-import type {SystemMetrics} from '../types.js';
+import type {SystemMetrics} from '../types.ts';
 
 /**
  * Update the minimum and maximum metrics based on the current metrics.

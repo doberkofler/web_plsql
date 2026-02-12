@@ -6,7 +6,7 @@ import {RequestError} from '../../handler/plsql/requestError.ts';
 import {OWAPageStream} from '../../handler/plsql/owaPageStream.ts';
 import {ProcedureError} from '../../handler/plsql/procedureError.ts';
 import {Cache} from '../../util/cache.ts';
-import type {Connection} from '../../util/db.ts';
+import type {Connection} from 'oracledb';
 import type {configPlSqlHandlerType} from '../../types.ts';
 
 vi.mock('../../handler/plsql/errorPage.ts', () => ({

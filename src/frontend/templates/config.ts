@@ -1,4 +1,4 @@
-import type {ServerConfig, RouteConfig} from '../types.js';
+import type {ServerConfig, RouteConfig} from '../types.ts';
 
 /**
  * Render a stat row using the standardized format.

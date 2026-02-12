@@ -2,13 +2,14 @@
  *	RequestError
  */
 
-import type {environmentType, BindParameterConfig} from '../../types.ts';
+import type {environmentType} from '../../types.ts';
+import type {BindParameters} from 'oracledb';
 
 export class ProcedureError extends Error {
 	timestamp: Date;
 	environment: environmentType;
 	sql: string;
-	bind: BindParameterConfig;
+	bind: BindParameters;
 
 	/**
 	 * @param message - The error message.
@@ -16,7 +17,7 @@ export class ProcedureError extends Error {
 	 * @param sql - The SQL to execute.
 	 * @param bind - The bind parameters.
 	 */
-	constructor(message: string, environment: environmentType, sql: string, bind: BindParameterConfig) {
+	constructor(message: string, environment: environmentType, sql: string, bind: BindParameters) {
 		super(message);
 
 		// Maintains proper stack trace for where our error was thrown (only available on V8)

@@ -95,9 +95,10 @@ const trimPath = (value: string): string => value.replace(/^\/+|\/+$/g, '');
  * @param req - The req object represents the HTTP request.
  * @param doctable - The document table.
  * @param cgi - The additional cgi.
+ * @param authenticatedUser - The authenticated user.
  * @returns CGI object
  */
-export const getCGI = (req: Request, doctable: string, cgi: environmentType): environmentType => {
+export const getCGI = (req: Request, doctable: string, cgi: environmentType, authenticatedUser: string | null = null): environmentType => {
 	const PROTOCOL = req.protocol ? req.protocol.toUpperCase() : '';
 	const PATH = getPath(req);
 
@@ -109,6 +110,8 @@ export const getCGI = (req: Request, doctable: string, cgi: environmentType): en
 		REMOTE_ADDR: (req.ip ?? '').replace('::ffff:', ''),
 		SERVER_PROTOCOL: `${PROTOCOL}/${req.httpVersion}`,
 		REQUEST_PROTOCOL: PROTOCOL,
+		REMOTE_USER: authenticatedUser ?? '',
+		AUTH_TYPE: authenticatedUser ? 'Basic' : '',
 		HTTP_COOKIE: getCookieString(req),
 		HTTP_USER_AGENT: req.get('user-agent') ?? '',
 		HTTP_HOST: req.get('host') ?? '',

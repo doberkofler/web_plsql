@@ -9,7 +9,8 @@ import {errorToString} from '../../util/errorToString.ts';
 import {getHtmlPage} from '../../util/html.ts';
 import {jsonLogger} from '../../util/jsonLogger.ts';
 import type {Request, Response} from 'express';
-import type {BindParameterConfig, environmentType, configPlSqlHandlerType} from '../../types.ts';
+import type {environmentType, configPlSqlHandlerType} from '../../types.ts';
+import type {BindParameters} from 'oracledb';
 
 /**
  *	Get error data
@@ -22,7 +23,7 @@ const getErrorData = (req: Request, error: unknown): messageType => {
 	let message = '';
 	let environment: environmentType | null | undefined = null;
 	let sql: string | null | undefined = null;
-	let bind: BindParameterConfig | null | undefined = null;
+	let bind: BindParameters | null | undefined = null;
 
 	// what type of Error did we receive
 	if (error instanceof ProcedureError) {

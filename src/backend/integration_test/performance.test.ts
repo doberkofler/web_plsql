@@ -20,7 +20,7 @@
 
 import {describe, it, beforeAll, afterAll, beforeEach, expect} from 'vitest';
 import {performance} from 'node:perf_hooks';
-import {setExecuteCallback} from '../util/db-mock.ts';
+import {setExecuteCallback} from '../util/oracledb-provider.ts';
 import {serverStart, serverStop, sqlExecuteProxy, PATH, DEFAULT_PAGE, PORT} from './server.ts';
 import type {serverConfigType} from './server.ts';
 
@@ -45,7 +45,7 @@ describe('Performance Regression Tests', () => {
 
 	beforeEach(() => {
 		// Reset the mock execution callback before each test
-		setExecuteCallback();
+		setExecuteCallback(null);
 	});
 
 	it.skipIf(skipPerf)('should maintain acceptable latency for sequential requests', {timeout: 30000}, async () => {
