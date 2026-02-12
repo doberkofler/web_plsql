@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import type {TraceEntry} from '../../frontend/types.ts';
+import type {procedureTraceEntry} from '../types.ts';
 
 class TraceManager {
 	enabled: boolean;
@@ -33,7 +33,7 @@ class TraceManager {
 	 * Add a trace entry
 	 * @param entry - The trace entry
 	 */
-	addTrace(entry: TraceEntry): void {
+	addTrace(entry: procedureTraceEntry): void {
 		if (!this.enabled) return;
 
 		try {

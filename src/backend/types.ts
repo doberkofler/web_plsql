@@ -6,6 +6,9 @@ import type {Readable} from 'node:stream';
 export type {BindParameter, Connection, Result, CookieOptions, BindParameterConfig};
 import type {Cache} from './util/cache.ts';
 
+export {procedureTraceEntrySchema, type procedureTraceEntry} from '../common/procedureTraceEntry.ts';
+export {logEntrySchema, type logEntryType} from '../common/logEntrySchema.ts';
+
 /**
  * Defines the style of error reporting
  * 'basic': standard error messages

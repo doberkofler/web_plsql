@@ -40,7 +40,7 @@ export class OWAPageStream extends Readable {
 
 		try {
 			const result = await this.databaseConnection.execute(sqlStatement, bindParameter);
-			const {lines, irows} = z.object({irows: z.number(), lines: z.array(z.string())}).parse(result.outBinds);
+			const {lines, irows} = z.strictObject({irows: z.number(), lines: z.array(z.string())}).parse(result.outBinds);
 
 			debug(`fetched ${lines.length} lines (irows=${irows})`);
 

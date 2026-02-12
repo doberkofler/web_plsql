@@ -21,7 +21,7 @@ import {errorToString} from '../../util/errorToString.ts';
 import {sanitizeProcName} from './procedureSanitize.ts';
 import {OWAPageStream} from './owaPageStream.ts';
 import {traceManager} from '../../util/traceManager.ts';
-import type {TraceEntry} from '../../../frontend/types.ts';
+import type {procedureTraceEntry} from '../../../frontend/types.ts';
 import type {Request, Response} from 'express';
 import type {Connection, Result, Lob} from '../../util/db.ts';
 import type {argObjType, fileUploadType, environmentType, configPlSqlHandlerType, BindParameterConfig, ProcedureNameCache, ArgumentCache} from '../../types.ts';
@@ -224,7 +224,7 @@ export const invokeProcedure = async (
 	debug('invokeProcedure: begin');
 
 	const startTime = Date.now();
-	let traceData: TraceEntry | null = null;
+	let traceData: procedureTraceEntry | null = null;
 
 	if (traceManager.isEnabled()) {
 		traceData = {
@@ -255,6 +255,7 @@ export const invokeProcedure = async (
 
 				await Promise.all(filesToUpload.map((file) => uploadFile(file, documentTable, databaseConnection)));
 			} else {
+				// FIXME: this should be standartized
 				console.warn(`Unable to upload "${filesToUpload.length}" files because the option ""doctable" has not been defined`);
 			}
 		}

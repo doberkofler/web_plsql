@@ -2,14 +2,15 @@ import {z} from 'zod';
 import {
 	statusSchema,
 	bucketSchema,
-	errorLogSchema,
+	logEntrySchema,
 	accessLogResponseSchema,
 	traceEntrySchema,
 	type StatusResponse,
-	type ErrorLogResponse,
+	type logEntryType,
 	type AccessLogResponse,
-} from './schemas.js';
-import type {TraceEntry, HistoryBucket} from './types.js';
+	type procedureTraceEntry,
+	type HistoryBucket,
+} from './types.ts';
 
 /**
  * Validates response data against a Zod schema.
@@ -22,6 +23,7 @@ import type {TraceEntry, HistoryBucket} from './types.js';
 function validate<T>(data: unknown, schema: z.ZodType<T>, path: string): T {
 	const result = schema.safeParse(data);
 	if (!result.success) {
+		// FIXME: this must be standartized
 		throw new Error(`Validation failed for ${path}: ${result.error.message}`);
 	}
 	return result.data;
@@ -90,7 +92,7 @@ export const typedApi = {
 	 * @param filter - Optional filter string.
 	 * @returns The validated error log response.
 	 */
-	async getErrorLogs(limit = 100, filter = ''): Promise<ErrorLogResponse[]> {
+	async getErrorLogs(limit = 100, filter = ''): Promise<logEntryType[]> {
 		const query = new URLSearchParams({
 			limit: limit.toString(),
 			filter,
@@ -98,7 +100,7 @@ export const typedApi = {
 		const res = await fetchWithRetry(`api/logs/error?${query.toString()}`);
 		if (!res.ok) throw new Error(`GET api/logs/error failed: ${res.statusText}`);
 		const data: unknown = await res.json();
-		return validate(data, z.array(errorLogSchema), 'api/logs/error');
+		return validate(data, z.array(logEntrySchema), 'api/logs/error');
 	},
 
 	/**
@@ -126,7 +128,7 @@ export const typedApi = {
 	 * @param filter - Optional filter string.
 	 * @returns The validated trace log response.
 	 */
-	async getTraceLogs(limit = 100, filter = ''): Promise<TraceEntry[]> {
+	async getTraceLogs(limit = 100, filter = ''): Promise<procedureTraceEntry[]> {
 		const query = new URLSearchParams({
 			limit: limit.toString(),
 			filter,

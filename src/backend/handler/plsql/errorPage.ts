@@ -84,9 +84,9 @@ export const errorPage = (req: Request, res: Response, options: configPlSqlHandl
 		},
 		details: {
 			fullMessage: errorData.message,
-			sql: errorData.sql,
+			sql: errorData.sql ?? '',
 			bind: errorData.bind,
-			environment: errorData.environment,
+			environment: errorData.environment ?? {},
 		},
 	});
 

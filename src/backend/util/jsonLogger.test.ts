@@ -1,7 +1,7 @@
-import {describe, it, expect, afterEach, vi} from 'vitest';
-import {JsonLogger} from '../../../src/backend/util/jsonLogger.ts';
 import fs from 'node:fs';
-import type {LogEntry} from '../../../src/backend/util/jsonLogger.ts';
+import {describe, it, expect, afterEach, vi} from 'vitest';
+import {JsonLogger} from './jsonLogger.ts';
+import {type logEntryType} from '../types.ts';
 
 describe('JsonLogger', () => {
 	const createdFiles = new Set<string>();
@@ -33,11 +33,13 @@ describe('JsonLogger', () => {
 	it('should write a valid JSON log entry', async () => {
 		const filename = 'test-valid.log';
 		const logger = createLogger(filename);
-		const entry: LogEntry = {
+		const entry: logEntryType = {
 			timestamp: new Date().toISOString(),
 			type: 'error',
 			message: 'Test error',
-			details: {stack: 'Error: Test error'},
+			details: {
+				fullMessage: 'Error: Test error',
+			},
 		};
 
 		logger.log(entry);
@@ -52,25 +54,24 @@ describe('JsonLogger', () => {
 		const lines = content.trim().split('\n');
 		const lastLine = lines[lines.length - 1];
 		if (!lastLine) throw new Error('No last line found');
-		const parsed = JSON.parse(lastLine) as LogEntry & {details: {stack: string}};
+		const parsed = JSON.parse(lastLine) as logEntryType;
 
 		expect(parsed).toMatchObject({
 			type: 'error',
 			message: 'Test error',
 		});
 		expect(parsed.timestamp).toBeDefined();
-		expect(parsed.details.stack).toBe('Error: Test error');
+		expect(parsed.details?.fullMessage).toBe('Error: Test error');
 	});
 
 	it('should add timestamp if missing', async () => {
 		const filename = 'test-timestamp.log';
 		const logger = createLogger(filename);
-		const entry: LogEntry = {
+
+		logger.log({
 			type: 'error',
 			message: 'No timestamp',
-		};
-
-		logger.log(entry);
+		});
 
 		// Wait and close to ensure it's written
 		await new Promise((resolve) => {
@@ -82,7 +83,7 @@ describe('JsonLogger', () => {
 		const lines = content.trim().split('\n');
 		const lastLine = lines[lines.length - 1];
 		if (!lastLine) throw new Error('No last line found');
-		const parsed = JSON.parse(lastLine) as LogEntry;
+		const parsed = JSON.parse(lastLine) as logEntryType;
 
 		expect(parsed.timestamp).toBeDefined();
 		expect(parsed.message).toBe('No timestamp');

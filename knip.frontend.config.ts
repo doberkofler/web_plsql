@@ -17,6 +17,8 @@ const config: KnipConfig = {
 		'@types/cors',
 		'@types/morgan',
 		'cors',
+		'@eslint/js',
+		'globals',
 	],
 };
 

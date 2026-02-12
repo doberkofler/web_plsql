@@ -7,6 +7,8 @@ import {traceManager} from '../util/traceManager.ts';
 import {getVersion} from '../version.ts';
 import {SHUTDOWN_GRACE_DELAY_MS} from '../../common/constants.ts';
 import {forceShutdown} from '../util/shutdown.ts';
+import {logEntrySchema, procedureTraceEntrySchema} from '../types.ts';
+import {z} from 'zod';
 
 const version = () => getVersion();
 
@@ -163,22 +165,25 @@ handlerAdmin.get('/api/logs/error', async (req: Request, res: Response) => {
 		const filter = typeof req.query.filter === 'string' ? req.query.filter : '';
 		const logFile = 'error.json.log';
 		const lines = await readLastLines(logFile, limit, filter);
-
-		const logs: Record<string, unknown>[] = [];
-		for (const line of lines) {
-			try {
-				const parsed = JSON.parse(line) as unknown;
-				if (parsed && typeof parsed === 'object') {
-					logs.push(parsed as Record<string, unknown>);
+		const parsedLines = lines
+			.map((line) => {
+				try {
+					return JSON.parse(line) as unknown;
+				} catch {
+					return null;
 				}
-			} catch {
-				// ignore
-			}
+			})
+			.filter((l): l is unknown => l !== null);
+		const schema = z.array(logEntrySchema);
+		const logs = schema.safeParse(parsedLines);
+		if (!logs.success) {
+			// FIXME: this must be standardized
+			throw new Error(`Validation failed: ${logs.error.message}`);
 		}
 
-		res.json(logs.reverse());
+		return res.json(logs.data.reverse());
 	} catch (err) {
-		res.status(500).json({error: String(err)});
+		return res.status(500).json({error: String(err)});
 	}
 });
 
@@ -261,22 +266,25 @@ handlerAdmin.get('/api/trace/logs', async (req: Request, res: Response) => {
 		const filter = typeof req.query.filter === 'string' ? req.query.filter : '';
 		const logFile = traceManager.getFilePath();
 		const lines = await readLastLines(logFile, limit, filter);
-
-		const logs: Record<string, unknown>[] = [];
-		for (const line of lines) {
-			try {
-				const parsed = JSON.parse(line) as unknown;
-				if (parsed && typeof parsed === 'object') {
-					logs.push(parsed as Record<string, unknown>);
+		const parsedLines = lines
+			.map((line) => {
+				try {
+					return JSON.parse(line) as unknown;
+				} catch {
+					return null;
 				}
-			} catch {
-				// ignore
-			}
+			})
+			.filter((l): l is unknown => l !== null);
+		const schema = z.array(procedureTraceEntrySchema);
+		const logs = schema.safeParse(parsedLines);
+		if (!logs.success) {
+			// FIXME: this must be standardized
+			throw new Error(`Validation failed: ${logs.error.message}`);
 		}
 
-		res.json(logs.reverse());
+		return res.json(logs.data.reverse());
 	} catch (err) {
-		res.status(500).json({error: String(err)});
+		return res.status(500).json({error: String(err)});
 	}
 });
 

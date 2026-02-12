@@ -2,7 +2,7 @@ import {typedApi} from '../api.js';
 import {formatDuration, formatDateTime, formatMs} from '../util/format.js';
 import {poolCard} from '../templates/poolCard.js';
 import {renderConfig} from '../templates/config.js';
-import type {State, ServerConfig, SystemMetrics, ErrorLogResponse, TraceEntry} from '../types.js';
+import type {State, ServerConfig, SystemMetrics, logEntryType, procedureTraceEntry} from '../types.js';
 import {DataTable, type TableColumn} from './table.js';
 
 /**
@@ -17,7 +17,7 @@ export async function refreshErrors(): Promise<void> {
 
 	const logs = await typedApi.getErrorLogs(limit, filter);
 
-	const columns: TableColumn<ErrorLogResponse>[] = [
+	const columns: TableColumn<logEntryType>[] = [
 		{
 			id: 'timestamp',
 			header: 'Timestamp',
@@ -57,7 +57,7 @@ export async function refreshErrors(): Promise<void> {
 		},
 	];
 
-	const table = new DataTable<ErrorLogResponse>('errors-table', {
+	const table = new DataTable<logEntryType>('errors-table', {
 		columns,
 		dense: true,
 		onRowClick: (log) => {
@@ -192,7 +192,7 @@ export async function refreshTrace(): Promise<void> {
 
 	const logs = await typedApi.getTraceLogs(limit, filter);
 
-	const columns: TableColumn<TraceEntry>[] = [
+	const columns: TableColumn<procedureTraceEntry>[] = [
 		{
 			id: 'timestamp',
 			header: 'Timestamp',
@@ -245,7 +245,7 @@ export async function refreshTrace(): Promise<void> {
 		},
 	];
 
-	const table = new DataTable<TraceEntry>('trace-table', {
+	const table = new DataTable<procedureTraceEntry>('trace-table', {
 		columns,
 		dense: true,
 		tableLayout: 'auto',

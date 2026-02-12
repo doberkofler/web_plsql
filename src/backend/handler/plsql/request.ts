@@ -64,9 +64,9 @@ export const processRequest = async (
 ): Promise<void> => {
 	debug('processRequest: ENTER');
 
-	//
-	if (Array.isArray(req.params.name)) {
-		console.warn(`processRequest: WARNING: the req.params.name is not a string but an array of string: ${req.params.name.join(',')}`);
+	if (typeof req.params.name !== 'string') {
+		// FIXME: this should be standartized
+		console.warn(`processRequest: WARNING: the req.params.name is not a string but an array of string: ${req.params.name}`);
 	}
 
 	// open database connection

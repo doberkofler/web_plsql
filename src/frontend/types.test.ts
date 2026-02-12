@@ -1,5 +1,5 @@
 import {describe, it, expect} from 'vitest';
-import {traceEntrySchema} from './schemas.ts';
+import {traceEntrySchema} from './types.js';
 
 describe('Trace Zod Schemas', () => {
 	it('should validate full trace entry', () => {

@@ -20,7 +20,7 @@ const DOC_TABLE = 'docTable';
 export const PATH = '/base';
 export const DEFAULT_PAGE = 'sample.pageIndex';
 
-export type paraType = {name: string; value: string | string[]}[];
+type paraType = {name: string; value: string | string[]}[];
 
 /**
  * Server configuration result type.
@@ -31,7 +31,7 @@ export type serverConfigType = {
 	connectionPool: Pool;
 };
 
-export type configOptionsType = {
+type configOptionsType = {
 	log?: boolean;
 	transactionMode?: transactionModeType;
 };

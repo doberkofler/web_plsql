@@ -1,13 +1,7 @@
 import * as rotatingFileStream from 'rotating-file-stream';
 import {JSON_LOG_ROTATION_SIZE, JSON_LOG_ROTATION_INTERVAL, JSON_LOG_MAX_ROTATED_FILES} from '../../common/constants.ts';
-
-export type LogEntry = {
-	timestamp?: string;
-	type: 'error' | 'info' | 'warning';
-	message: string;
-	req?: object;
-	details?: object;
-};
+import {type logEntryType} from '../types.ts';
+import {type MakeOptional} from '../../common/typeUtilities';
 
 export class JsonLogger {
 	stream: rotatingFileStream.RotatingFileStream;
@@ -25,7 +19,7 @@ export class JsonLogger {
 	 * Log an entry as NDJSON.
 	 * @param entry - The entry to log.
 	 */
-	log(entry: LogEntry): void {
+	log(entry: MakeOptional<logEntryType, 'timestamp'>): void {
 		try {
 			// Ensure timestamp exists
 			entry.timestamp ??= new Date().toISOString();

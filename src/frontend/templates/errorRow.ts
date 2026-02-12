@@ -1,4 +1,4 @@
-import type {ErrorLogResponse} from '../schemas.js';
+import type {logEntryType} from '../types.js';
 
 /**
  * Error log row template.
@@ -6,7 +6,7 @@ import type {ErrorLogResponse} from '../schemas.js';
  * @param l - The error log entry.
  * @returns HTML string for the error row.
  */
-export function errorRow(l: ErrorLogResponse): string {
+export function errorRow(l: logEntryType): string {
 	return `
         <tr title="Click to see full error details">
             <td title="Timestamp: ${new Date(l.timestamp).toLocaleString()}">${new Date(l.timestamp).toLocaleString()}</td>

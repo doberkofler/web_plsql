@@ -1,10 +1,10 @@
 import {describe, it, expect} from 'vitest';
 import {traceRow} from '../templates/traceRow.ts';
-import type {TraceEntry} from '../types.ts';
+import type {procedureTraceEntry} from '../types.ts';
 
 describe('Trace Templates', () => {
 	it('should render trace row', () => {
-		const trace: TraceEntry = {
+		const trace: procedureTraceEntry = {
 			id: '123',
 			timestamp: '2024-01-01T12:00:00Z',
 			source: '1.2.3.4',
@@ -24,7 +24,7 @@ describe('Trace Templates', () => {
 	});
 
 	it('should handle missing procedure', () => {
-		const trace: TraceEntry = {
+		const trace: procedureTraceEntry = {
 			id: '123',
 			timestamp: '2024-01-01T12:00:00Z',
 			source: '1.2.3.4',

@@ -173,7 +173,7 @@ describe('handler/handlerAdmin', () => {
 			readline.default.createInterface.mockReturnValueOnce({
 				[Symbol.asyncIterator]: async function* () {
 					await Promise.resolve();
-					yield '{"type":"error","message":"valid"}';
+					yield '{"timestamp":"2026-02-12T00:00:00.000Z","type":"error","message":"valid"}';
 					yield 'invalid json';
 				},
 			});
@@ -271,15 +271,24 @@ describe('handler/handlerAdmin', () => {
 			const readline = await import('node:readline');
 			// @ts-expect-error - mock createInterface implementation for testing purposes in Vitest
 			readline.default.createInterface.mockReturnValueOnce({
-				[Symbol.asyncIterator]: function* () {
-					yield '{"msg":"trace1"}';
+				[Symbol.asyncIterator]: async function* () {
+					await Promise.resolve();
+					yield JSON.stringify({
+						id: '1',
+						timestamp: new Date().toISOString(),
+						source: 'test',
+						url: '/test',
+						method: 'GET',
+						status: '200',
+						duration: 10,
+					});
 				},
 			});
 
 			const res = await request(app).get('/admin/api/trace/logs');
 			expect(res.status).toBe(200);
 			expect(res.body).toHaveLength(1);
-			expect(res.body[0].msg).toBe('trace1');
+			expect(res.body[0].id).toBe('1');
 		});
 
 		it('POST /api/trace/clear should clear traces', async () => {

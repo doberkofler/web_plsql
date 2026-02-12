@@ -1,7 +1,6 @@
 import {Chart, LineController, LineElement, PointElement, LinearScale, CategoryScale, Filler, Tooltip, Legend, PieController, ArcElement} from 'chart.js';
 import {STATS_INTERVAL_MS} from '../common/constants.ts';
-import type {State, ChartInstance, HistoryBucket} from './types.js';
-import type {StatusResponse} from './schemas.js';
+import type {State, ChartInstance, HistoryBucket, StatusResponse} from './types.js';
 
 // Register Chart.js components
 Chart.register(LineController, LineElement, PointElement, LinearScale, CategoryScale, Filler, Tooltip, Legend, PieController, ArcElement);

@@ -1,10 +1,12 @@
 import {describe, it, expect} from 'vitest';
-import {errorRow} from './errorRow.js';
+import {errorRow} from './errorRow.ts';
+import {type logEntryType} from '../types.ts';
 
 describe('templates/errorRow', () => {
 	it('should render error row with full data', () => {
-		const errorData = {
+		const errorData: logEntryType = {
 			timestamp: '2024-01-01T12:00:00Z',
+			type: 'error',
 			message: 'Test error',
 			req: {
 				method: 'GET',
@@ -23,8 +25,9 @@ describe('templates/errorRow', () => {
 	});
 
 	it('should handle missing optional fields', () => {
-		const errorData = {
+		const errorData: logEntryType = {
 			timestamp: '2024-01-01T12:00:00Z',
+			type: 'error',
 			message: 'Test error',
 			req: undefined,
 			details: undefined,
@@ -37,8 +40,9 @@ describe('templates/errorRow', () => {
 	});
 
 	it('should handle req with missing method', () => {
-		const errorData = {
+		const errorData: logEntryType = {
 			timestamp: '2024-01-01T12:00:00Z',
+			type: 'error',
 			message: 'Error without method',
 			req: {
 				url: '/api/endpoint',
@@ -53,8 +57,9 @@ describe('templates/errorRow', () => {
 	});
 
 	it('should handle req with missing url', () => {
-		const errorData = {
+		const errorData: logEntryType = {
 			timestamp: '2024-01-01T12:00:00Z',
+			type: 'error',
 			message: 'Error without url',
 			req: {
 				method: 'POST',
@@ -69,8 +74,9 @@ describe('templates/errorRow', () => {
 	});
 
 	it('should handle details without fullMessage', () => {
-		const errorData = {
+		const errorData: logEntryType = {
 			timestamp: '2024-01-01T12:00:00Z',
+			type: 'error',
 			message: 'Error without details',
 			req: {
 				method: 'GET',
@@ -85,8 +91,9 @@ describe('templates/errorRow', () => {
 	});
 
 	it('should handle details with empty fullMessage', () => {
-		const errorData = {
+		const errorData: logEntryType = {
 			timestamp: '2024-01-01T12:00:00Z',
+			type: 'error',
 			message: 'Error with empty details',
 			req: {
 				method: 'GET',
@@ -103,8 +110,9 @@ describe('templates/errorRow', () => {
 	});
 
 	it('should render timestamp in locale format', () => {
-		const errorData = {
+		const errorData: logEntryType = {
 			timestamp: '2024-06-15T10:30:00.000Z',
+			type: 'error',
 			message: 'Timestamp test',
 			req: undefined,
 			details: undefined,
@@ -115,8 +123,9 @@ describe('templates/errorRow', () => {
 	});
 
 	it('should handle special characters in message', () => {
-		const errorData = {
+		const errorData: logEntryType = {
 			timestamp: '2024-01-01T12:00:00Z',
+			type: 'error',
 			message: 'Error with <script>alert("xss")</script>',
 			req: undefined,
 			details: undefined,

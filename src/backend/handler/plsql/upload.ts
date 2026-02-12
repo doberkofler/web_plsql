@@ -13,7 +13,7 @@ import type {Request} from 'express';
 import type {fileUploadType} from '../../types.ts';
 
 const z$reqFiles = z.array(
-	z.object({
+	z.strictObject({
 		fieldname: z.string(),
 		originalname: z.string(),
 		encoding: z.string(),

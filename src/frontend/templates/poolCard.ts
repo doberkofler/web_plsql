@@ -1,4 +1,4 @@
-import type {StatusResponse} from '../schemas.js';
+import type {StatusResponse} from '../types.js';
 
 type PoolInfo = StatusResponse['pools'][number];
 

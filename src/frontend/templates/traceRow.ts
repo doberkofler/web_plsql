@@ -1,4 +1,4 @@
-import type {TraceEntry} from '../types.js';
+import type {procedureTraceEntry} from '../types.js';
 import {formatMs} from '../util/format.js';
 
 /**
@@ -7,7 +7,7 @@ import {formatMs} from '../util/format.js';
  * @param trace - The trace log entry.
  * @returns HTML string.
  */
-export function traceRow(trace: TraceEntry): string {
+export function traceRow(trace: procedureTraceEntry): string {
 	const time = new Date(trace.timestamp).toLocaleTimeString();
 	const statusClass = trace.status === 'success' ? 'text-success' : 'text-danger';
 

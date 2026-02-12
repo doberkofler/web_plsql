@@ -70,7 +70,7 @@ const resolveProcedureName = async (procName: string, databaseConnection: Connec
 
 	try {
 		const result = await databaseConnection.execute(sql, bind);
-		const {resolved} = z.object({resolved: z.string()}).parse(result.outBinds);
+		const {resolved} = z.strictObject({resolved: z.string()}).parse(result.outBinds);
 
 		if (!resolved) {
 			throw new RequestError(`Could not resolve procedure name "${procName}"`);
