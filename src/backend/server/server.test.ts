@@ -184,12 +184,12 @@ describe('server/server', () => {
 
 	describe('adminAuth middleware (internal)', () => {
 		it('should respect adminContext.paused', async () => {
-			const server = (http.createServer as Mock)();
-			server.on.mockImplementation(function (event: string, callback: any) {
+			const serverMock = (http.createServer as Mock)();
+			serverMock.on.mockImplementation(function (event: string, callback: any) {
 				if (event === 'listening') {
 					process.nextTick(callback);
 				}
-				return server;
+				return serverMock;
 			});
 
 			const webServer = await startServer(validConfig);

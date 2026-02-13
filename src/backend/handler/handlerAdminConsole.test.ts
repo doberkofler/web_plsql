@@ -58,7 +58,9 @@ describe('handlerAdminConsole', () => {
 
 	describe('Factory validation', () => {
 		it('should return a Router', () => {
-			const adminContext = new AdminContext(mockConfig, [mockPool], [mockCache as any]);
+			const adminContext = new AdminContext(mockConfig);
+			adminContext.pools.push(mockPool);
+			adminContext.caches.push(mockCache as any);
 			const handler = handlerAdminConsole({adminRoute: '/admin', staticDir: '/tmp/dist'}, adminContext);
 			expect(typeof handler).toBe('function');
 			expect(handler.name).toBe('router');
@@ -68,27 +70,40 @@ describe('handlerAdminConsole', () => {
 			vi.mocked(existsSync).mockImplementation((p) => {
 				return p.toString().includes('package.json') || p.toString().includes('dist/frontend');
 			});
-			const adminContext = new AdminContext(mockConfig, [mockPool], [mockCache as any]);
+			const adminContext = new AdminContext(mockConfig);
+			adminContext.pools.push(mockPool);
+			adminContext.caches.push(mockCache as any);
 			const handler = handlerAdminConsole({adminRoute: '/admin'}, adminContext);
 			expect(typeof handler).toBe('function');
 		});
 
 		it('should throw if staticDir missing in prod mode', () => {
 			vi.mocked(existsSync).mockReturnValue(false);
-			const adminContext = new AdminContext(mockConfig, [mockPool], [mockCache as any]);
+			const adminContext = new AdminContext(mockConfig);
+			adminContext.pools.push(mockPool);
+			adminContext.caches.push(mockCache as any);
 			expect(() => handlerAdminConsole({adminRoute: '/admin', staticDir: '/non-existent'}, adminContext)).toThrow(/Admin console not built/);
 		});
 
-		it('should not throw if staticDir missing in devMode', () => {
-			vi.mocked(existsSync).mockReturnValue(false);
-			const adminContext = new AdminContext(mockConfig, [mockPool], [mockCache as any]);
-			expect(() => handlerAdminConsole({adminRoute: '/admin', staticDir: '/non-existent', devMode: true}, adminContext)).not.toThrow();
+		it('should use default /admin route when adminRoute is omitted', () => {
+			const adminContext = new AdminContext(mockConfig);
+			adminContext.pools.push(mockPool);
+			adminContext.caches.push(mockCache as any);
+			const handler = handlerAdminConsole({staticDir: '/tmp/dist'}, adminContext);
+			expect(typeof handler).toBe('function');
+		});
+
+		it('should throw if adminRoute does not start with /', () => {
+			const adminContext = new AdminContext(mockConfig);
+			expect(() => handlerAdminConsole({adminRoute: 'admin', staticDir: '/tmp/dist'}, adminContext)).toThrow(/adminRoute must start with \//);
 		});
 	});
 
 	describe('StatsManager hook', () => {
 		it('should inject pool snapshots into statsManager', () => {
-			const adminContext = new AdminContext(mockConfig, [mockPool], [mockCache as any]);
+			const adminContext = new AdminContext(mockConfig);
+			adminContext.pools.push(mockPool);
+			adminContext.caches.push(mockCache as any);
 			const spyRotate = vi.spyOn(adminContext.statsManager, 'rotateBucket');
 
 			handlerAdminConsole({adminRoute: '/admin', staticDir: '/tmp/dist'}, adminContext);

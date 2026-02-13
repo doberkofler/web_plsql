@@ -3,7 +3,7 @@ import type {Pool} from 'oracledb';
 import type {configType, argsType} from '../types.ts';
 import type {Cache} from '../util/cache.ts';
 
-export type PoolCacheEntry = {
+type PoolCacheEntry = {
 	poolName: string;
 	procedureNameCache: Cache<string>;
 	argumentCache: Cache<argsType>;
@@ -20,11 +20,11 @@ export class AdminContext {
 	readonly statsManager: StatsManager;
 	private _paused: boolean;
 
-	constructor(config: configType, pools: Pool[] = [], caches: PoolCacheEntry[] = []) {
+	constructor(config: configType) {
 		this.startTime = new Date();
 		this.config = config;
-		this.pools = pools;
-		this.caches = caches;
+		this.pools = [];
+		this.caches = [];
 		this.statsManager = new StatsManager();
 		this._paused = false;
 	}

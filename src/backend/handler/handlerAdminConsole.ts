@@ -29,10 +29,10 @@ export const resolveAdminStaticDir = (): string => {
 };
 
 export type AdminConsoleConfig = {
-	/** Base route for the admin console */
-	adminRoute: string;
+	/** Base route for the admin console (defaults to '/admin') */
+	adminRoute?: string | undefined;
 	/** Path to built admin frontend directory (optional - auto-detects if omitted) */
-	staticDir?: string;
+	staticDir?: string | undefined;
 	/** Optional username for basic auth */
 	user?: string | undefined;
 	/** Optional password for basic auth */
@@ -48,9 +48,14 @@ export type AdminConsoleConfig = {
  * @returns The express request handler.
  */
 export const handlerAdminConsole = (config: AdminConsoleConfig, adminContext: AdminContext): RequestHandler => {
+	const adminRoute = config.adminRoute ?? '/admin';
 	const resolvedStaticDir = config.staticDir ?? resolveAdminStaticDir();
 
 	// Validation
+	if (adminRoute && !adminRoute.startsWith('/')) {
+		throw new Error('adminRoute must start with /');
+	}
+
 	if (!config.devMode && !existsSync(resolvedStaticDir)) {
 		throw new Error(`Admin console not built. Run 'npm run build:frontend' first.\nExpected: ${resolvedStaticDir}`);
 	}
@@ -89,7 +94,7 @@ export const handlerAdminConsole = (config: AdminConsoleConfig, adminContext: Ad
 
 	// Pause middleware
 	router.use((req: Request, res: Response, next: NextFunction) => {
-		if (adminContext.paused && !req.path.startsWith(config.adminRoute)) {
+		if (adminContext.paused && !req.path.startsWith(adminRoute)) {
 			res.status(503).send('Server Paused');
 			return;
 		}
@@ -97,7 +102,7 @@ export const handlerAdminConsole = (config: AdminConsoleConfig, adminContext: Ad
 	});
 
 	// Route filter - all following middleware only apply to adminRoute
-	router.use(config.adminRoute, (req: Request, res: Response, next: NextFunction) => {
+	router.use(adminRoute, (req: Request, res: Response, next: NextFunction) => {
 		// Trailing slash redirect
 		const baseUrl = req.baseUrl || '';
 		const [path] = req.originalUrl.split('?');
@@ -111,7 +116,7 @@ export const handlerAdminConsole = (config: AdminConsoleConfig, adminContext: Ad
 
 	// Auth middleware
 	if (config.user && config.password) {
-		router.use(config.adminRoute, (req: Request, res: Response, next: NextFunction) => {
+		router.use(adminRoute, (req: Request, res: Response, next: NextFunction) => {
 			const b64auth = (req.headers.authorization ?? '').split(' ')[1] ?? '';
 			const [login, password] = Buffer.from(b64auth, 'base64').toString().split(':');
 
@@ -125,12 +130,12 @@ export const handlerAdminConsole = (config: AdminConsoleConfig, adminContext: Ad
 	}
 
 	// Mount handlerAdmin API routes
-	router.use(config.adminRoute, createAdminRouter(adminContext));
+	router.use(adminRoute, createAdminRouter(adminContext));
 
 	// Mount static files
 	if (existsSync(resolvedStaticDir)) {
 		router.use(
-			config.adminRoute,
+			adminRoute,
 			expressStaticGzip(resolvedStaticDir, {
 				enableBrotli: true,
 				orderPreference: ['br'],

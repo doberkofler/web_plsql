@@ -12,7 +12,7 @@ import {errorPage} from './errorPage.ts';
 import {Cache} from '../../util/cache.ts';
 import type {RequestHandler, Request, Response, NextFunction} from 'express';
 import type {Pool} from 'oracledb';
-import type {configPlSqlHandlerType, argsType} from '../../types.ts';
+import type {configPlSqlType, argsType} from '../../types.ts';
 import type {AdminContext} from '../../server/adminContext.ts';
 
 type WebPlSqlRequestHandler = RequestHandler & {
@@ -35,7 +35,7 @@ const requestHandler = async (
 	res: Response,
 	_next: NextFunction,
 	connectionPool: Pool,
-	options: configPlSqlHandlerType,
+	options: configPlSqlType,
 	procedureNameCache: Cache<string>,
 	argumentCache: Cache<argsType>,
 ): Promise<void> => {
@@ -83,18 +83,21 @@ const requestHandler = async (
  * @param connectionPool - The connection pool.
  * @param config - The configuration options.
  * @param adminContext - Optional admin context for self-registration and stats tracking.
- * @param route - Optional route for self-registration.
  * @returns The handler.
  */
-export const handlerWebPlSql = (connectionPool: Pool, config: configPlSqlHandlerType, adminContext?: AdminContext, route?: string): WebPlSqlRequestHandler => {
+export const handlerWebPlSql = (
+	connectionPool: Pool,
+	config: configPlSqlType,
+	adminContext?: AdminContext,
+): WebPlSqlRequestHandler & {procedureNameCache: Cache<string>; argumentCache: Cache<argsType>} => {
 	debug('options', config);
 
 	const procedureNameCache = new Cache<string>();
 	const argumentCache = new Cache<argsType>();
 
 	// Self-register with AdminContext
-	if (adminContext && route) {
-		adminContext.registerHandler(route, connectionPool, procedureNameCache, argumentCache);
+	if (adminContext) {
+		adminContext.registerHandler(config.route, connectionPool, procedureNameCache, argumentCache);
 	}
 
 	/**
@@ -102,23 +105,12 @@ export const handlerWebPlSql = (connectionPool: Pool, config: configPlSqlHandler
 	 * @param res - The response.
 	 * @param next - The next function.
 	 */
-	const handler = (req: Request, res: Response, next: NextFunction): void => {
-		// Stats tracking
-		if (adminContext) {
-			const start = process.hrtime();
-			res.on('finish', () => {
-				const diff = process.hrtime(start);
-				const duration = diff[0] * 1000 + diff[1] / 1_000_000;
-				adminContext.statsManager.recordRequest(duration, res.statusCode >= 400);
-			});
-		}
-
+	const handler = ((req: Request, res: Response, next: NextFunction) => {
 		void requestHandler(req, res, next, connectionPool, config, procedureNameCache, argumentCache);
-	};
+	}) as WebPlSqlRequestHandler;
 
-	// Expose caches for Admin Console
-	(handler as WebPlSqlRequestHandler).procedureNameCache = procedureNameCache;
-	(handler as WebPlSqlRequestHandler).argumentCache = argumentCache;
+	handler.procedureNameCache = procedureNameCache;
+	handler.argumentCache = argumentCache;
 
-	return handler as WebPlSqlRequestHandler;
+	return handler;
 };

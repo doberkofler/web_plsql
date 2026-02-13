@@ -27,8 +27,13 @@ describe('handler/plsql/handlerPlSql', () => {
 	it('should call errorPage if no procedure name and no default page', async () => {
 		const pool = {} as any;
 		const config = {
+			route: '/pls',
+			user: 'scott',
+			password: 'tiger',
+			connectString: 'xe',
 			defaultPage: '', // Empty default page
 			documentTable: 'docs',
+			errorStyle: 'basic',
 		} as any;
 
 		const handler = handlerWebPlSql(pool, config);
@@ -56,8 +61,13 @@ describe('handler/plsql/handlerPlSql', () => {
 		const pool = {} as any;
 		const authCallback = vi.fn().mockResolvedValue('AUTH_USER');
 		const config = {
+			route: '/pls',
+			user: 'scott',
+			password: 'tiger',
+			connectString: 'xe',
 			defaultPage: 'index',
 			documentTable: 'docs',
+			errorStyle: 'basic',
 			auth: {
 				type: 'basic',
 				callback: authCallback,
@@ -92,6 +102,13 @@ describe('handler/plsql/handlerPlSql', () => {
 		const pool = {} as any;
 		const authCallback = vi.fn().mockResolvedValue(null);
 		const config = {
+			route: '/pls',
+			user: 'scott',
+			password: 'tiger',
+			connectString: 'xe',
+			defaultPage: 'index',
+			documentTable: 'docs',
+			errorStyle: 'basic',
 			auth: {
 				type: 'basic',
 				callback: authCallback,

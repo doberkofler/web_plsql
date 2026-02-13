@@ -52,7 +52,7 @@ describe('handler/handlerAdmin', () => {
 			],
 		};
 
-		adminContext = new AdminContext(mockConfig as any, [], []);
+		adminContext = new AdminContext(mockConfig as any);
 		adminContext.statsManager.stop();
 		// @ts-expect-error - overriding statsManager for testing
 		adminContext.statsManager = new StatsManager({

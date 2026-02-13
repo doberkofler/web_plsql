@@ -12,8 +12,10 @@ import cookieParser from 'cookie-parser';
 import compression from 'compression';
 import expressStaticGzip from 'express-static-gzip';
 
+// NOTE: it is only allowed to import from the API './index.ts'
 import {
 	handlerWebPlSql,
+	handlerAdminConsole,
 	handlerUpload,
 	handlerLogger,
 	AdminContext,
@@ -24,10 +26,8 @@ import {
 	z$configType,
 	type configType,
 	type configPlSqlType,
-	type PoolCacheEntry,
 	oracledb,
 } from '../index.ts';
-import {handlerAdminConsole} from '../handler/handlerAdminConsole.ts';
 
 /**
  * Close multiple pools.
@@ -99,73 +99,14 @@ export const startServer = async (config: configType, ssl?: sslConfig): Promise<
 	app.use(cookieParser());
 	app.use(compression());
 
-	// Admin console route
-	const adminRoute = internalConfig.adminRoute ?? '/admin';
-
-	const connectionPools: Pool[] = [];
-	const caches: PoolCacheEntry[] = [];
-
-	// Oracle pl/sql express middleware
-	const plsqlHandlers: {route: string; handler: ReturnType<typeof handlerWebPlSql>}[] = [];
-
-	for (const i of internalConfig.routePlSql) {
-		// Allocate the Oracle database pool
-		const pool = await oracledb.createPool({
-			user: i.user,
-			password: i.password,
-			connectString: i.connectString,
-		});
-		connectionPools.push(pool);
-
-		const {defaultPage, pathAlias, pathAliasProcedure, documentTable, exclusionList, requestValidationFunction, transactionMode, errorStyle, cgi} =
-			i as configPlSqlType;
-
-		const handler = handlerWebPlSql(pool, {
-			defaultPage,
-			pathAlias,
-			pathAliasProcedure,
-			documentTable,
-			exclusionList,
-			requestValidationFunction,
-			transactionMode,
-			errorStyle,
-			cgi,
-		});
-
-		plsqlHandlers.push({route: i.route, handler});
-
-		// Capture caches for admin console
-		caches.push({
-			poolName: i.route,
-			procedureNameCache: handler.procedureNameCache,
-			argumentCache: handler.argumentCache,
-		});
-	}
-
 	// Create AdminContext
-	const adminContext = new AdminContext(internalConfig, connectionPools, caches);
+	const adminContext = new AdminContext(internalConfig);
 
-	// Pause & Admin Auth middleware
-	app.use((req: Request, res: Response, next: NextFunction) => {
-		// Simple pause check for all PL/SQL routes (not admin)
-		if (adminContext.paused && !req.path.startsWith(adminRoute)) {
-			res.status(503).send('Server Paused');
-			return;
-		}
-
-		next();
-	});
-
-	// Access log
-	if (internalConfig.loggerFilename.length > 0) {
-		app.use(handlerLogger(internalConfig.loggerFilename));
-	}
-
-	// Mount Admin Console
+	// Mount Admin Console (includes Pause middleware)
 	app.use(
 		handlerAdminConsole(
 			{
-				adminRoute,
+				adminRoute: internalConfig.adminRoute,
 				user: internalConfig.adminUser,
 				password: internalConfig.adminPassword,
 				devMode: internalConfig.devMode,
@@ -173,6 +114,33 @@ export const startServer = async (config: configType, ssl?: sslConfig): Promise<
 			adminContext,
 		),
 	);
+
+	// Oracle pl/sql express middleware
+	for (const i of internalConfig.routePlSql) {
+		// Allocate the Oracle database pool
+		const pool = await oracledb.createPool({
+			user: i.user,
+			password: i.password,
+			connectString: i.connectString,
+		});
+
+		const handler = handlerWebPlSql(pool, i as configPlSqlType, adminContext);
+
+		app.use([`${i.route}/:name`, i.route], (req: Request, res: Response, next: NextFunction) => {
+			const start = process.hrtime();
+			res.on('finish', () => {
+				const diff = process.hrtime(start);
+				const duration = diff[0] * 1000 + diff[1] / 1_000_000;
+				adminContext.statsManager.recordRequest(duration, res.statusCode >= 400);
+			});
+			handler(req, res, next);
+		});
+	}
+
+	// Access log
+	if (internalConfig.loggerFilename.length > 0) {
+		app.use(handlerLogger(internalConfig.loggerFilename));
+	}
 
 	// Serving static files
 	for (const i of internalConfig.routeStatic) {
@@ -186,17 +154,7 @@ export const startServer = async (config: configType, ssl?: sslConfig): Promise<
 	}
 
 	// Mount PL/SQL handlers with stats tracking
-	for (const {route, handler} of plsqlHandlers) {
-		app.use([`${route}/:name`, route], (req: Request, res: Response, next: NextFunction) => {
-			const start = process.hrtime();
-			res.on('finish', () => {
-				const diff = process.hrtime(start);
-				const duration = diff[0] * 1000 + diff[1] / 1_000_000;
-				adminContext.statsManager.recordRequest(duration, res.statusCode >= 400);
-			});
-			handler(req, res, next);
-		});
-	}
+	// (already mounted in the loop above)
 
 	// create server
 	debug('startServer: createServer');
@@ -223,7 +181,7 @@ export const startServer = async (config: configType, ssl?: sslConfig): Promise<
 
 		adminContext.statsManager.stop();
 
-		await poolsClose(connectionPools);
+		await poolsClose(adminContext.pools);
 
 		server.close(() => {
 			console.log('Server has closed');
@@ -261,7 +219,7 @@ export const startServer = async (config: configType, ssl?: sslConfig): Promise<
 
 	return {
 		config: internalConfig,
-		connectionPools,
+		connectionPools: adminContext.pools,
 		app,
 		server,
 		adminContext,

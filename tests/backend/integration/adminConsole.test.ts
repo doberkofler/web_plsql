@@ -30,7 +30,9 @@ describe('Admin Console Integration', () => {
 			},
 		} as any;
 
-		adminContext = new AdminContext({} as any, [mockPool], [mockCache]);
+		adminContext = new AdminContext({} as any);
+		adminContext.pools.push(mockPool);
+		adminContext.caches.push(mockCache);
 
 		app.use(
 			handlerAdminConsole(

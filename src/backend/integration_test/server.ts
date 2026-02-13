@@ -9,7 +9,7 @@ import {handlerUpload} from '../handler/handlerUpload.ts';
 import type {Server} from 'node:http';
 import {type Pool, type BindParameter, type BindParameters} from 'oracledb';
 import {createPool, setExecuteCallback, type ExecuteCallback} from '../util/oracledb-provider.ts';
-import type {configPlSqlHandlerType, transactionModeType} from '../types.ts';
+import type {configPlSqlType, transactionModeType} from '../types.ts';
 
 // Enable mock oracle
 process.env.MOCK_ORACLE = 'true';
@@ -167,7 +167,11 @@ export const serverStart = async (config: configOptionsType = {}): Promise<serve
 	app.use(compression());
 
 	// add the oracle pl/sql express middleware
-	const options: configPlSqlHandlerType = {
+	const options: configPlSqlType = {
+		route: PATH,
+		user: 'sample',
+		password: 'sample',
+		connectString: 'localhost:1521/TEST',
 		defaultPage: DEFAULT_PAGE,
 		pathAlias: 'alias',
 		pathAliasProcedure: 'pathAlias',

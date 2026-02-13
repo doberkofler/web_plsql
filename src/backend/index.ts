@@ -9,7 +9,7 @@ export {getVersion} from './version.ts';
 export {showConfig} from './server/config.ts';
 export {createServer, startServer, loadConfig, startServerConfig} from './server/server.ts';
 export * from './util/shutdown.ts';
-export {AdminContext, type PoolCacheEntry} from './server/adminContext.ts';
+export {AdminContext} from './server/adminContext.ts';
 
 // handler
 export {handlerWebPlSql} from './handler/plsql/handlerPlSql.ts';
