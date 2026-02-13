@@ -66,18 +66,10 @@ export default defineConfig([
 			'jsdoc/require-param-description': 'error',
 			'jsdoc/require-property-description': 'error',
 			'jsdoc/require-returns-description': 'error',
-		},
-	},
-
-	// ================================================================================
-	// TYPESCRIPT OVERRIDES (Disable JSDoc types)
-	// ================================================================================
-	{
-		files: ['src/**/*.ts', 'src/**/*.tsx'],
-		rules: {
 			'jsdoc/require-param-type': 'off',
 			'jsdoc/require-returns-type': 'off',
 			'jsdoc/require-property-type': 'off',
+			'jsdoc/require-throws-type': 'off',
 		},
 	},
 

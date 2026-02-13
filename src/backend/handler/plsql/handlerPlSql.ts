@@ -13,6 +13,7 @@ import {Cache} from '../../util/cache.ts';
 import type {RequestHandler, Request, Response, NextFunction} from 'express';
 import type {Pool} from 'oracledb';
 import type {configPlSqlHandlerType, argsType} from '../../types.ts';
+import type {AdminContext} from '../../server/adminContext.ts';
 
 type WebPlSqlRequestHandler = RequestHandler & {
 	procedureNameCache: Cache<string>;
@@ -81,13 +82,20 @@ const requestHandler = async (
  *
  * @param connectionPool - The connection pool.
  * @param config - The configuration options.
+ * @param adminContext - Optional admin context for self-registration and stats tracking.
+ * @param route - Optional route for self-registration.
  * @returns The handler.
  */
-export const handlerWebPlSql = (connectionPool: Pool, config: configPlSqlHandlerType): WebPlSqlRequestHandler => {
+export const handlerWebPlSql = (connectionPool: Pool, config: configPlSqlHandlerType, adminContext?: AdminContext, route?: string): WebPlSqlRequestHandler => {
 	debug('options', config);
 
 	const procedureNameCache = new Cache<string>();
 	const argumentCache = new Cache<argsType>();
+
+	// Self-register with AdminContext
+	if (adminContext && route) {
+		adminContext.registerHandler(route, connectionPool, procedureNameCache, argumentCache);
+	}
 
 	/**
 	 * @param req - The request.
@@ -95,6 +103,16 @@ export const handlerWebPlSql = (connectionPool: Pool, config: configPlSqlHandler
 	 * @param next - The next function.
 	 */
 	const handler = (req: Request, res: Response, next: NextFunction): void => {
+		// Stats tracking
+		if (adminContext) {
+			const start = process.hrtime();
+			res.on('finish', () => {
+				const diff = process.hrtime(start);
+				const duration = diff[0] * 1000 + diff[1] / 1_000_000;
+				adminContext.statsManager.recordRequest(duration, res.statusCode >= 400);
+			});
+		}
+
 		void requestHandler(req, res, next, connectionPool, config, procedureNameCache, argumentCache);
 	};
 

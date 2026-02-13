@@ -1,12 +1,7 @@
 import {describe, it, expect, beforeAll, vi} from 'vitest';
 import request from 'supertest';
 import express from 'express';
-import path from 'path';
-import {fileURLToPath} from 'node:url';
 import {handlerAdminConsole, AdminContext} from '../../../src/backend/index.ts';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 describe('Admin Console Integration', () => {
 	let app: express.Express;
@@ -38,10 +33,9 @@ describe('Admin Console Integration', () => {
 		adminContext = new AdminContext({} as any, [mockPool], [mockCache]);
 
 		app.use(
-			adminPath,
 			handlerAdminConsole(
 				{
-					staticDir: path.join(__dirname, '../../../dist/frontend'),
+					adminRoute: adminPath,
 					user: 'admin',
 					password: 'password',
 					devMode: true, // Skip static dir check if not built
@@ -87,5 +81,20 @@ describe('Admin Console Integration', () => {
 			.get(adminPath + '/api/status')
 			.set('Authorization', auth);
 		expect(res.body.status).toBe('running');
+	});
+
+	it('should return 503 when paused and accessing non-admin route', async () => {
+		adminContext.setPaused(true);
+		// Mock a non-admin route
+		app.get('/other', (_req, res) => res.send('OK'));
+
+		const res = await request(app).get('/other');
+		expect(res.status).toBe(503);
+		expect(res.text).toBe('Server Paused');
+
+		adminContext.setPaused(false);
+		const res2 = await request(app).get('/other');
+		expect(res2.status).toBe(200);
+		expect(res2.text).toBe('OK');
 	});
 });

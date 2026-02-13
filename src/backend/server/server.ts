@@ -3,10 +3,8 @@ const debug = debugModule('webplsql:server');
 
 import http from 'node:http';
 import https from 'node:https';
-import path from 'node:path';
-import {existsSync} from 'node:fs';
 import type {Socket} from 'node:net';
-import {fileURLToPath} from 'node:url';
+
 import express, {type Express, type Request, type Response, type NextFunction} from 'express';
 import type {Pool} from 'oracledb';
 import cors from 'cors';
@@ -38,9 +36,6 @@ import {handlerAdminConsole} from '../handler/handlerAdminConsole.ts';
 export const poolsClose = async (pools: Pool[]): Promise<void> => {
 	await Promise.all(pools.map((pool) => pool.close(0)));
 };
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 export type webServer = {
 	config: configType;
@@ -107,12 +102,6 @@ export const startServer = async (config: configType, ssl?: sslConfig): Promise<
 	// Admin console route
 	const adminRoute = internalConfig.adminRoute ?? '/admin';
 
-	// Find project root by walking up from __dirname
-	let projectRoot = __dirname;
-	while (!existsSync(path.join(projectRoot, 'package.json')) && projectRoot !== '/') {
-		projectRoot = path.dirname(projectRoot);
-	}
-
 	const connectionPools: Pool[] = [];
 	const caches: PoolCacheEntry[] = [];
 
@@ -174,10 +163,9 @@ export const startServer = async (config: configType, ssl?: sslConfig): Promise<
 
 	// Mount Admin Console
 	app.use(
-		adminRoute,
 		handlerAdminConsole(
 			{
-				staticDir: path.join(projectRoot, 'dist', 'frontend'),
+				adminRoute,
 				user: internalConfig.adminUser,
 				password: internalConfig.adminPassword,
 				devMode: internalConfig.devMode,

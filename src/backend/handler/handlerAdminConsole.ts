@@ -1,12 +1,38 @@
 import {Router, type Request, type Response, type NextFunction, type RequestHandler} from 'express';
 import {existsSync} from 'node:fs';
+import path from 'node:path';
+import {fileURLToPath} from 'node:url';
 import expressStaticGzip from 'express-static-gzip';
 import type {AdminContext} from '../server/adminContext.ts';
 import {createAdminRouter} from './handlerAdmin.ts';
 
+/**
+ * Resolves the admin console static directory by walking up from the current module
+ * to find the project root (identified by package.json), then returns dist/frontend path.
+ * @returns Path to dist/frontend directory
+ * @throws {Error} if project root cannot be found
+ */
+export const resolveAdminStaticDir = (): string => {
+	const __filename = fileURLToPath(import.meta.url);
+	const __dirname = path.dirname(__filename);
+
+	let projectRoot = __dirname;
+	while (!existsSync(path.join(projectRoot, 'package.json')) && projectRoot !== '/') {
+		projectRoot = path.dirname(projectRoot);
+	}
+
+	if (projectRoot === '/') {
+		throw new Error('Could not find project root (package.json). Please provide explicit staticDir in AdminConsoleConfig.');
+	}
+
+	return path.join(projectRoot, 'dist', 'frontend');
+};
+
 export type AdminConsoleConfig = {
-	/** Path to built admin frontend directory */
-	staticDir: string;
+	/** Base route for the admin console */
+	adminRoute: string;
+	/** Path to built admin frontend directory (optional - auto-detects if omitted) */
+	staticDir?: string;
 	/** Optional username for basic auth */
 	user?: string | undefined;
 	/** Optional password for basic auth */
@@ -22,9 +48,11 @@ export type AdminConsoleConfig = {
  * @returns The express request handler.
  */
 export const handlerAdminConsole = (config: AdminConsoleConfig, adminContext: AdminContext): RequestHandler => {
+	const resolvedStaticDir = config.staticDir ?? resolveAdminStaticDir();
+
 	// Validation
-	if (!config.devMode && !existsSync(config.staticDir)) {
-		throw new Error(`Admin console not built. Run 'npm run build:frontend' first.\nExpected: ${config.staticDir}`);
+	if (!config.devMode && !existsSync(resolvedStaticDir)) {
+		throw new Error(`Admin console not built. Run 'npm run build:frontend' first.\nExpected: ${resolvedStaticDir}`);
 	}
 
 	// StatsManager hook
@@ -59,8 +87,18 @@ export const handlerAdminConsole = (config: AdminConsoleConfig, adminContext: Ad
 
 	const router = Router();
 
-	// Trailing slash redirect
+	// Pause middleware
 	router.use((req: Request, res: Response, next: NextFunction) => {
+		if (adminContext.paused && !req.path.startsWith(config.adminRoute)) {
+			res.status(503).send('Server Paused');
+			return;
+		}
+		next();
+	});
+
+	// Route filter - all following middleware only apply to adminRoute
+	router.use(config.adminRoute, (req: Request, res: Response, next: NextFunction) => {
+		// Trailing slash redirect
 		const baseUrl = req.baseUrl || '';
 		const [path] = req.originalUrl.split('?');
 
@@ -73,7 +111,7 @@ export const handlerAdminConsole = (config: AdminConsoleConfig, adminContext: Ad
 
 	// Auth middleware
 	if (config.user && config.password) {
-		router.use((req: Request, res: Response, next: NextFunction) => {
+		router.use(config.adminRoute, (req: Request, res: Response, next: NextFunction) => {
 			const b64auth = (req.headers.authorization ?? '').split(' ')[1] ?? '';
 			const [login, password] = Buffer.from(b64auth, 'base64').toString().split(':');
 
@@ -87,12 +125,13 @@ export const handlerAdminConsole = (config: AdminConsoleConfig, adminContext: Ad
 	}
 
 	// Mount handlerAdmin API routes
-	router.use(createAdminRouter(adminContext));
+	router.use(config.adminRoute, createAdminRouter(adminContext));
 
 	// Mount static files
-	if (existsSync(config.staticDir)) {
+	if (existsSync(resolvedStaticDir)) {
 		router.use(
-			expressStaticGzip(config.staticDir, {
+			config.adminRoute,
+			expressStaticGzip(resolvedStaticDir, {
 				enableBrotli: true,
 				orderPreference: ['br'],
 			}),

@@ -1,9 +1,10 @@
 import {describe, it, expect, vi, beforeEach} from 'vitest';
-import {handlerAdminConsole} from './handlerAdminConsole.ts';
+import {handlerAdminConsole, resolveAdminStaticDir} from './handlerAdminConsole.ts';
 import {AdminContext} from '../server/adminContext.ts';
 import type {Pool} from 'oracledb';
 import type {configType} from '../types.ts';
 import {existsSync} from 'node:fs';
+import path from 'node:path';
 
 vi.mock('node:fs', async (importOriginal) => {
 	const actual = await importOriginal<typeof import('node:fs')>();
@@ -36,24 +37,52 @@ describe('handlerAdminConsole', () => {
 		vi.mocked(existsSync).mockReturnValue(true);
 	});
 
+	describe('resolveAdminStaticDir', () => {
+		it('should return dist/frontend path when package.json found', () => {
+			vi.mocked(existsSync).mockImplementation((p) => {
+				return p.toString().includes('package.json');
+			});
+
+			const result = resolveAdminStaticDir();
+			expect(result).toContain('dist');
+			expect(result).toContain('frontend');
+			expect(path.isAbsolute(result)).toBe(true);
+		});
+
+		it('should throw when project root not found', () => {
+			vi.mocked(existsSync).mockReturnValue(false);
+
+			expect(() => resolveAdminStaticDir()).toThrow(/Could not find project root/);
+		});
+	});
+
 	describe('Factory validation', () => {
 		it('should return a Router', () => {
 			const adminContext = new AdminContext(mockConfig, [mockPool], [mockCache as any]);
-			const handler = handlerAdminConsole({staticDir: '/tmp/dist'}, adminContext);
+			const handler = handlerAdminConsole({adminRoute: '/admin', staticDir: '/tmp/dist'}, adminContext);
 			expect(typeof handler).toBe('function');
 			expect(handler.name).toBe('router');
+		});
+
+		it('should auto-detect staticDir when omitted', () => {
+			vi.mocked(existsSync).mockImplementation((p) => {
+				return p.toString().includes('package.json') || p.toString().includes('dist/frontend');
+			});
+			const adminContext = new AdminContext(mockConfig, [mockPool], [mockCache as any]);
+			const handler = handlerAdminConsole({adminRoute: '/admin'}, adminContext);
+			expect(typeof handler).toBe('function');
 		});
 
 		it('should throw if staticDir missing in prod mode', () => {
 			vi.mocked(existsSync).mockReturnValue(false);
 			const adminContext = new AdminContext(mockConfig, [mockPool], [mockCache as any]);
-			expect(() => handlerAdminConsole({staticDir: '/non-existent'}, adminContext)).toThrow(/Admin console not built/);
+			expect(() => handlerAdminConsole({adminRoute: '/admin', staticDir: '/non-existent'}, adminContext)).toThrow(/Admin console not built/);
 		});
 
 		it('should not throw if staticDir missing in devMode', () => {
 			vi.mocked(existsSync).mockReturnValue(false);
 			const adminContext = new AdminContext(mockConfig, [mockPool], [mockCache as any]);
-			expect(() => handlerAdminConsole({staticDir: '/non-existent', devMode: true}, adminContext)).not.toThrow();
+			expect(() => handlerAdminConsole({adminRoute: '/admin', staticDir: '/non-existent', devMode: true}, adminContext)).not.toThrow();
 		});
 	});
 
@@ -62,7 +91,7 @@ describe('handlerAdminConsole', () => {
 			const adminContext = new AdminContext(mockConfig, [mockPool], [mockCache as any]);
 			const spyRotate = vi.spyOn(adminContext.statsManager, 'rotateBucket');
 
-			handlerAdminConsole({staticDir: '/tmp/dist'}, adminContext);
+			handlerAdminConsole({adminRoute: '/admin', staticDir: '/tmp/dist'}, adminContext);
 
 			// Trigger rotation
 			adminContext.statsManager.rotateBucket();

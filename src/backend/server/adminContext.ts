@@ -20,13 +20,29 @@ export class AdminContext {
 	readonly statsManager: StatsManager;
 	private _paused: boolean;
 
-	constructor(config: configType, pools: Pool[], caches: PoolCacheEntry[]) {
+	constructor(config: configType, pools: Pool[] = [], caches: PoolCacheEntry[] = []) {
 		this.startTime = new Date();
 		this.config = config;
 		this.pools = pools;
 		this.caches = caches;
 		this.statsManager = new StatsManager();
 		this._paused = false;
+	}
+
+	/**
+	 * Register a PL/SQL handler with the admin context.
+	 * @param route - The route for the handler.
+	 * @param pool - The connection pool.
+	 * @param procedureNameCache - The procedure name cache.
+	 * @param argumentCache - The argument cache.
+	 */
+	registerHandler(route: string, pool: Pool, procedureNameCache: Cache<string>, argumentCache: Cache<argsType>): void {
+		this.pools.push(pool);
+		this.caches.push({
+			poolName: route,
+			procedureNameCache,
+			argumentCache,
+		});
 	}
 
 	get paused(): boolean {
