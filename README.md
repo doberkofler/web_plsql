@@ -121,9 +121,104 @@ The `startServer` api uses the following configuration object:
  */
 ```
 
-## Hand craft a new Express server using the `handlerWebPlSql` middleware
+## Hand Craft Express Server with Composable Middleware
 
-WIP
+web_plsql exports composable middleware components that can be integrated into any Express application.
+
+### Complete Manual Setup
+
+For full control over your Express application with PL/SQL routes and admin console:
+
+```typescript
+import express from 'express';
+import path from 'path';
+import {
+	handlerWebPlSql,
+	handlerAdminConsole,
+	AdminContext,
+	oracledb,
+	type configType,
+	type PoolCacheEntry,
+} from 'web_plsql';
+
+(async () => {
+	const app = express();
+
+	// 1. Define configuration
+	const config: configType = {
+		port: 8080,
+		routeStatic: [],
+		routePlSql: [{
+			route: '/myapp',
+			user: 'sample',
+			password: 'sample',
+			connectString: 'localhost:1521/ORCL',
+			defaultPage: 'myapp.home',
+			documentTable: 'doctable',
+			errorStyle: 'debug',
+		}],
+		uploadFileSizeLimit: 50 * 1024 * 1024,
+		loggerFilename: 'access.log',
+	};
+
+	// 2. Create Oracle connection pool
+	const pool = await oracledb.createPool({
+		user: config.routePlSql[0].user,
+		password: config.routePlSql[0].password,
+		connectString: config.routePlSql[0].connectString,
+	});
+
+	// 3. Create PL/SQL handler
+	const plsqlHandler = handlerWebPlSql(pool, {
+		defaultPage: config.routePlSql[0].defaultPage,
+		documentTable: config.routePlSql[0].documentTable,
+		errorStyle: config.routePlSql[0].errorStyle,
+	});
+
+	// 4. Create AdminContext (required for admin console)
+	const caches: PoolCacheEntry[] = [{
+		poolName: config.routePlSql[0].route,
+		procedureNameCache: plsqlHandler.procedureNameCache,
+		argumentCache: plsqlHandler.argumentCache,
+	}];
+	const adminContext = new AdminContext(config, [pool], caches);
+
+	// 5. Mount PL/SQL handler with stats tracking
+	app.use(config.routePlSql[0].route, (req, res, next) => {
+		const start = process.hrtime();
+		res.on('finish', () => {
+			const [s, ns] = process.hrtime(start);
+			adminContext.statsManager.recordRequest(s * 1000 + ns / 1e6, res.statusCode >= 400);
+		});
+		plsqlHandler(req, res, next);
+	});
+
+	// 6. Mount admin console
+	app.use('/admin', handlerAdminConsole({
+		staticDir: path.join(__dirname, 'node_modules/web_plsql/dist/frontend'),
+		user: 'admin',
+		password: 'secret',
+	}, adminContext));
+
+	// 7. Start server
+	app.listen(config.port, () => {
+		console.log(`Server running on port ${config.port}`);
+	});
+})();
+```
+
+### AdminContext Requirement
+
+The admin console requires an `AdminContext` instance to be passed as the second argument to `handlerAdminConsole`.
+
+**Using `startServer()` API:** `AdminContext` is managed automatically.
+
+**Using custom Express app:** You must instantiate `AdminContext` and pass it to the handler.
+
+```typescript
+const adminContext = new AdminContext(config, pools, caches);
+app.use('/admin', handlerAdminConsole(config, adminContext));
+```
 
 # Compare with mod_plsql
 

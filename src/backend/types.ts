@@ -1,6 +1,6 @@
 import z from 'zod';
 import {configStaticSchema} from '../common/configStaticSchema.ts';
-import type {Connection} from 'oracledb';
+import type {Connection, Pool} from 'oracledb';
 import type {CookieOptions} from 'express';
 import type {Readable} from 'node:stream';
 import type {Cache} from './util/cache.ts';
@@ -42,7 +42,7 @@ export type transactionModeType = z.infer<typeof transactionModeSchema>;
  * Returns the identity string on success, or null on failure.
  * @public
  */
-export type AuthCallback = (credentials: {username: string; password?: string | undefined}) => Promise<string | null>;
+export type AuthCallback = (connectionPool: Pool, credentials: {username: string; password?: string | undefined}) => Promise<string | null>;
 
 /**
  * Authentication configuration for a PL/SQL route

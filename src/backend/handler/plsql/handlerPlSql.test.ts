@@ -76,7 +76,7 @@ describe('handler/plsql/handlerPlSql', () => {
 		handler(req, res, next);
 		await new Promise((resolve) => setTimeout(resolve, 10));
 
-		expect(authCallback).toHaveBeenCalledWith({username: 'user', password: 'pass'});
+		expect(authCallback).toHaveBeenCalledWith(pool, {username: 'user', password: 'pass'});
 		expect(processRequest).toHaveBeenCalledWith(
 			expect.anything(),
 			expect.anything(),

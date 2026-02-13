@@ -47,7 +47,7 @@ const requestHandler = async (
 			const [login, password] = Buffer.from(b64auth, 'base64').toString().split(':');
 
 			if (login) {
-				authenticatedUser = await options.auth.callback({username: login, password});
+				authenticatedUser = await options.auth.callback(connectionPool, {username: login, password});
 			}
 
 			if (authenticatedUser === null) {

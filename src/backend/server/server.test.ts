@@ -60,7 +60,6 @@ vi.mock('oracledb', () => ({
 }));
 
 import {createServer, startServer, loadConfig} from '../server/server.ts';
-import {AdminContext} from '../server/adminContext.ts';
 import oracledb from 'oracledb';
 import * as fileUtils from '../util/file.ts';
 import * as shutdownUtils from '../util/shutdown.ts';
@@ -94,8 +93,12 @@ vi.mock('../handler/plsql/handlerPlSql.ts', () => ({
 }));
 
 vi.mock('../handler/handlerAdmin.ts', () => ({
-	handlerAdmin: vi.fn((_req, res) => {
-		res.status(200).send('admin');
+	createAdminRouter: vi.fn(() => {
+		const router = express.Router();
+		router.all('/', (_req, res) => {
+			res.status(200).send('admin');
+		});
+		return router;
 	}),
 }));
 
@@ -125,10 +128,6 @@ describe('server/server', () => {
 		vi.spyOn(processExitMock, 'exit').mockImplementation(() => {
 			return undefined as never;
 		});
-		AdminContext.config = null;
-		AdminContext.pools = [];
-		AdminContext.caches = [];
-		AdminContext.paused = false;
 		vi.mocked(oracledb.createPool).mockResolvedValue({close: vi.fn()} as any);
 	});
 
@@ -184,7 +183,7 @@ describe('server/server', () => {
 	});
 
 	describe('adminAuth middleware (internal)', () => {
-		it('should respect AdminContext.paused', async () => {
+		it('should respect adminContext.paused', async () => {
 			const server = (http.createServer as Mock)();
 			server.on.mockImplementation(function (event: string, callback: any) {
 				if (event === 'listening') {
@@ -194,7 +193,7 @@ describe('server/server', () => {
 			});
 
 			const webServer = await startServer(validConfig);
-			AdminContext.paused = true;
+			webServer.adminContext.setPaused(true);
 			const request = (await import('supertest')).default;
 			const response = await request(webServer.app).get('/pls/some_proc');
 			expect(response.status).toBe(503);

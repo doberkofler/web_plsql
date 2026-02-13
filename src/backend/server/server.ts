@@ -18,7 +18,6 @@ import {
 	handlerWebPlSql,
 	handlerUpload,
 	handlerLogger,
-	handlerAdmin,
 	AdminContext,
 	showConfig,
 	readFileSyncUtf8,
@@ -27,8 +26,10 @@ import {
 	z$configType,
 	type configType,
 	type configPlSqlType,
+	type PoolCacheEntry,
 	oracledb,
 } from '../index.ts';
+import {handlerAdminConsole} from '../handler/handlerAdminConsole.ts';
 
 /**
  * Close multiple pools.
@@ -46,6 +47,7 @@ export type webServer = {
 	connectionPools: Pool[];
 	app: Express;
 	server: http.Server | https.Server;
+	adminContext: AdminContext;
 	shutdown: () => Promise<void>;
 };
 
@@ -81,7 +83,6 @@ export const startServer = async (config: configType, ssl?: sslConfig): Promise<
 	debug('startServer: BEGIN', config, ssl);
 
 	const internalConfig = z$configType.parse(config);
-	AdminContext.config = internalConfig;
 
 	showConfig(internalConfig);
 
@@ -103,94 +104,21 @@ export const startServer = async (config: configType, ssl?: sslConfig): Promise<
 	app.use(cookieParser());
 	app.use(compression());
 
-	// Pause & Admin Auth middleware
-	app.use((req: Request, res: Response, next: NextFunction) => {
-		const adminRoute = internalConfig.adminRoute ?? '/admin';
-
-		// Simple pause check for all PL/SQL routes (not admin)
-		if (AdminContext.paused && !req.path.startsWith(adminRoute)) {
-			res.status(503).send('Server Paused');
-			return;
-		}
-
-		// Basic Auth for Admin Route
-		if (req.path.startsWith(adminRoute)) {
-			const user = internalConfig.adminUser;
-			const pass = internalConfig.adminPassword;
-
-			if (user && pass) {
-				const auth = {login: user, password: pass};
-				const b64auth = (req.headers.authorization ?? '').split(' ')[1] ?? '';
-				const [login, password] = Buffer.from(b64auth, 'base64').toString().split(':');
-
-				if (login !== auth.login || password !== auth.password) {
-					res.set('WWW-Authenticate', 'Basic realm="Admin Console"');
-					res.status(401).send('Authentication required.');
-					return;
-				}
-			}
-		}
-
-		next();
-	});
-
-	// Access log
-	if (internalConfig.loggerFilename.length > 0) {
-		app.use(handlerLogger(internalConfig.loggerFilename));
-	}
-
-	// Admin console
+	// Admin console route
 	const adminRoute = internalConfig.adminRoute ?? '/admin';
 
-	// Admin frontend must be built by vite into dist/frontend
-	// Find project root by walking up from __dirname (works in both src/ and dist/)
+	// Find project root by walking up from __dirname
 	let projectRoot = __dirname;
 	while (!existsSync(path.join(projectRoot, 'package.json')) && projectRoot !== '/') {
 		projectRoot = path.dirname(projectRoot);
 	}
-	const adminDirectory = path.join(projectRoot, 'dist', 'frontend');
-	if (!internalConfig.devMode && !existsSync(adminDirectory)) {
-		throw new Error(`Admin console not built. Run 'npm run build:frontend' first.\nExpected: ${adminDirectory}`);
-	}
-	debug(`Admin directory: ${adminDirectory}`);
-
-	// Ensure trailing slash for admin route to support relative paths
-	app.get(adminRoute, (req: Request, res: Response, next: NextFunction) => {
-		const [path] = req.originalUrl.split('?');
-		if (path === adminRoute) {
-			const query = req.originalUrl.split('?')[1];
-			return res.redirect(adminRoute + '/' + (query ? '?' + query : ''));
-		}
-		next();
-	});
-
-	app.use(adminRoute, handlerAdmin);
-	if (existsSync(adminDirectory)) {
-		app.use(
-			adminRoute,
-			expressStaticGzip(adminDirectory, {
-				enableBrotli: true,
-				orderPreference: ['br'],
-			}),
-		);
-	}
-
-	// Serving static files
-	for (const i of internalConfig.routeStatic) {
-		app.use(
-			i.route,
-			expressStaticGzip(i.directoryPath, {
-				enableBrotli: true,
-				orderPreference: ['br'],
-			}),
-		);
-	}
 
 	const connectionPools: Pool[] = [];
-	AdminContext.pools = connectionPools;
-	AdminContext.caches = [];
+	const caches: PoolCacheEntry[] = [];
 
 	// Oracle pl/sql express middleware
+	const plsqlHandlers: {route: string; handler: ReturnType<typeof handlerWebPlSql>}[] = [];
+
 	for (const i of internalConfig.routePlSql) {
 		// Allocate the Oracle database pool
 		const pool = await oracledb.createPool({
@@ -202,6 +130,7 @@ export const startServer = async (config: configType, ssl?: sslConfig): Promise<
 
 		const {defaultPage, pathAlias, pathAliasProcedure, documentTable, exclusionList, requestValidationFunction, transactionMode, errorStyle, cgi} =
 			i as configPlSqlType;
+
 		const handler = handlerWebPlSql(pool, {
 			defaultPage,
 			pathAlias,
@@ -214,53 +143,72 @@ export const startServer = async (config: configType, ssl?: sslConfig): Promise<
 			cgi,
 		});
 
+		plsqlHandlers.push({route: i.route, handler});
+
 		// Capture caches for admin console
-		AdminContext.caches.push({
+		caches.push({
 			poolName: i.route,
 			procedureNameCache: handler.procedureNameCache,
 			argumentCache: handler.argumentCache,
 		});
+	}
 
-		app.use([`${i.route}/:name`, i.route], (req: Request, res: Response, next: NextFunction) => {
+	// Create AdminContext
+	const adminContext = new AdminContext(internalConfig, connectionPools, caches);
+
+	// Pause & Admin Auth middleware
+	app.use((req: Request, res: Response, next: NextFunction) => {
+		// Simple pause check for all PL/SQL routes (not admin)
+		if (adminContext.paused && !req.path.startsWith(adminRoute)) {
+			res.status(503).send('Server Paused');
+			return;
+		}
+
+		next();
+	});
+
+	// Access log
+	if (internalConfig.loggerFilename.length > 0) {
+		app.use(handlerLogger(internalConfig.loggerFilename));
+	}
+
+	// Mount Admin Console
+	app.use(
+		adminRoute,
+		handlerAdminConsole(
+			{
+				staticDir: path.join(projectRoot, 'dist', 'frontend'),
+				user: internalConfig.adminUser,
+				password: internalConfig.adminPassword,
+				devMode: internalConfig.devMode,
+			},
+			adminContext,
+		),
+	);
+
+	// Serving static files
+	for (const i of internalConfig.routeStatic) {
+		app.use(
+			i.route,
+			expressStaticGzip(i.directoryPath, {
+				enableBrotli: true,
+				orderPreference: ['br'],
+			}),
+		);
+	}
+
+	// Mount PL/SQL handlers with stats tracking
+	for (const {route, handler} of plsqlHandlers) {
+		app.use([`${route}/:name`, route], (req: Request, res: Response, next: NextFunction) => {
 			const start = process.hrtime();
 			res.on('finish', () => {
 				const diff = process.hrtime(start);
 				const duration = diff[0] * 1000 + diff[1] / 1_000_000;
-				AdminContext.statsManager.recordRequest(duration, res.statusCode >= 400);
+				adminContext.statsManager.recordRequest(duration, res.statusCode >= 400);
 			});
 			handler(req, res, next);
 		});
 	}
-
-	// Update pools in StatsManager on each rotation
-	const originalRotate = AdminContext.statsManager.rotateBucket.bind(AdminContext.statsManager);
-	AdminContext.statsManager.rotateBucket = () => {
-		const poolSnapshots = AdminContext.pools.map((pool, index) => {
-			const cache = AdminContext.caches[index];
-			const name = cache?.poolName ?? `pool-${index}`;
-			const procStats = cache?.procedureNameCache.getStats();
-			const argStats = cache?.argumentCache.getStats();
-
-			return {
-				name,
-				connectionsOpen: pool.connectionsOpen,
-				connectionsInUse: pool.connectionsInUse,
-				cache: {
-					procedureName: {
-						size: cache?.procedureNameCache.keys().length ?? 0,
-						hits: procStats?.hits ?? 0,
-						misses: procStats?.misses ?? 0,
-					},
-					argument: {
-						size: cache?.argumentCache.keys().length ?? 0,
-						hits: argStats?.hits ?? 0,
-						misses: argStats?.misses ?? 0,
-					},
-				},
-			};
-		});
-		originalRotate(poolSnapshots);
-	};
 
 	// create server
 	debug('startServer: createServer');
@@ -285,7 +233,7 @@ export const startServer = async (config: configType, ssl?: sslConfig): Promise<
 	const shutdown = async () => {
 		debug('startServer: onShutdown');
 
-		AdminContext.statsManager.stop();
+		adminContext.statsManager.stop();
 
 		await poolsClose(connectionPools);
 
@@ -328,6 +276,7 @@ export const startServer = async (config: configType, ssl?: sslConfig): Promise<
 		connectionPools,
 		app,
 		server,
+		adminContext,
 		shutdown,
 	};
 };

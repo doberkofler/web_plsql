@@ -2,7 +2,7 @@ import {describe, it, expect, vi, beforeEach} from 'vitest';
 import express, {type Express} from 'express';
 import request from 'supertest';
 import {AdminContext} from '../server/adminContext.ts';
-import {handlerAdmin} from '../handler/handlerAdmin.ts';
+import {createAdminRouter} from '../handler/handlerAdmin.ts';
 import {StatsManager} from '../util/statsManager.ts';
 import * as shutdownUtils from '../util/shutdown.ts';
 import fs from 'node:fs';
@@ -25,6 +25,7 @@ vi.mock('node:readline', () => ({
 
 describe('handler/handlerAdmin', () => {
 	let app: Express;
+	let adminContext: AdminContext;
 
 	beforeEach(() => {
 		vi.clearAllMocks();
@@ -33,19 +34,7 @@ describe('handler/handlerAdmin', () => {
 
 		vi.spyOn(fs, 'createReadStream').mockReturnValue({} as any);
 
-		app = express();
-		app.use(express.json());
-		app.use('/admin', handlerAdmin);
-
-		// Reset AdminContext
-		AdminContext.startTime = new Date(Date.now() - 10000); // 10s ago
-		AdminContext.statsManager.stop();
-		AdminContext.statsManager = new StatsManager({
-			intervalMs: 1000,
-			maxHistoryPoints: 5,
-			sampleSystem: false,
-		});
-		AdminContext.config = {
+		const mockConfig = {
 			port: 8080,
 			adminRoute: '/admin',
 			loggerFilename: 'access.log',
@@ -62,11 +51,22 @@ describe('handler/handlerAdmin', () => {
 				},
 			],
 		};
-		AdminContext.pools = [];
-		AdminContext.caches = [];
-		AdminContext.paused = false;
-		AdminContext.statsManager.recordRequest(100, false);
-		AdminContext.statsManager.recordRequest(200, true);
+
+		adminContext = new AdminContext(mockConfig as any, [], []);
+		adminContext.statsManager.stop();
+		// @ts-expect-error - overriding statsManager for testing
+		adminContext.statsManager = new StatsManager({
+			intervalMs: 1000,
+			maxHistoryPoints: 5,
+			sampleSystem: false,
+		});
+
+		app = express();
+		app.use(express.json());
+		app.use('/admin', createAdminRouter(adminContext));
+
+		adminContext.statsManager.recordRequest(100, false);
+		adminContext.statsManager.recordRequest(200, true);
 	});
 
 	describe('GET /api/status', () => {
@@ -93,7 +93,7 @@ describe('handler/handlerAdmin', () => {
 		});
 
 		it('should return paused status when paused', async () => {
-			AdminContext.paused = true;
+			adminContext.setPaused(true);
 			const res = await request(app).get('/admin/api/status');
 			expect(res.body.status).toBe('paused');
 		});
@@ -101,8 +101,8 @@ describe('handler/handlerAdmin', () => {
 
 	describe('GET /api/logs/access', () => {
 		it('should return message when access logging is disabled', async () => {
-			if (AdminContext.config) {
-				AdminContext.config.loggerFilename = '';
+			if (adminContext.config) {
+				adminContext.config.loggerFilename = '';
 			}
 			const res = await request(app).get('/admin/api/logs/access');
 			expect(res.body.message).toBe('Access logging not enabled');
@@ -195,18 +195,15 @@ describe('handler/handlerAdmin', () => {
 		});
 	});
 
-	// REMOVED GET /api/cache tests
-
 	describe('POST /api/cache/clear', () => {
 		it('should clear all caches', async () => {
 			const clearProc = vi.fn();
 			const clearArg = vi.fn();
-			AdminContext.caches = [
+			// @ts-expect-error - overriding readonly caches for testing
+			adminContext.caches = [
 				{
 					poolName: '/pls',
-
 					procedureNameCache: {clear: clearProc} as unknown as Cache<any>,
-
 					argumentCache: {clear: clearArg} as unknown as Cache<any>,
 				},
 			];
@@ -222,14 +219,14 @@ describe('handler/handlerAdmin', () => {
 		it('should pause the server', async () => {
 			const res = await request(app).post('/admin/api/server/pause');
 			expect(res.status).toBe(200);
-			expect(AdminContext.paused).toBe(true);
+			expect(adminContext.paused).toBe(true);
 		});
 
 		it('should resume the server', async () => {
-			AdminContext.paused = true;
+			adminContext.setPaused(true);
 			const res = await request(app).post('/admin/api/server/resume');
 			expect(res.status).toBe(200);
-			expect(AdminContext.paused).toBe(false);
+			expect(adminContext.paused).toBe(false);
 		});
 
 		it('should trigger shutdown on stop', async () => {
@@ -300,9 +297,12 @@ describe('handler/handlerAdmin', () => {
 
 	describe('Corner cases for coverage', () => {
 		it('GET /api/status should handle null config and pool statistics', async () => {
-			AdminContext.config = null as any;
-			AdminContext.pools = [{connectionsOpen: 1, connectionsInUse: 0, getStatistics: () => ({stats: 'ok'})} as any];
-			AdminContext.caches = []; // cache undefined for index 0
+			// @ts-expect-error - testing null config
+			adminContext.config = null;
+			// @ts-expect-error - overriding readonly pools for testing
+			adminContext.pools = [{connectionsOpen: 1, connectionsInUse: 0, getStatistics: () => ({stats: 'ok'})} as any];
+			// @ts-expect-error - overriding readonly caches for testing
+			adminContext.caches = []; // cache undefined for index 0
 
 			const res = await request(app).get('/admin/api/status');
 			expect(res.status).toBe(200);
