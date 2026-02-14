@@ -302,8 +302,8 @@ The following mod_plsql DAD configuration translates to the configuration option
 ## Features that are only available in web_plsql
 - The option `transactionModeType` specifies an optional transaction mode.
   "commit" this automatically commits any open transaction after each request. This is the defaults because this is what mod_plsql and ohs are doing.
-  "rollback" this automatically rolles back any open transaction after each request.
-  "transactionCallbackType" this allows to defined a custom handler as a JavaScript function.
+  "rollback" this automatically rolls back any open transaction after each request.
+  "transactionCallbackType" this allows defining a custom handler as a JavaScript function.
 
 ## Features that are planned to be available in web_plsql
 - Support for APEX 5 or greater.

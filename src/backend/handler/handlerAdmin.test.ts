@@ -48,6 +48,9 @@ describe('handler/handlerAdmin', () => {
 					documentTable: 'docs',
 					defaultPage: 'home',
 					errorStyle: 'basic',
+					auth: {type: 'basic', callback: vi.fn(), realm: 'test'},
+					transactionMode: vi.fn(),
+					cgi: {TEST: 'value'},
 				},
 			],
 		};
@@ -85,11 +88,21 @@ describe('handler/handlerAdmin', () => {
 			}
 		});
 
-		it('should return server status with config when requested', async () => {
+		it('should return server status with config when requested and strip sensitive fields', async () => {
 			const res = await request(app).get('/admin/api/status?config=true');
 			expect(res.status).toBe(200);
 			expect(res.body.config).toBeDefined();
 			expect(res.body.config.routePlSql[0].password).toBe('********');
+
+			// Verify fields are stripped
+			expect(res.body.config.routePlSql[0].auth).toBeUndefined();
+			expect(res.body.config.routePlSql[0].transactionMode).toBeUndefined();
+			expect(res.body.config.routePlSql[0].cgi).toBeUndefined();
+
+			// Verify flags are present
+			expect(res.body.config.routePlSql[0].hasAuth).toBe(true);
+			expect(res.body.config.routePlSql[0].hasTransactionMode).toBe(true);
+			expect(res.body.config.routePlSql[0].hasCgi).toBe(true);
 		});
 
 		it('should return paused status when paused', async () => {

@@ -30,21 +30,36 @@ describe('util/shutdown', () => {
 
 	it('should handle unhandledRejection', () => {
 		const handler = vi.fn().mockResolvedValue(undefined);
+
+		// First instance for Error case
 		installShutdown(handler);
-
-		const rejectionCall = processOnSpy.mock.calls.find((call) => call[0] === 'unhandledRejection');
-
-		const rejectionHandler = rejectionCall ? (rejectionCall[1] as any) : null;
+		let rejectionCall = processOnSpy.mock.calls.find((call) => call[0] === 'unhandledRejection');
+		let rejectionHandler = rejectionCall ? (rejectionCall[1] as any) : null;
 
 		if (rejectionHandler) {
 			// Test with Error object
 			rejectionHandler(new Error('test error'));
 			expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('test error'));
-			expect(handler).toHaveBeenCalled();
+			expect(handler).toHaveBeenCalledTimes(1);
+		}
 
+		// Clear mocks to start fresh for next case
+		vi.clearAllMocks();
+
+		// Second instance for non-Error case
+		installShutdown(handler);
+		// Need to find the latest call since we cleared mocks
+		// Actually clearAllMocks clears invocations, but spy remains.
+		// Wait, clearAllMocks clears .mock.calls.
+
+		rejectionCall = processOnSpy.mock.calls.find((call) => call[0] === 'unhandledRejection');
+		rejectionHandler = rejectionCall ? (rejectionCall[1] as any) : null;
+
+		if (rejectionHandler) {
 			// Test with non-Error object
 			rejectionHandler('some reason');
 			expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('Unhandled promise rejection'), 'some reason');
+			expect(handler).toHaveBeenCalledTimes(1);
 		}
 	});
 

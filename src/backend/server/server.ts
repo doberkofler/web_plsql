@@ -27,6 +27,7 @@ import {
 	type configType,
 	type configPlSqlType,
 	oracledb,
+	createSpaFallback,
 } from '../index.ts';
 
 /**
@@ -151,6 +152,12 @@ export const startServer = async (config: configType, ssl?: sslConfig): Promise<
 				orderPreference: ['br'],
 			}),
 		);
+
+		// Mount SPA fallback (serves index.html for unmatched routes)
+		// IMPORTANT: Must come AFTER expressStaticGzip
+		if (i.spaFallback) {
+			app.use(i.route, createSpaFallback(i.directoryPath, i.route));
+		}
 	}
 
 	// Mount PL/SQL handlers with stats tracking

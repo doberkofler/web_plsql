@@ -100,6 +100,9 @@ const routeConfigSchema = z.strictObject({
 	transactionMode: z.unknown().optional(),
 	errorStyle: z.string().optional(),
 	directoryPath: z.string().optional(),
+	hasAuth: z.boolean().optional(),
+	hasTransactionMode: z.boolean().optional(),
+	hasCgi: z.boolean().optional(),
 });
 
 /**

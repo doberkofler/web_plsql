@@ -17,6 +17,7 @@ export {handlerLogger} from './handler/handlerLogger.ts';
 export {handlerUpload} from './handler/handlerUpload.ts';
 export {createAdminRouter} from './handler/handlerAdmin.ts';
 export {handlerAdminConsole, type AdminConsoleConfig} from './handler/handlerAdminConsole.ts';
+export {createSpaFallback} from './handler/handlerSpaFallback.ts';
 
 // util
 export * from './util/file.ts';

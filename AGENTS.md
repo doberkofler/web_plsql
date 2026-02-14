@@ -66,6 +66,7 @@ This project is a Node.js application using TypeScript and ES Modules (ESM).
     *   **Strict Types**: No implicit any, strict null checks.
     *   **JSDoc**: Required for public functions/methods.
     *   **Error Handling**: `caughtErrors` check is disabled, but errors must be handled explicitly.
+    *   **Catch Clause Variables**: Always type catch clause variables as `unknown` (e.g., `catch (error: unknown)`). Do not use `any` or leave it untyped.
 
 ### Naming Conventions
 
@@ -156,6 +157,53 @@ The admin console is a Single Page Application (SPA) built with modern web techn
 
 **Files Excluded from Linting/Type Checking**:
 - `src/frontend/lib/` - Build output directory (contains bundled JS/CSS)
+
+### SPA (Single Page Application) Support
+The middleware supports serving SPA applications that use HTML5 History Mode routing (e.g., React Router `createBrowserRouter`, Vue Router history mode).
+
+**Configuration**:
+Enable SPA fallback in `routeStatic` configuration:
+```json
+{
+  "routeStatic": [
+    {
+      "route": "/app",
+      "directoryPath": "./build",
+      "spaFallback": true
+    }
+  ]
+}
+```
+
+**How It Works**:
+1. **express-static-gzip** serves actual files (CSS, JS, images)
+2. If no file found, **handlerSpaFallback** serves `index.html`
+3. SPA router (React Router, etc.) handles client-side routing
+
+**Middleware Order** (CRITICAL):
+```typescript
+// ✅ CORRECT ORDER
+app.use('/app', expressStaticGzip('./build'));      // Serves files
+app.use('/app', createSpaFallback('./build', '/app')); // Fallback to index.html
+
+// ❌ WRONG ORDER (will not work)
+app.use('/app', createSpaFallback('./build', '/app')); // Always serves index.html
+app.use('/app', expressStaticGzip('./build'));         // Never reached!
+```
+
+**Accept Header Filtering**:
+The fallback only serves HTML for navigation requests. API requests and static asset 404s are passed through:
+- `Accept: text/html` → Serves index.html
+- `Accept: application/json` → Calls next() (404)
+- `Accept: image/png` → Calls next() (404)
+
+**Example Use Cases**:
+- React Router with `createBrowserRouter`
+- Vue Router with `createWebHistory`
+- Angular Router with `useHash: false`
+- Any SPA framework using History API
+
+**Note**: The admin console does NOT need SPA fallback (uses hash-based routing internally).
 
 ### Planned Enhancements
 Refer to `ENHANCEMENTS.md` for the full roadmap. Key priorities include:
@@ -254,7 +302,7 @@ describe('middleware', () => {
 6. **Verify**:
     *   Run `npm run lint` to fix formatting and type errors immediately.
     *   Run `npx vitest run tests/relevant.test.ts` to verify logic.
-7. **Finalize**: Run `npm run ci` to ensure the full suite passes.
+7. **Finalize**: **ALWAYS** Run `npm run ci` to ensure the full suite passes. This is **MANDATORY** before finishing a task.
 
 ## 6. Project Structure
 

@@ -3,6 +3,6 @@ import {getVersion} from './version.ts';
 
 describe('version', () => {
 	it('must match package', () => {
-		assert.strictEqual(getVersion(), 'test');
+		assert.strictEqual(getVersion(), '**development**');
 	});
 });

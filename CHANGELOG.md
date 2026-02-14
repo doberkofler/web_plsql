@@ -15,10 +15,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [?.?.?] - ????-??-??
 
 ### Added
-- Improved the UX of the stats page.
+- Added build-in support for basic authentification.
+- Added build-in support for SPA pages.
+
+### Changes
+- Improved UX of the stats page.
+- Test coverage is now 95%.
+- Simplified the API in custom servers.
+- Simplified the oracle mocking.
 
 ### Fixed
-- Test coverage is now 98%.
+- Fixed a ton of small errors and imperfections.
 
 
 ## [1.2.0] - 2026-02-09

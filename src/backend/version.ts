@@ -1,10 +1,9 @@
 declare global {
-	// eslint-disable-next-line no-var
 	var __VERSION__: string;
 }
 
 if (typeof globalThis.__VERSION__ === 'undefined') {
-	globalThis.__VERSION__ = 'test';
+	globalThis.__VERSION__ = '**development**';
 }
 
 declare const __VERSION__: string;

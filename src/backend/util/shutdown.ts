@@ -8,27 +8,53 @@ const debug = debugModule('webplsql:shutdown');
 export const installShutdown = (handler: () => Promise<void>): void => {
 	debug('installShutdown');
 
+	let isShuttingDown = false;
+
 	/*
 	 *	The 'unhandledRejection' event is emitted whenever a Promise is rejected and no error handler is attached to the promise within a turn of the event loop.
 	 */
 	process.on('unhandledRejection', (reason) => {
+		if (isShuttingDown) {
+			return;
+		}
+		isShuttingDown = true;
+
 		if (reason instanceof Error) {
 			console.error(`\n${reason.message}. Graceful shutdown...`);
 		} else {
 			console.error('\nUnhandled promise rejection. Graceful shutdown...', reason);
 		}
-		void handler();
+		void handler().catch((err: unknown) => {
+			console.error('Error during shutdown:', err);
+			process.exit(1);
+		});
 	});
 
 	// install signal event handler
 	process.on('SIGTERM', function sigterm() {
-		console.log('\nGot SIGINT (aka ctrl-c in docker). Graceful shutdown...');
-		void handler();
+		if (isShuttingDown) {
+			return;
+		}
+		isShuttingDown = true;
+
+		console.log('\nGot SIGTERM (aka docker container stop). Graceful shutdown...');
+		void handler().catch((err: unknown) => {
+			console.error('Error during shutdown:', err);
+			process.exit(1);
+		});
 	});
 
 	process.on('SIGINT', function sigint() {
-		console.log('\nGot SIGTERM (aka docker container stop). Graceful shutdown...');
-		void handler();
+		if (isShuttingDown) {
+			return;
+		}
+		isShuttingDown = true;
+
+		console.log('\nGot SIGINT (aka ctrl-c in docker). Graceful shutdown...');
+		void handler().catch((err: unknown) => {
+			console.error('Error during shutdown:', err);
+			process.exit(1);
+		});
 	});
 };
 

@@ -14,11 +14,6 @@ process.env.MOCK_ORACLE = 'true';
 const {startServer} = await import('../src/backend/server/server.ts');
 const {setExecuteCallback} = await import('../src/backend/util/oracledb-provider.ts');
 const {createMockProcedureCallback} = await import('./mockProcedures.ts');
-const pkg = (await import('../package.json', {with: {type: 'json'}})).default;
-
-// Inject version for dev server
-// @ts-expect-error - __VERSION__ is injected at build time, here we set it manually for dev
-globalThis.__VERSION__ = pkg.version;
 
 const DEV_PORT = 3001;
 const DEFAULT_PAGE = '$.help';

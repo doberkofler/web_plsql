@@ -137,10 +137,16 @@ export const createAdminRouter = (adminContext: AdminContext): Router => {
 					? {
 							...adminContext.config,
 							adminPassword: adminContext.config.adminPassword ? '********' : undefined,
-							routePlSql: adminContext.config.routePlSql.map((p) => ({
-								...p,
-								password: '********',
-							})),
+							routePlSql: adminContext.config.routePlSql.map((p) => {
+								const {auth, transactionMode, cgi, ...rest} = p;
+								return {
+									...rest,
+									password: '********',
+									hasAuth: !!auth,
+									hasTransactionMode: !!transactionMode,
+									hasCgi: !!cgi,
+								};
+							}),
 						}
 					: undefined,
 		});
