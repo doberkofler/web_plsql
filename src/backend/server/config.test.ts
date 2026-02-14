@@ -33,10 +33,10 @@ describe('server/config', () => {
 		showConfig(config);
 
 		expect(consoleLogSpy).toHaveBeenCalled();
-		expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Server port:            8080'));
-		expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Admin route:            /admin (authenticated)'));
-		expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Access log:             access.log'));
-		expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Upload file size limit: 1024 bytes'));
+		expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringMatching(/Server port:\s+8080/));
+		expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringMatching(/Admin route:\s+\/admin \(authenticated\)/));
+		expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringMatching(/Access log:\s+access\.log/));
+		expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringMatching(/Upload file size limit:\s+1024 bytes/));
 	});
 
 	it('should handle missing optional config fields', () => {
@@ -49,10 +49,10 @@ describe('server/config', () => {
 
 		showConfig(config);
 
-		expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Server port:            3000'));
-		expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Admin route:            /admin'));
-		expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Access log:             '));
-		expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Upload file size limit: any'));
+		expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringMatching(/Server port:\s+3000/));
+		expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringMatching(/Admin route:\s+\/admin/));
+		expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringMatching(/Access log:\s+-/));
+		expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringMatching(/Upload file size limit:\s+-/));
 	});
 
 	it('should show static routes', () => {
@@ -68,10 +68,10 @@ describe('server/config', () => {
 
 		showConfig(config);
 
-		expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Static route:           /static'));
-		expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Directory path:         /var/www/static'));
-		expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Static route:           /images'));
-		expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Directory path:         /var/www/images'));
+		expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringMatching(/Static route:\s+\/static/));
+		expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringMatching(/Directory path:\s+\/var\/www\/static/));
+		expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringMatching(/Static route:\s+\/images/));
+		expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringMatching(/Directory path:\s+\/var\/www\/images/));
 	});
 
 	it('should show PL/SQL routes with string transactionMode', () => {
@@ -99,10 +99,10 @@ describe('server/config', () => {
 
 		showConfig(config);
 
-		expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Route:                  http://localhost:8080/pls'));
-		expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Oracle user:            scott'));
-		expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('After request handler:  commit'));
-		expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Exclution list:         secret'));
+		expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringMatching(/Route:\s+http:\/\/localhost:8080\/pls/));
+		expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringMatching(/Oracle user:\s+scott/));
+		expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringMatching(/After request handler:\s+commit/));
+		expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringMatching(/Exclution list:\s+secret/));
 	});
 
 	it('should show PL/SQL routes with function transactionMode', () => {
@@ -138,7 +138,7 @@ describe('server/config', () => {
 
 		showConfig(config);
 
-		expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('After request handler:  custom callback'));
-		expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('After request handler:  '));
+		expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringMatching(/After request handler:\s+custom callback/));
+		expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringMatching(/After request handler:\s+-/));
 	});
 });

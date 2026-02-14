@@ -12,7 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 
 
-## [?.?.?] - ????-??-??
+## [1.3.0] - 2026-02-14
 
 ### Added
 - Added build-in support for basic authentification.
