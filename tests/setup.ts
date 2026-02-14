@@ -1,10 +1,4 @@
-import {vi, afterEach, beforeAll} from 'vitest';
-import pkg from '../package.json' with {type: 'json'};
-
-beforeAll(() => {
-	// @ts-expect-error - __VERSION__ is injected by tsdown/esbuild at build time
-	globalThis.__VERSION__ = pkg.version;
-});
+import {vi, afterEach} from 'vitest';
 
 // Global console mock
 const originalWarn = console.warn;

@@ -1,5 +1,4 @@
-import {vi, afterEach, beforeAll} from 'vitest';
-import pkg from '../package.json' with {type: 'json'};
+import {vi, afterEach} from 'vitest';
 
 // Mock oracledb for all unit tests
 vi.mock('oracledb', async () => {
@@ -18,11 +17,6 @@ vi.mock('oracledb', async () => {
 			...mock.default,
 		},
 	};
-});
-
-beforeAll(() => {
-	// @ts-expect-error - __VERSION__ is injected by tsdown/esbuild at build time
-	globalThis.__VERSION__ = pkg.version;
 });
 
 // Global console mock

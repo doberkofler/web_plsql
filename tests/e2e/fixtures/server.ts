@@ -2,10 +2,6 @@ import {test as base} from '@playwright/test';
 import type {webServer} from '../../../src/backend/server/server.ts';
 import {startServer} from '../../../src/backend/server/server.ts';
 import type {configType} from '../../../src/backend/types.ts';
-import pkg from '../../../package.json' with {type: 'json'};
-
-// @ts-expect-error - __VERSION__ is injected at build time
-globalThis.__VERSION__ = pkg.version;
 
 // Enable mock oracle
 process.env.MOCK_ORACLE = 'true';
