@@ -10,7 +10,7 @@ import type {ExecuteCallback} from '../src/backend/util/oracledb-provider.ts';
 const isProcedureJson = (name: string): boolean => {
 	const lower = name.toLowerCase();
 	// Only match .getJson, .getData, or api.json specifically
-	return /\.(getjson|getdata)$/i.test(lower) || lower === 'api.json';
+	return /\.(?:getjson|getdata)$/i.test(lower) || lower === 'api.json';
 };
 
 /**
@@ -447,7 +447,7 @@ export const createMockProcedureCallback = (): ExecuteCallback => {
 		if (sqlLower.includes('begin') && sqlLower.includes('end') && !sqlLower.includes('declare')) {
 			// Extract procedure name from SQL
 			// Patterns: BEGIN schema.proc(...) or BEGIN proc(...)
-			const beginMatch = /BEGIN\s+([a-z0-9_.$]+)/i.exec(sql);
+			const beginMatch = /BEGIN\s+([\w.$]+)/i.exec(sql);
 			if (beginMatch?.[1]) {
 				lastProcedureName = beginMatch[1];
 

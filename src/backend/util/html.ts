@@ -19,7 +19,7 @@ export const escapeHtml = (value: string): string =>
 export const convertAsciiToHtml = (text: string): string => {
 	let html = escapeHtml(text);
 
-	html = html.replace(/(?:\r\n|\r|\n)/g, '<br />');
+	html = html.replace(/\r\n|\r|\n/g, '<br />');
 	html = html.replace(/\t/g, '&nbsp;&nbsp;&nbsp;');
 
 	return html;
