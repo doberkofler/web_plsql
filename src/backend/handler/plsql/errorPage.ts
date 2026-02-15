@@ -43,6 +43,7 @@ const getErrorData = (req: Request, error: unknown): messageType => {
 		}
 		/* v8 ignore start - unreachable code: creating Error without throwing */
 		try {
+			// eslint-disable-next-line unicorn/error-message
 			new Error();
 		} catch (err) {
 			message += errorToString(err);

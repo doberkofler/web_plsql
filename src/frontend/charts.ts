@@ -416,7 +416,9 @@ export function hydrateHistory(state: State, history: HistoryBucket[]): void {
 		poolChart.data.labels = state.history.labels;
 		Object.entries(state.history.poolUsage).forEach(([name, usage], i) => {
 			let dataset = poolChart.data.datasets.find((ds) => ds.label === name);
-			if (!dataset) {
+			if (dataset) {
+				dataset.data = usage;
+			} else {
 				const colors = ['#10b981', '#f59e0b', '#3b82f6', '#8b5cf6', '#ec4899'];
 				const color = colors[i % colors.length] ?? '#3b82f6';
 				dataset = {
@@ -428,8 +430,6 @@ export function hydrateHistory(state: State, history: HistoryBucket[]): void {
 					tension: 0.4,
 				};
 				poolChart.data.datasets.push(dataset);
-			} else {
-				dataset.data = usage;
 			}
 		});
 		poolChart.update();
@@ -471,7 +471,7 @@ export function updateCharts(state: State, timeLabel: string, reqPerSec: number,
 
 	// Resource usage percentage
 	const totalMem = state.status.system?.memory.totalMemory ?? 0;
-	const latestBucket = state.status.history?.[state.status.history.length - 1];
+	const latestBucket = state.status.history?.at(-1);
 	if (latestBucket) {
 		state.history.cpuUsage.push(latestBucket.system.cpu);
 		state.history.memoryUsage.push(totalMem > 0 ? (latestBucket.system.rss / totalMem) * 100 : 0);

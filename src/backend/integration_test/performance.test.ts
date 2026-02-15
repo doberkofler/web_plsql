@@ -48,7 +48,7 @@ describe('Performance Regression Tests', () => {
 		setExecuteCallback(null);
 	});
 
-	it.skipIf(skipPerf)('should maintain acceptable latency for sequential requests', {timeout: 30000}, async () => {
+	it.skipIf(skipPerf)('should maintain acceptable latency for sequential requests', {timeout: 30_000}, async () => {
 		// Configuration
 		const ITERATIONS = 1000;
 		const MAX_AVG_LATENCY_MS = 20;
@@ -90,7 +90,7 @@ Sequential Performance Results (${ITERATIONS} reqs):
 		expect(avgLatency).toBeLessThan(MAX_AVG_LATENCY_MS);
 	});
 
-	it.skipIf(skipPerf)('should maintain acceptable throughput for concurrent requests', {timeout: 30000}, async () => {
+	it.skipIf(skipPerf)('should maintain acceptable throughput for concurrent requests', {timeout: 30_000}, async () => {
 		// Configuration
 		const ITERATIONS = 2000;
 		const BATCH_SIZE = 50;

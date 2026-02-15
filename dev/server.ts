@@ -100,4 +100,5 @@ startDevServer().catch((error: unknown) => {
 	process.exit(1);
 });
 
+// eslint-disable-next-line unicorn/require-module-specifiers
 export {};

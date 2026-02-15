@@ -13,7 +13,7 @@ export async function refreshErrors(): Promise<void> {
 	const limitInput = document.getElementById('error-limit') as HTMLInputElement | null;
 
 	const filter = filterInput?.value ?? '';
-	const limit = limitInput ? parseInt(limitInput.value) : 100;
+	const limit = limitInput ? Number.parseInt(limitInput.value) : 100;
 
 	const logs = await typedApi.getErrorLogs(limit, filter);
 
@@ -91,7 +91,7 @@ export async function refreshStats(): Promise<void> {
 
 	if (!tbody) return;
 
-	const limit = limitInput ? parseInt(limitInput.value) : 50;
+	const limit = limitInput ? Number.parseInt(limitInput.value) : 50;
 
 	try {
 		const history = await typedApi.getStatsHistory(limit);
@@ -137,7 +137,7 @@ export async function refreshAccess(): Promise<void> {
 	const limitInput = document.getElementById('access-limit') as HTMLInputElement | null;
 
 	const filter = filterInput?.value ?? '';
-	const limit = limitInput ? parseInt(limitInput.value) : 100;
+	const limit = limitInput ? Number.parseInt(limitInput.value) : 100;
 
 	const result = await typedApi.getAccessLogs(limit, filter);
 	const el = document.getElementById('access-log-view');
@@ -174,7 +174,7 @@ export async function refreshTrace(): Promise<void> {
 	const statusToggle = document.getElementById('trace-status-toggle') as HTMLButtonElement | null;
 
 	const filter = filterInput?.value ?? '';
-	const limit = limitInput ? parseInt(limitInput.value) : 100;
+	const limit = limitInput ? Number.parseInt(limitInput.value) : 100;
 
 	// Update status toggle
 	try {
@@ -301,7 +301,7 @@ function formatBytes(bytes: number): string {
 	const k = 1024;
 	const sizes = ['B', 'KB', 'MB', 'GB'];
 	const i = Math.floor(Math.log(bytes) / Math.log(k));
-	return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
+	return `${Number.parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
 }
 
 /**

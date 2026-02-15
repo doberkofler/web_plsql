@@ -28,7 +28,7 @@ describe('Admin Metrics Utils', () => {
 				heapTotal: 200,
 				rss: 300,
 				external: 400,
-				cpuUser: 1.0,
+				cpuUser: 1,
 				cpuSystem: 0.5,
 			};
 			const min: Partial<SystemMetrics> = {
@@ -44,7 +44,7 @@ describe('Admin Metrics Utils', () => {
 			updateMinMaxMetrics(current, min, max);
 
 			expect(min.heapUsed).toBe(50);
-			expect(min.cpuUser).toBe(1.0);
+			expect(min.cpuUser).toBe(1);
 			expect(max.heapUsed).toBe(100); // Should stay same
 			expect(max.cpuUser).toBe(1.5); // Should stay same
 		});
@@ -55,7 +55,7 @@ describe('Admin Metrics Utils', () => {
 				heapTotal: 200,
 				rss: 300,
 				external: 400,
-				cpuUser: 2.0,
+				cpuUser: 2,
 				cpuSystem: 0.5,
 			};
 			const min: Partial<SystemMetrics> = {
@@ -71,7 +71,7 @@ describe('Admin Metrics Utils', () => {
 			updateMinMaxMetrics(current, min, max);
 
 			expect(max.heapUsed).toBe(150);
-			expect(max.cpuUser).toBe(2.0);
+			expect(max.cpuUser).toBe(2);
 			expect(min.heapUsed).toBe(100); // Should stay same
 			expect(min.cpuUser).toBe(1.5); // Should stay same
 		});
@@ -83,7 +83,7 @@ describe('Admin Metrics Utils', () => {
 				rss: 300, // Same
 				external: 400, // Same
 				cpuUser: 0.5, // Lower
-				cpuSystem: 1.0, // Higher
+				cpuSystem: 1, // Higher
 			};
 			const min: Partial<SystemMetrics> = {
 				heapUsed: 100,
@@ -114,7 +114,7 @@ describe('Admin Metrics Utils', () => {
 			expect(max.cpuUser).toBe(1.5);
 
 			expect(min.cpuSystem).toBe(0.5);
-			expect(max.cpuSystem).toBe(1.0);
+			expect(max.cpuSystem).toBe(1);
 		});
 	});
 });

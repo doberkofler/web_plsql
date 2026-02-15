@@ -3,7 +3,7 @@
 import eslint from '@eslint/js';
 import {defineConfig} from 'eslint/config';
 import tseslint from 'typescript-eslint';
-//import eslintPluginUnicorn from 'eslint-plugin-unicorn';
+import eslintPluginUnicorn from 'eslint-plugin-unicorn';
 import vitest from '@vitest/eslint-plugin';
 import pluginRegExp from 'eslint-plugin-regexp';
 import jsdoc from 'eslint-plugin-jsdoc';
@@ -24,7 +24,7 @@ export default defineConfig([
 	eslint.configs.recommended,
 	...tseslint.configs.strictTypeChecked,
 	...tseslint.configs.stylisticTypeChecked,
-	//eslintPluginUnicorn.configs.recommended,
+	eslintPluginUnicorn.configs.recommended,
 	pluginRegExp.configs['flat/recommended'],
 
 	// ================================================================================
@@ -63,56 +63,55 @@ export default defineConfig([
 			'vitest/expect-expect': 'off', // FIXME: should be enabled
 
 			// unicorn
-			/*
-			'unicorn/better-regex': 'warn',
-			'unicorn/filename-case': 'off',
-			'unicorn/no-array-callback-reference': 'off', // TODO: should be enabled
-			'unicorn/no-array-for-each': 'off', // TODO: should be enabled
-			'unicorn/no-array-reduce': 'off', // TODO: should be enabled
-			'unicorn/no-array-sort': 'off', // TODO: should be enabled
-			'unicorn/no-console-spaces': 'off', // TODO: should be enabled
-			'unicorn/no-for-loop': 'off', // TODO: should be enabled
-			'unicorn/no-immediate-mutation': 'off', // TODO: should be enabled
-			'unicorn/no-negated-condition': 'off', // TODO: should be enabled
-			'unicorn/no-nested-ternary': 'off', // NOTE: Cannot be enabled because Prettier would remove the parentheses
-			'unicorn/no-null': 'off', // TODO: should be enabled
-			'unicorn/no-object-as-default-parameter': 'off', // NOTE: I don't really see the advantage of this rule
-			'unicorn/no-process-exit': 'off', // TODO: should be enabled
-			'unicorn/no-this-assignment': 'off', // TODO: should be enabled
-			'unicorn/no-useless-promise-resolve-reject': 'off', // TODO: should be enabled
-			'unicorn/no-useless-switch-case': 'off', // TODO: should be enabled
+			'unicorn/catch-error-name': 'off', // FIXME: should be enabled
+			'unicorn/prefer-top-level-await': 'off', // FIXME: should be enabled
+			'unicorn/no-array-for-each': 'off', // FIXME: should be enabled
 			'unicorn/no-useless-undefined': [
 				'error',
 				{
 					checkArrowFunctionBody: false,
 				},
 			],
+			'unicorn/no-process-exit': 'off', // FIXME: should be enabled
+			'unicorn/import-style': 'off', // FIXME: should be enabled
+			'unicorn/consistent-existence-index-check': 'off', // FIXME: should be enabled
+			'unicorn/escape-case': 'off', // FIXME: should be enabled
+			'unicorn/no-hex-escape': 'off', // FIXME: should be enabled
+			'unicorn/no-useless-error-capture-stack-trace': 'off', // FIXME: should be enabled
+			'unicorn/better-regex': 'warn',
+			'unicorn/filename-case': 'off',
+			'unicorn/no-nested-ternary': 'off', // NOTE: Cannot be enabled because Prettier would remove the parentheses
+			'unicorn/no-immediate-mutation': 'error', // TODO: should be enabled
+			'unicorn/no-object-as-default-parameter': 'off', // NOTE: I don't really see the advantage of this rule
+			'unicorn/require-array-join-separator': 'error', // TODO: should be enabled
+			'unicorn/numeric-separators-style': 'error', // TODO: should be enabled
+			'unicorn/prevent-abbreviations': 'off',
 			'unicorn/number-literal-case': [
 				'error',
 				{
 					hexadecimalValue: 'lowercase',
 				},
 			],
-			'unicorn/numeric-separators-style': 'off', // TODO: should be enabled
+			'unicorn/no-null': 'off', // FIXME: should be enabled
+			'unicorn/switch-case-braces': 'off', // NOTE: I don't really see the advantage of this rule
+			'unicorn/no-array-reduce': 'off', // FIXME: should be enabled
+			'unicorn/no-array-sort': 'off', // FIXME: should be enabled
+			'unicorn/no-for-loop': 'off', // FIXME: should be enabled
 			'unicorn/prefer-at': 'off', // NOTE: Cannot be enabled because it would require a lot of code changes and it's effect is debadable
-			'unicorn/prefer-export-from': 'off', // TODO: should be enabled
-			'unicorn/prefer-global-this': 'off', // TODO: should be enabled
-			'unicorn/prefer-includes': 'off', //  // TODO: should be enabled
-			'unicorn/prefer-logical-operator-over-ternary': 'off', // TODO: should be enabled
-			'unicorn/prefer-code-point': 'off', // TODO: should be enabled
-			'unicorn/prefer-date-now': 'off', // TODO: should be enabled
+			'unicorn/prefer-export-from': 'off', // FIXME: should be enabled
+			'unicorn/prefer-global-this': 'off', // FIXME: should be enabled
+			'unicorn/prefer-includes': 'off', //  // FIXME: should be enabled
+			'unicorn/prefer-logical-operator-over-ternary': 'off', // FIXME: should be enabled
+			'unicorn/prefer-code-point': 'off', // FIXME: should be enabled
+			'unicorn/prefer-date-now': 'off', // FIXME: should be enabled
 			'unicorn/prefer-dom-node-dataset': 'off',
-			'unicorn/prefer-query-selector': 'off', // TODO: should be enabled
-			'unicorn/prefer-prototype-methods': 'off', // TODO: should be enabled
-			'unicorn/prefer-single-call': 'off', // TODO: should be enabled
-			'unicorn/prefer-spread': 'off', // TODO: should be enabled
-			'unicorn/prefer-string-raw': 'off', // TODO: should be enabled
-			'unicorn/prefer-ternary': 'off', // TODO: should be enabled
-			'unicorn/prefer-type-error': 'off', // TODO: should be enabled
-			'unicorn/prevent-abbreviations': 'off',
-			'unicorn/require-array-join-separator': 'off', // TODO: should be enabled
-			'unicorn/switch-case-braces': 'off',
-			*/
+			'unicorn/prefer-query-selector': 'off', // FIXME: should be enabled
+			'unicorn/prefer-prototype-methods': 'off', // FIXME: should be enabled
+			'unicorn/prefer-single-call': 'off', // FIXME: should be enabled
+			'unicorn/prefer-spread': 'off', // FIXME: should be enabled
+			'unicorn/prefer-string-raw': 'off', // FIXME: should be enabled
+			'unicorn/prefer-ternary': 'off', // FIXME: should be enabled
+			'unicorn/prefer-type-error': 'off', // FIXME: should be enabled
 
 			// regexp
 			'regexp/no-unused-capturing-group': 'warn',
@@ -188,6 +187,10 @@ export default defineConfig([
 			'@typescript-eslint/prefer-nullish-coalescing': 'off',
 			'@typescript-eslint/no-unnecessary-condition': 'off',
 			'@typescript-eslint/unbound-method': 'off',
+			'unicorn/no-useless-undefined': 'off',
+			'unicorn/consistent-function-scoping': 'off',
+			'unicorn/no-await-expression-member': 'off',
+			'unicorn/prefer-dom-node-append': 'off',
 		},
 	},
 ]);

@@ -128,19 +128,15 @@ export function renderConfig(config: Partial<ServerConfig>): string {
 
 	// PL/SQL Routes
 	html += renderSectionTitle('PL/SQL Routes', 'database');
-	if (config.routePlSql?.length) {
-		html += config.routePlSql.map((r, i) => renderPlSqlRoute(r, i)).join('');
-	} else {
-		html += '<div class="empty-state">No PL/SQL routes configured</div>';
-	}
+	html += config.routePlSql?.length
+		? config.routePlSql.map((r, i) => renderPlSqlRoute(r, i)).join('')
+		: '<div class="empty-state">No PL/SQL routes configured</div>';
 
 	// Static Routes
 	html += renderSectionTitle('Static Routes', 'folder_shared');
-	if (config.routeStatic?.length) {
-		html += config.routeStatic.map((r, i) => renderStaticRoute(r, i)).join('');
-	} else {
-		html += '<div class="empty-state">No static routes configured</div>';
-	}
+	html += config.routeStatic?.length
+		? config.routeStatic.map((r, i) => renderStaticRoute(r, i)).join('')
+		: '<div class="empty-state">No static routes configured</div>';
 
 	html += '</div>';
 	return html;

@@ -84,7 +84,7 @@ export const processRequest = async (
 
 	// Add the query properties
 	const argObj: argObjType = {};
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any, unicorn/no-immediate-mutation
 	Object.assign(argObj, req.query as any);
 
 	// For add the files that must be uploaded, we now copy the actual filename to the appropriate parameter to the invoked procedure.

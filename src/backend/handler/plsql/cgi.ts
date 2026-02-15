@@ -37,7 +37,9 @@ const DEFAULT_CGI: environmentType = {
 	DOC_ACCESS_PATH: 'doc',
 	DOCUMENT_TABLE: '',
 	PATH_ALIAS: '',
+	// eslint-disable-next-line unicorn/text-encoding-identifier-case
 	REQUEST_CHARSET: 'UTF8',
+	// eslint-disable-next-line unicorn/text-encoding-identifier-case
 	REQUEST_IANA_CHARSET: 'UTF-8',
 	SCRIPT_PREFIX: '',
 };
@@ -73,10 +75,10 @@ const getPath = (req: Request): {script: string; prefix: string; dad: string} =>
 	// get the pathname from the url (new URL('https://example.org/abc/xyz?123').pathname => /abc/xyz)
 	const pathname = new URL(validUrl).pathname;
 
-	const tmp = trimPath(pathname.substring(0, pathname.lastIndexOf('/') + 1));
+	const tmp = trimPath(pathname.slice(0, Math.max(0, pathname.lastIndexOf('/') + 1)));
 	const script = `/${tmp}`;
-	const prefix = `/${tmp.substring(0, tmp.lastIndexOf('/'))}`;
-	const dad = tmp.substring(tmp.indexOf('/') + 1);
+	const prefix = `/${tmp.slice(0, Math.max(0, tmp.lastIndexOf('/')))}`;
+	const dad = tmp.slice(Math.max(0, tmp.indexOf('/') + 1));
 
 	return {script, prefix, dad};
 };
@@ -87,7 +89,7 @@ const getPath = (req: Request): {script: string; prefix: string; dad: string} =>
  * @param value - The value to trim.
  * @returns The trimmed value.
  */
-const trimPath = (value: string): string => value.replace(/^\/+|\/+$/g, '');
+const trimPath = (value: string): string => value.replaceAll(/^\/+|\/+$/g, '');
 
 /**
  * Create a CGI object

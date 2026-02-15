@@ -33,8 +33,8 @@ export const parsePage = (text: string): pageType => {
 	if (headerEndPosition === -1) {
 		head = text;
 	} else {
-		head = text.substring(0, headerEndPosition + 2);
-		page.body = text.substring(headerEndPosition + 2);
+		head = text.slice(0, Math.max(0, headerEndPosition + 2));
+		page.body = text.slice(Math.max(0, headerEndPosition + 2));
 	}
 
 	//
@@ -51,10 +51,10 @@ export const parsePage = (text: string): pageType => {
 					{
 						const cookie = parseCookie(header.value);
 						debug(`oracle header "set-cookie" with value "${header.value}" was received has been parsed to ${JSON.stringify(cookie)}`);
-						if (cookie !== null) {
-							page.head.cookies.push(cookie);
-						} else {
+						if (cookie === null) {
 							throw new Error(`Unable to parse header "set-cookie" with value "${header.value}" received from PL/SQL`);
+						} else {
+							page.head.cookies.push(cookie);
 						}
 					}
 					break;
@@ -66,28 +66,28 @@ export const parsePage = (text: string): pageType => {
 
 				case 'x-db-content-length':
 					{
-						const contentLength = parseInt(header.value, 10);
-						if (!Number.isNaN(contentLength)) {
+						const contentLength = Number.parseInt(header.value, 10);
+						if (Number.isNaN(contentLength)) {
+							throw new TypeError(`Unable to parse header "x-db-content-length" with value "${header.value}" received from PL/SQL`);
+						} else {
 							page.head.contentLength = contentLength;
 							debug(`oracle header "x-db-content-length" with value "${page.head.contentLength}" was parsed`);
-						} else {
-							throw new Error(`Unable to parse header "x-db-content-length" with value "${header.value}" received from PL/SQL`);
 						}
 					}
 					break;
 
 				case 'status':
 					{
-						const statusCode = parseInt(header.value, 10);
-						if (!Number.isNaN(statusCode)) {
+						const statusCode = Number.parseInt(header.value, 10);
+						if (Number.isNaN(statusCode)) {
+							throw new TypeError(`Unable to parse header "status" with value "${header.value}" received from PL/SQL`);
+						} else {
 							page.head.statusCode = statusCode;
 							debug(`oracle header "status" with value "${page.head.statusCode}" was parsed`);
 							const index = header.value.indexOf(' ');
 							if (index !== -1) {
-								page.head.statusDescription = header.value.substring(index + 1);
+								page.head.statusDescription = header.value.slice(Math.max(0, index + 1));
 							}
-						} else {
-							throw new Error(`Unable to parse header "status" with value "${header.value}" received from PL/SQL`);
 						}
 					}
 					break;
@@ -120,8 +120,8 @@ const getHeader = (line: string): {name: string; value: string} | null => {
 
 	if (index !== -1) {
 		return {
-			name: line.substring(0, index).trim(),
-			value: line.substring(index + 1).trim(),
+			name: line.slice(0, Math.max(0, index)).trim(),
+			value: line.slice(Math.max(0, index + 1)).trim(),
 		};
 	}
 
@@ -157,8 +157,8 @@ const parseCookie = (text: string): cookieType | null => {
 	}
 
 	const cookie: cookieType = {
-		name: firstElement.substring(0, index).trim(),
-		value: firstElement.substring(index + 1).trim(),
+		name: firstElement.slice(0, Math.max(0, index)).trim(),
+		value: firstElement.slice(Math.max(0, index + 1)).trim(),
 		options: {},
 	};
 
@@ -168,13 +168,13 @@ const parseCookie = (text: string): cookieType | null => {
 	// get the other options
 	cookieElements.forEach((element) => {
 		if (element.toLowerCase().startsWith('path=')) {
-			cookie.options.path = element.substring(5);
+			cookie.options.path = element.slice(5);
 		} else if (element.toLowerCase().startsWith('domain=')) {
-			cookie.options.domain = element.substring(7);
+			cookie.options.domain = element.slice(7);
 		} else if (element.toLowerCase().startsWith('secure')) {
 			cookie.options.secure = true;
 		} else if (element.toLowerCase().startsWith('expires=')) {
-			const date = tryDecodeDate(element.substring(8));
+			const date = tryDecodeDate(element.slice(8));
 			if (date) {
 				cookie.options.expires = date;
 			}

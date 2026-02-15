@@ -286,7 +286,7 @@ export class StatsManager {
 		let p95 = 0;
 		let p99 = 0;
 		if (b.durations.length > 0) {
-			const sorted = [...b.durations].sort((x, y) => x - y);
+			const sorted = b.durations.toSorted((x, y) => x - y);
 			const p95Idx = Math.floor(sorted.length * 0.95);
 			const p99Idx = Math.floor(sorted.length * 0.99);
 			const lastIdx = sorted.length - 1;
@@ -299,8 +299,8 @@ export class StatsManager {
 			timestamp: Date.now(),
 			requests: b.count,
 			errors: b.errors,
-			durationMin: b.durationMin < 0 ? 0 : b.durationMin,
-			durationMax: b.durationMax < 0 ? 0 : b.durationMax,
+			durationMin: Math.max(b.durationMin, 0),
+			durationMax: Math.max(b.durationMax, 0),
 			durationAvg: b.count > 0 ? b.durationSum / b.count : 0,
 			durationP95: p95,
 			durationP99: p99,

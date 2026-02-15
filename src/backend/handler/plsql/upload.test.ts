@@ -91,7 +91,7 @@ describe('handler/plsql/upload', () => {
 			vi.mocked(fileUtils.readFile).mockResolvedValue(Buffer.from('test'));
 
 			(mockConn.execute as any).mockResolvedValue({});
-			vi.mocked(fileUtils.removeFile).mockResolvedValue(undefined);
+			vi.mocked(fileUtils.removeFile).mockResolvedValue();
 
 			await expect(uploadFile(mockFile, 'DOCTAB', mockConn)).resolves.toBeUndefined();
 			expect(mockConn.execute).toHaveBeenCalled();

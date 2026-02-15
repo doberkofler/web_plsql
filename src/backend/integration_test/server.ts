@@ -43,7 +43,7 @@ type configOptionsType = {
  * @returns The result of the comparison.
  */
 const parameterEqual = (sql: string, bind: BindParameters, parameters: paraType): boolean =>
-	!sql.includes('(:argnames, :argvalues)') ? parameterFixedEqual(bind, parameters) : parameterFlexibleEqual(bind, parameters);
+	sql.includes('(:argnames, :argvalues)') ? parameterFlexibleEqual(bind, parameters) : parameterFixedEqual(bind, parameters);
 
 /**
  * Compare parameters with fixed names
@@ -247,7 +247,7 @@ export const sqlExecuteProxy = (config: {proc: string; para?: paraType; lines?: 
 				},
 			};
 
-			return typeof config.para === 'undefined'
+			return config.para === undefined
 				? noPara
 				: config.para.reduce((accumulator, currentValue) => {
 						accumulator.outBinds.names.push(currentValue.name);
@@ -272,11 +272,9 @@ export const sqlExecuteProxy = (config: {proc: string; para?: paraType; lines?: 
 				throw new Error(config.error);
 			}
 
-			if (typeof config.para !== 'undefined') {
-				if (!parameterEqual(sql, bindParams ?? {}, config.para)) {
-					proxyError('parameter mismatch', util.inspect(bindParams));
-					return {};
-				}
+			if (config.para !== undefined && !parameterEqual(sql, bindParams ?? {}, config.para)) {
+				proxyError('parameter mismatch', util.inspect(bindParams));
+				return {};
 			}
 
 			return {};

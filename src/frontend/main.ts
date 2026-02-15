@@ -102,8 +102,8 @@ function setOfflineState(error: unknown): void {
 	}
 
 	// Schedule next attempt in 60s
-	scheduleNextRefresh(60000);
-	startCountdown(60000);
+	scheduleNextRefresh(60_000);
+	startCountdown(60_000);
 }
 
 /**
@@ -195,7 +195,7 @@ async function updateStatus(fullHistory = false, includeConfig = false): Promise
 		if (!newStatus.metrics || !newStatus.pools) return;
 
 		// Use server provided interval stats if available
-		const latestBucket = newStatus.history?.[newStatus.history.length - 1];
+		const latestBucket = newStatus.history?.at(-1);
 		const intervalSec = (newStatus.intervalMs ?? STATS_INTERVAL_MS) / 1000;
 		const reqPerSec = latestBucket ? latestBucket.requests / intervalSec : 0;
 		const avgResponseTime = latestBucket ? latestBucket.durationAvg : newStatus.metrics.avgResponseTime;
@@ -295,22 +295,22 @@ async function updateStatus(fullHistory = false, includeConfig = false): Promise
 
 		// Schedule next refresh if auto-refresh is on
 		if (autoRefreshToggle?.checked && refreshIntervalSelect) {
-			const interval = parseInt(refreshIntervalSelect.value);
+			const interval = Number.parseInt(refreshIntervalSelect.value);
 			scheduleNextRefresh(interval);
 		}
 	} catch (err) {
 		const modal = document.getElementById('offline-modal');
 		// Only set offline state if not already shown to avoid resetting the timer repeatedly
-		if (modal?.style.display !== 'flex') {
-			setOfflineState(err);
-		} else {
+		if (modal?.style.display === 'flex') {
 			// Already offline, reschedule next attempt
-			scheduleNextRefresh(60000);
-			startCountdown(60000);
+			scheduleNextRefresh(60_000);
+			startCountdown(60_000);
 			// Reset button state on failure
 			if (spinner) spinner.style.display = 'none';
 			if (icon) icon.style.display = 'inline-block';
 			if (btnText) btnText.textContent = 'Try Reconnect';
+		} else {
+			setOfflineState(err);
 		}
 	}
 }
@@ -338,7 +338,7 @@ function scheduleNextRefresh(delayMs: number): void {
 function startRefreshTimer(): void {
 	const intervalSelect = document.getElementById('refresh-interval') as HTMLSelectElement | null;
 	if (intervalSelect) {
-		const interval = parseInt(intervalSelect.value);
+		const interval = Number.parseInt(intervalSelect.value);
 		scheduleNextRefresh(interval);
 	}
 }
@@ -361,7 +361,7 @@ function updateHistoryLabels(): void {
 	if (!historySelect) return;
 
 	Array.from(historySelect.options).forEach((option) => {
-		const durationSeconds = parseInt(option.value);
+		const durationSeconds = Number.parseInt(option.value);
 
 		let timeStr = '';
 		if (durationSeconds < 60) {
@@ -379,7 +379,8 @@ function updateHistoryLabels(): void {
 // Navigation
 document.querySelectorAll('nav button').forEach((btnEl) => {
 	const btn = btnEl as HTMLButtonElement;
-	btn.onclick = async () => {
+	// eslint-disable-next-line @typescript-eslint/no-misused-promises
+	btn.addEventListener('click', async () => {
 		try {
 			const view = btn.dataset.view;
 			if (!view) return;
@@ -411,27 +412,27 @@ document.querySelectorAll('nav button').forEach((btnEl) => {
 		} catch (err) {
 			setOfflineState(err);
 		}
-	};
+	});
 });
 
 const autoRefreshToggle = document.getElementById('auto-refresh-toggle') as HTMLInputElement | null;
 if (autoRefreshToggle) {
-	autoRefreshToggle.onchange = (e: Event) => {
+	autoRefreshToggle.addEventListener('change', (e: Event) => {
 		const target = e.target as HTMLInputElement;
 		localStorage.setItem(STORAGE_KEYS.AUTO_REFRESH, String(target.checked));
 		if (target.checked) startRefreshTimer();
 		else stopRefreshTimer();
-	};
+	});
 }
 
 const refreshIntervalSelect = document.getElementById('refresh-interval') as HTMLSelectElement | null;
 if (refreshIntervalSelect) {
-	refreshIntervalSelect.onchange = () => {
+	refreshIntervalSelect.addEventListener('change', () => {
 		localStorage.setItem(STORAGE_KEYS.REFRESH_INTERVAL, refreshIntervalSelect.value);
 
 		// Recalculate maxHistoryPoints for the new interval
-		const intervalMs = parseInt(refreshIntervalSelect.value);
-		const durationSeconds = parseInt(chartHistorySelect?.value ?? '60');
+		const intervalMs = Number.parseInt(refreshIntervalSelect.value);
+		const durationSeconds = Number.parseInt(chartHistorySelect?.value ?? '60');
 		state.maxHistoryPoints = Math.max(1, Math.floor(durationSeconds / (intervalMs / 1000)));
 
 		// Clear history to force re-hydration from server on next update
@@ -445,17 +446,17 @@ if (refreshIntervalSelect) {
 		updateHistoryLabels();
 		refreshSystem(state.status, state);
 		void updateStatus();
-	};
+	});
 }
 
 const chartHistorySelect = document.getElementById('chart-history-points') as HTMLSelectElement | null;
 if (chartHistorySelect) {
-	chartHistorySelect.onchange = () => {
+	chartHistorySelect.addEventListener('change', () => {
 		localStorage.setItem(STORAGE_KEYS.HISTORY_DURATION, chartHistorySelect.value);
 		const intervalSelect = document.getElementById('refresh-interval') as HTMLSelectElement | null;
 		if (!intervalSelect) return;
-		const intervalMs = parseInt(intervalSelect.value);
-		const durationSeconds = parseInt(chartHistorySelect.value);
+		const intervalMs = Number.parseInt(intervalSelect.value);
+		const durationSeconds = Number.parseInt(chartHistorySelect.value);
 		state.maxHistoryPoints = Math.max(1, Math.floor(durationSeconds / (intervalMs / 1000)));
 
 		// Clear history to force re-hydration from server on next update
@@ -467,21 +468,21 @@ if (chartHistorySelect) {
 		state.history.poolUsage = {};
 
 		void updateStatus();
-	};
+	});
 }
 
 const manualRefreshBtn = document.getElementById('manual-refresh') as HTMLButtonElement | null;
 if (manualRefreshBtn) {
-	manualRefreshBtn.onclick = () => {
+	manualRefreshBtn.addEventListener('click', () => {
 		void withLoading(manualRefreshBtn, updateStatus);
-	};
+	});
 }
 
 const errorFilterInput = document.getElementById('error-filter') as HTMLInputElement | null;
 if (errorFilterInput) {
-	errorFilterInput.onkeydown = (e) => {
+	errorFilterInput.addEventListener('keydown', (e) => {
 		if (e.key === 'Enter') void refreshErrors();
-	};
+	});
 }
 
 bindLoadingButton('error-load-btn', refreshErrors);
@@ -491,46 +492,48 @@ bindLoadingButton('stats-load-btn', refreshStats);
 
 const traceFilterInput = document.getElementById('trace-filter') as HTMLInputElement | null;
 if (traceFilterInput) {
-	traceFilterInput.onkeydown = (e) => {
+	traceFilterInput.addEventListener('keydown', (e) => {
 		if (e.key === 'Enter') void refreshTrace();
-	};
+	});
 }
 
 const traceClearBtn = document.getElementById('trace-clear-btn') as HTMLButtonElement | null;
 if (traceClearBtn) {
-	traceClearBtn.onclick = async () => {
+	// eslint-disable-next-line @typescript-eslint/no-misused-promises
+	traceClearBtn.addEventListener('click', async () => {
 		if (confirm('Are you sure you want to clear all traces?')) {
 			await withLoading(traceClearBtn, async () => {
 				await typedApi.clearTraces();
 				await refreshTrace();
 			});
 		}
-	};
+	});
 }
 
 const traceStatusToggle = document.getElementById('trace-status-toggle') as HTMLButtonElement | null;
 if (traceStatusToggle) {
-	traceStatusToggle.onclick = async () => {
+	// eslint-disable-next-line @typescript-eslint/no-misused-promises
+	traceStatusToggle.addEventListener('click', async () => {
 		await withLoading(traceStatusToggle, async () => {
 			const {enabled: currentEnabled} = await typedApi.getTraceStatus();
 			await typedApi.toggleTrace(!currentEnabled);
 			await refreshTrace();
 		});
-	};
+	});
 }
 
 const accessFilterInput = document.getElementById('access-filter') as HTMLInputElement | null;
 if (accessFilterInput) {
-	accessFilterInput.onkeydown = (e) => {
+	accessFilterInput.addEventListener('keydown', (e) => {
 		if (e.key === 'Enter') void refreshAccess();
-	};
+	});
 }
 
 const statsLimitInput = document.getElementById('stats-limit') as HTMLInputElement | null;
 if (statsLimitInput) {
-	statsLimitInput.onkeydown = (e) => {
+	statsLimitInput.addEventListener('keydown', (e) => {
 		if (e.key === 'Enter') void refreshStats();
-	};
+	});
 }
 
 // Danger Zone Actions
@@ -562,13 +565,13 @@ bindLoadingButton('btn-clear-all-cache', async () => {
 
 const btnReconnect = document.getElementById('btn-reconnect') as HTMLButtonElement | null;
 if (btnReconnect) {
-	btnReconnect.onclick = () => {
+	btnReconnect.addEventListener('click', () => {
 		void withLoading(btnReconnect, updateStatus);
-	};
+	});
 }
 
 // Close modal on escape key
-window.addEventListener('keydown', (e) => {
+globalThis.addEventListener('keydown', (e) => {
 	if (e.key === 'Escape') {
 		const errorModal = document.getElementById('error-modal');
 		if (errorModal) errorModal.style.display = 'none';
@@ -601,8 +604,8 @@ updateHistoryLabels();
 
 // Apply initial maxHistoryPoints based on loaded settings
 if (refreshIntervalSelect && chartHistorySelect) {
-	const intervalMs = parseInt(refreshIntervalSelect.value);
-	const durationSeconds = parseInt(chartHistorySelect.value);
+	const intervalMs = Number.parseInt(refreshIntervalSelect.value);
+	const durationSeconds = Number.parseInt(chartHistorySelect.value);
 	state.maxHistoryPoints = Math.max(1, Math.floor(durationSeconds / (intervalMs / 1000)));
 }
 

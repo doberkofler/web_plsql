@@ -8,7 +8,7 @@ describe('Admin Utility Formatting', () => {
 			expect(formatDuration(0.5)).toBe('500.00 ms');
 			expect(formatDuration(60)).toBe('1m');
 			expect(formatDuration(3661)).toBe('1h 1m 1s');
-			expect(formatDuration(86400 + 3600 + 60 + 1)).toBe('1d 1h 1m 1s');
+			expect(formatDuration(86_400 + 3600 + 60 + 1)).toBe('1d 1h 1m 1s');
 		});
 	});
 

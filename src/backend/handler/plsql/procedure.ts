@@ -63,21 +63,19 @@ const getProcedure = async (
 	const useVariableArguments = procName.startsWith('!');
 
 	// sanitize procedure name
-	const rawName = useVariableArguments ? procName.substring(1) : procName;
+	const rawName = useVariableArguments ? procName.slice(1) : procName;
 	const sanitizedProcName = await sanitizeProcName(rawName, databaseConnection, options, procedureNameCache);
 
 	// run procedure
-	if (useVariableArguments) {
-		return {
-			...getProcedureVariable(req, sanitizedProcName, argObj),
-			resolvedName: sanitizedProcName,
-		};
-	} else {
-		return {
-			...(await getProcedureNamed(req, sanitizedProcName, argObj, databaseConnection, argumentCache)),
-			resolvedName: sanitizedProcName,
-		};
-	}
+	return useVariableArguments
+		? {
+				...getProcedureVariable(req, sanitizedProcName, argObj),
+				resolvedName: sanitizedProcName,
+			}
+		: {
+				...(await getProcedureNamed(req, sanitizedProcName, argObj, databaseConnection, argumentCache)),
+				resolvedName: sanitizedProcName,
+			};
 };
 
 /**
@@ -107,7 +105,7 @@ const procedurePrepare = async (cgiObj: environmentType, databaseConnection: Con
 		cgicount: {dir: BIND_IN, type: NUMBER, val: Object.keys(cgiObj).length},
 		cginames: {dir: BIND_IN, type: STRING, val: Object.keys(cgiObj)},
 		cgivalues: {dir: BIND_IN, type: STRING, val: Object.values(cgiObj)},
-		remote_user: {dir: BIND_IN, type: STRING, val: (cgiObj.REMOTE_USER ?? '').substring(0, 30)},
+		remote_user: {dir: BIND_IN, type: STRING, val: (cgiObj.REMOTE_USER ?? '').slice(0, 30)},
 	};
 	try {
 		await databaseConnection.execute(sqlStatement, bindParameter);
@@ -229,7 +227,7 @@ export const invokeProcedure = async (
 
 	if (traceManager.isEnabled()) {
 		traceData = {
-			id: Math.random().toString(36).substring(2, 15),
+			id: Math.random().toString(36).slice(2, 15),
 			timestamp: new Date().toISOString(),
 			source: cgiObj.REMOTE_ADDR ?? '',
 			url: req.originalUrl,
@@ -379,7 +377,7 @@ export const invokeProcedure = async (
 							const str = String(chunk);
 							htmlBuffer += str;
 							if (htmlBuffer.length > MAX_HTML_SIZE) {
-								htmlBuffer = htmlBuffer.substring(0, MAX_HTML_SIZE) + '... [truncated]';
+								htmlBuffer = htmlBuffer.slice(0, Math.max(0, MAX_HTML_SIZE)) + '... [truncated]';
 							}
 						}
 						return originalPush(chunk);

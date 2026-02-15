@@ -179,11 +179,11 @@ export const getBinding = (argName: string, argValue: unknown, argType: string):
 
 	if (argType === DATA_TYPES.DATE) {
 		if (typeof argValue !== 'string') {
-			throw new Error(`Error in named parameter "${argName}": invalid value "${argValue}" for type "${argType}"`);
+			throw new TypeError(`Error in named parameter "${argName}": invalid value "${argValue}" for type "${argType}"`);
 		}
 		const value = new Date(argValue);
 		if (Number.isNaN(value.getTime())) {
-			throw new Error(`Error in named parameter "${argName}": invalid value "${argValue}" for type "${argType}"`);
+			throw new TypeError(`Error in named parameter "${argName}": invalid value "${argValue}" for type "${argType}"`);
 		}
 
 		return {dir: BIND_IN, type: DB_TYPE_VARCHAR, val: value};

@@ -45,15 +45,29 @@ function parseArgs() {
 		const arg = args[i];
 		const nextArg = args[i + 1] ?? '';
 
-		if (arg === '--url' || arg === '-u') {
-			options.url = nextArg;
-			i++;
-		} else if (arg === '--concurrency' || arg === '-c') {
-			options.concurrency = parseInt(nextArg, 10);
-			i++;
-		} else if (arg === '--duration' || arg === '-d') {
-			options.duration = parseInt(nextArg, 10);
-			i++;
+		switch (arg) {
+			case '--url':
+			case '-u': {
+				options.url = nextArg;
+				i++;
+
+				break;
+			}
+			case '--concurrency':
+			case '-c': {
+				options.concurrency = Number.parseInt(nextArg, 10);
+				i++;
+
+				break;
+			}
+			case '--duration':
+			case '-d': {
+				options.duration = Number.parseInt(nextArg, 10);
+				i++;
+
+				break;
+			}
+			// No default
 		}
 	}
 
@@ -107,7 +121,7 @@ function renderDashboard(elapsed, duration, url, concurrency) {
 	const avgLatency = metrics.total > 0 ? (metrics.sumLatency / metrics.total).toFixed(1) : '0.0';
 	const progress = Math.min(100, (elapsed / duration) * 100).toFixed(1);
 	const barWidth = 30;
-	const filledWidth = Math.floor((barWidth * parseFloat(progress)) / 100);
+	const filledWidth = Math.floor((barWidth * Number.parseFloat(progress)) / 100);
 	const bar = '='.repeat(filledWidth) + '>'.padEnd(barWidth - filledWidth, ' ');
 
 	console.log('\x1b[1m\x1b[36mWeb PL/SQL Load Test\x1b[0m');
@@ -148,7 +162,7 @@ async function runWorker(url, endTime) {
 		const start = performance.now();
 		try {
 			const res = await fetch(url, {
-				signal: AbortSignal.timeout(10000), // 10s timeout
+				signal: AbortSignal.timeout(10_000), // 10s timeout
 			});
 			const latency = performance.now() - start;
 			recordMetrics(res.ok, latency, res.status);

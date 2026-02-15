@@ -65,6 +65,14 @@ export const inspect = (value: unknown, depth: number | null = null): string => 
 	return 'Unable to convert value to string';
 };
 
+// Build text representation
+/**
+ *	@param cell - The string
+ *	@param width - The width
+ *	@returns The result
+ */
+const padCell = (cell: string, width: number) => cell.padEnd(width, ' ');
+
 /**
  * Return a tabular representation of the values.
  *
@@ -83,13 +91,6 @@ export const toTable = (head: string[], body: string[][]): outputType => {
 		return Math.max(h.length, bodyMax);
 	});
 
-	// Build text representation
-	/**
-	 *	@param cell - The string
-	 *	@param width - The width
-	 *	@returns The result
-	 */
-	const padCell = (cell: string, width: number) => cell.padEnd(width, ' ');
 	/**
 	 *	@param i - The index
 	 *	@returns The width

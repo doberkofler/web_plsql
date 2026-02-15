@@ -4,21 +4,21 @@ import {humanDuration, stringToNumber, stringToInteger} from '../../../src/backe
 const TESTS_NUMBER = [
 	{value: 0, expectedNumber: 0, expectedInteger: 0},
 	{value: 1, expectedNumber: 1, expectedInteger: 1},
-	{value: NaN, expectedNumber: null, expectedInteger: null},
+	{value: Number.NaN, expectedNumber: null, expectedInteger: null},
 	{value: Infinity, expectedNumber: null, expectedInteger: null},
 	{value: '0', expectedNumber: 0, expectedInteger: 0},
 	{value: '1', expectedNumber: 1, expectedInteger: 1},
 	{value: '-1', expectedNumber: -1, expectedInteger: -1},
-	{value: '100000', expectedNumber: 100000, expectedInteger: 100000},
-	{value: '100000.00', expectedNumber: 100000, expectedInteger: 100000},
+	{value: '100000', expectedNumber: 100_000, expectedInteger: 100_000},
+	{value: '100000.00', expectedNumber: 100_000, expectedInteger: 100_000},
 	{value: '100000.', expectedNumber: null, expectedInteger: null},
 	{value: '7e7', expectedNumber: 7e7, expectedInteger: 7e7},
 	{value: '-7e-7', expectedNumber: -7e-7, expectedInteger: null},
 	{value: '0.1', expectedNumber: 0.1, expectedInteger: null},
 	{value: '+.1', expectedNumber: 0.1, expectedInteger: null},
 	{value: '-.1', expectedNumber: -0.1, expectedInteger: null},
-	{value: '0.00001', expectedNumber: 0.00001, expectedInteger: null},
-	{value: '-0.00001', expectedNumber: -0.00001, expectedInteger: null},
+	{value: '0.00001', expectedNumber: 0.000_01, expectedInteger: null},
+	{value: '-0.00001', expectedNumber: -0.000_01, expectedInteger: null},
 	{value: '', expectedNumber: null, expectedInteger: null},
 	{value: ' 0', expectedNumber: null, expectedInteger: null},
 	{value: '0 ', expectedNumber: null, expectedInteger: null},
@@ -28,7 +28,7 @@ const TESTS_NUMBER = [
 
 describe('util', () => {
 	it('humanDuration', () => {
-		assert.strictEqual(humanDuration(NaN), 'invalid');
+		assert.strictEqual(humanDuration(Number.NaN), 'invalid');
 		assert.strictEqual(humanDuration(Infinity), 'invalid');
 		assert.strictEqual(humanDuration(0), '0ms');
 		assert.strictEqual(humanDuration(1), '1ms');

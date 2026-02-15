@@ -54,7 +54,7 @@ export const createAdminRouter = (adminContext: AdminContext): Router => {
 
 	// GET /api/status
 	router.get('/api/status', (req: Request, res: Response) => {
-		const uptime = (new Date().getTime() - adminContext.startTime.getTime()) / 1000;
+		const uptime = (Date.now() - adminContext.startTime.getTime()) / 1000;
 		const includeHistory = req.query.history === 'true';
 		const includeConfig = req.query.config === 'true';
 
@@ -158,7 +158,7 @@ export const createAdminRouter = (adminContext: AdminContext): Router => {
 		let limit = 100;
 		if (typeof limitQuery === 'string') {
 			const parsed = Number(limitQuery);
-			if (!isNaN(parsed)) {
+			if (!Number.isNaN(parsed)) {
 				limit = parsed;
 			}
 		}
@@ -167,7 +167,7 @@ export const createAdminRouter = (adminContext: AdminContext): Router => {
 		// Return the last 'limit' entries, reversed (newest first)
 		// Create a copy to avoid mutating the original history array
 		const slice = limit > 0 ? history.slice(-limit) : [...history];
-		res.json(slice.reverse());
+		res.json(slice.toReversed());
 	});
 
 	// GET /api/logs/error
@@ -193,7 +193,7 @@ export const createAdminRouter = (adminContext: AdminContext): Router => {
 				throw new Error(`Validation failed: ${logs.error.message}`);
 			}
 
-			return res.json(logs.data.reverse());
+			return res.json(logs.data.toReversed());
 		} catch (err) {
 			return res.status(500).json({error: String(err)});
 		}
@@ -212,7 +212,7 @@ export const createAdminRouter = (adminContext: AdminContext): Router => {
 			}
 
 			const lines = await readLastLines(logFile, limit, filter);
-			res.json(lines.reverse());
+			res.json(lines.toReversed());
 		} catch (err) {
 			res.status(500).json({error: String(err)});
 		}
@@ -240,19 +240,30 @@ export const createAdminRouter = (adminContext: AdminContext): Router => {
 	router.post('/api/server/:action', (req: Request, res: Response) => {
 		const action = req.params.action;
 
-		if (action === 'stop') {
-			res.json({message: 'Server shutting down...'});
-			setTimeout(() => {
-				forceShutdown();
-			}, SHUTDOWN_GRACE_DELAY_MS);
-		} else if (action === 'pause') {
-			adminContext.setPaused(true);
-			res.json({message: 'Server paused', status: 'paused'});
-		} else if (action === 'resume') {
-			adminContext.setPaused(false);
-			res.json({message: 'Server resumed', status: 'running'});
-		} else {
-			res.status(400).json({error: 'Invalid action'});
+		switch (action) {
+			case 'stop': {
+				res.json({message: 'Server shutting down...'});
+				setTimeout(() => {
+					forceShutdown();
+				}, SHUTDOWN_GRACE_DELAY_MS);
+
+				break;
+			}
+			case 'pause': {
+				adminContext.setPaused(true);
+				res.json({message: 'Server paused', status: 'paused'});
+
+				break;
+			}
+			case 'resume': {
+				adminContext.setPaused(false);
+				res.json({message: 'Server resumed', status: 'running'});
+
+				break;
+			}
+			default: {
+				res.status(400).json({error: 'Invalid action'});
+			}
 		}
 	});
 
@@ -292,7 +303,7 @@ export const createAdminRouter = (adminContext: AdminContext): Router => {
 				throw new Error(`Validation failed: ${logs.error.message}`);
 			}
 
-			return res.json(logs.data.reverse());
+			return res.json(logs.data.toReversed());
 		} catch (err) {
 			return res.status(500).json({error: String(err)});
 		}

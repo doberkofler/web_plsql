@@ -52,7 +52,7 @@ describe('JsonLogger', () => {
 
 		const content = fs.readFileSync(filename, 'utf8');
 		const lines = content.trim().split('\n');
-		const lastLine = lines[lines.length - 1];
+		const lastLine = lines.at(-1);
 		if (!lastLine) throw new Error('No last line found');
 		const parsed = JSON.parse(lastLine) as logEntryType;
 
@@ -81,7 +81,7 @@ describe('JsonLogger', () => {
 
 		const content = fs.readFileSync(filename, 'utf8');
 		const lines = content.trim().split('\n');
-		const lastLine = lines[lines.length - 1];
+		const lastLine = lines.at(-1);
 		if (!lastLine) throw new Error('No last line found');
 		const parsed = JSON.parse(lastLine) as logEntryType;
 

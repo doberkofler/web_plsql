@@ -71,11 +71,11 @@ describe('StatsManager', () => {
 		const history = manager.getHistory();
 		assert.strictEqual(history.length, 5); // maxHistoryPoints is 5
 		const b4 = history[4];
-		if (!b4) {
-			assert.fail('Latest bucket should exist');
-		} else {
+		if (b4) {
 			assert.strictEqual(b4.requests, 1);
 			assert.strictEqual(b4.durationAvg, 9); // Latest value
+		} else {
+			assert.fail('Latest bucket should exist');
 		}
 	});
 
@@ -88,11 +88,11 @@ describe('StatsManager', () => {
 
 		const history = manager.getHistory();
 		const latest = history[0];
-		if (!latest) {
-			assert.fail('Latest bucket should exist');
-		} else {
+		if (latest) {
 			assert.strictEqual(latest.durationP95, 96);
 			assert.strictEqual(latest.durationP99, 100);
+		} else {
+			assert.fail('Latest bucket should exist');
 		}
 	});
 
@@ -103,11 +103,11 @@ describe('StatsManager', () => {
 
 		const history = manager.getHistory();
 		const latest = history[0];
-		if (!latest) {
-			assert.fail('Latest bucket should exist');
-		} else {
+		if (latest) {
 			assert.strictEqual(latest.durationP95, 100);
 			assert.strictEqual(latest.durationP99, 100);
+		} else {
+			assert.fail('Latest bucket should exist');
 		}
 	});
 
@@ -137,9 +137,7 @@ describe('StatsManager', () => {
 
 		const history = manager.getHistory();
 		const latest = history[0];
-		if (!latest) {
-			assert.fail('Latest bucket should exist');
-		} else {
+		if (latest) {
 			assert.strictEqual(latest.pools.length, 1);
 			const p0 = latest.pools[0];
 			if (p0) {
@@ -150,6 +148,8 @@ describe('StatsManager', () => {
 					assert.strictEqual(p0.cache.procedureName.hits, 1);
 				}
 			}
+		} else {
+			assert.fail('Latest bucket should exist');
 		}
 	});
 });

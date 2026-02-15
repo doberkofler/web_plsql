@@ -134,7 +134,7 @@ describe('templates/poolCard', () => {
 			connectionsOpen: 100,
 			connectionsInUse: 50,
 			stats: {
-				totalRequests: 1000000,
+				totalRequests: 1_000_000,
 				totalTimeouts: 100,
 			},
 		};

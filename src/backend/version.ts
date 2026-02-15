@@ -2,9 +2,7 @@ declare global {
 	var __VERSION__: string;
 }
 
-if (typeof globalThis.__VERSION__ === 'undefined') {
-	globalThis.__VERSION__ = '**development**';
-}
+globalThis.__VERSION__ ??= '**development**';
 
 declare const __VERSION__: string;
 

@@ -305,7 +305,7 @@ const simulateError = (errorType: string, params: Record<string, unknown>): {del
 		case 'slow': {
 			// Extract delay from params
 			const msVal = params.ms;
-			const ms = parseInt(typeof msVal === 'string' ? msVal : typeof msVal === 'number' ? String(msVal) : '2000', 10);
+			const ms = Number.parseInt(typeof msVal === 'string' ? msVal : typeof msVal === 'number' ? String(msVal) : '2000', 10);
 			return {delay: ms};
 		}
 
@@ -447,6 +447,7 @@ export const createMockProcedureCallback = (): ExecuteCallback => {
 		if (sqlLower.includes('begin') && sqlLower.includes('end') && !sqlLower.includes('declare')) {
 			// Extract procedure name from SQL
 			// Patterns: BEGIN schema.proc(...) or BEGIN proc(...)
+			// eslint-disable-next-line unicorn/better-regex
 			const beginMatch = /BEGIN\s+([\w.$]+)/i.exec(sql);
 			if (beginMatch?.[1]) {
 				lastProcedureName = beginMatch[1];
@@ -456,7 +457,7 @@ export const createMockProcedureCallback = (): ExecuteCallback => {
 				if (bindParams) {
 					for (const [key, value] of Object.entries(bindParams)) {
 						if (key.startsWith('p_')) {
-							const paramName = key.substring(2); // Remove 'p_' prefix
+							const paramName = key.slice(2); // Remove 'p_' prefix
 							// NOTE: assuming value is BindParameter for now as that is what our procedure handlers use
 							const param = value as BindParameter;
 							lastParams[paramName] = param.val;
@@ -493,29 +494,33 @@ export const createMockProcedureCallback = (): ExecuteCallback => {
 				// Check for Special Package ($)
 				if (isSpecialPackage(lastProcedureName)) {
 					const proc = getSpecialProcedure(lastProcedureName);
-					if (proc === 'health') {
-						lastResponse = generateHealthPage();
-					} else {
-						// Default to help for 'help' or any unknown special proc
-						lastResponse = generateHelpPage();
-					}
+					lastResponse = proc === 'health' ? generateHealthPage() : generateHelpPage();
 					return {};
 				}
 
 				// Check for API Package
 				if (isApiPackage(lastProcedureName)) {
 					const proc = getApiProcedure(lastProcedureName);
-					if (proc === 'html') {
-						lastResponse = generateApiHtml();
-					} else if (proc === 'json') {
-						lastResponse = generateApiJson();
-					} else if (proc === 'files') {
-						lastResponse = generateApiFiles();
-					} else if (isProcedureJson(lastProcedureName)) {
-						lastResponse = generateJsonResponse(lastProcedureName, lastParams, lastMethod);
-					} else {
-						// Default API response if unknown
-						lastResponse = generateApiHtml();
+					switch (proc) {
+						case 'html': {
+							lastResponse = generateApiHtml();
+
+							break;
+						}
+						case 'json': {
+							lastResponse = generateApiJson();
+
+							break;
+						}
+						case 'files': {
+							lastResponse = generateApiFiles();
+
+							break;
+						}
+						default:
+							lastResponse = isProcedureJson(lastProcedureName)
+								? generateJsonResponse(lastProcedureName, lastParams, lastMethod)
+								: generateApiHtml();
 					}
 					return {};
 				}
@@ -527,11 +532,9 @@ export const createMockProcedureCallback = (): ExecuteCallback => {
 				}
 
 				// Generate response based on procedure pattern
-				if (isProcedureJson(lastProcedureName)) {
-					lastResponse = generateJsonResponse(lastProcedureName, lastParams, lastMethod);
-				} else {
-					lastResponse = generateDynamicHtmlPage(lastProcedureName, lastParams, lastMethod);
-				}
+				lastResponse = isProcedureJson(lastProcedureName)
+					? generateJsonResponse(lastProcedureName, lastParams, lastMethod)
+					: generateDynamicHtmlPage(lastProcedureName, lastParams, lastMethod);
 
 				return {};
 			}
@@ -569,7 +572,7 @@ export const createMockProcedureCallback = (): ExecuteCallback => {
 		// UNHANDLED SQL - Log for debugging
 		// ============================================================================
 		console.warn('[MockProcedures] Unhandled SQL pattern:');
-		console.warn('  SQL:', sql.substring(0, 300));
+		console.warn('  SQL:', sql.slice(0, 300));
 		console.warn('  Bind params:', bindParams ? Object.keys(bindParams).join(', ') : 'none');
 		console.warn('  Has lines:', bindParams ? 'lines' in bindParams : false);
 		console.warn('  Has irows:', bindParams ? 'irows' in bindParams : false);

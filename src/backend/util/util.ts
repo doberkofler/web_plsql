@@ -17,7 +17,7 @@ export const humanDuration = (duration: number): string => {
 	if (h) parts.push(`${h}h`);
 	if (m) parts.push(`${m}m`);
 	if (s) parts.push(`${s}s`);
-	if (ms || !parts.length) parts.push(`${ms}ms`);
+	if (ms || parts.length === 0) parts.push(`${ms}ms`);
 
 	return parts.join(' ');
 };
@@ -35,6 +35,7 @@ export const stringToNumber = (value: unknown): number | null => {
 	}
 
 	// Test for invalid characters
+	// eslint-disable-next-line unicorn/better-regex
 	if (typeof value !== 'string' || !/^[+-]?(?:\d+(?:\.\d+)?|\.\d+)(?:E[+-]?\d+)?$/i.test(value)) {
 		return null;
 	}

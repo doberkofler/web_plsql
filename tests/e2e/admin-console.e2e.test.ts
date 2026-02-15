@@ -38,7 +38,7 @@ test.describe('Admin Console E2E Tests', () => {
 		await expect(sidebar).toBeVisible();
 
 		const sidebarBgColor = await sidebar.evaluate((el) => {
-			return window.getComputedStyle(el).backgroundColor;
+			return globalThis.getComputedStyle(el).backgroundColor;
 		});
 		expect(sidebarBgColor).not.toBe('rgba(0, 0, 0, 0)');
 		expect(sidebarBgColor).not.toBe('transparent');

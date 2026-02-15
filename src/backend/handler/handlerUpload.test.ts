@@ -49,7 +49,7 @@ describe('handler/handlerUpload', () => {
 	});
 
 	it('should not set fileSize limit when uploadFileSizeLimit is undefined', () => {
-		handlerUpload(undefined);
+		handlerUpload();
 
 		expect(multer).toHaveBeenCalledWith({
 			storage: expect.any(Object),

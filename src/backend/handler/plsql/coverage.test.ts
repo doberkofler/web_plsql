@@ -69,7 +69,7 @@ describe('handler/plsql coverage tests', () => {
 		it('should handle timer unref when available', () => {
 			const manager = new StatsManager({
 				sampleSystem: true,
-				intervalMs: 10000,
+				intervalMs: 10_000,
 			});
 
 			expect(manager._timer).toBeDefined();

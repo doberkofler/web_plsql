@@ -27,6 +27,7 @@ describe('errorToString', () => {
 	});
 
 	it('should format an Error object without message correctly', () => {
+		// eslint-disable-next-line unicorn/error-message
 		const error = new Error();
 		error.message = ''; // unexpected but possible
 		const result = errorToString(error);

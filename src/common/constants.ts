@@ -27,7 +27,7 @@
  *   - Pruning: Removes least-frequently-used entries when full
  *   - Higher values = better cache hit rates but more memory
  */
-export const DEFAULT_CACHE_MAX_SIZE = 10000;
+export const DEFAULT_CACHE_MAX_SIZE = 10_000;
 
 /**
  * CACHE_PRUNE_PERCENT = 0.1
@@ -117,7 +117,7 @@ export const OWA_STREAM_CHUNK_SIZE = 1000;
  *   - Improves backpressure handling responsiveness
  *   - Trade-off: More CPU for _read() calls vs memory efficiency
  */
-export const OWA_STREAM_BUFFER_SIZE = 16384;
+export const OWA_STREAM_BUFFER_SIZE = 16_384;
 
 /**
  * OWA_RESOLVED_NAME_MAX_LEN = 400

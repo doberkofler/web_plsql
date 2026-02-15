@@ -19,5 +19,5 @@ export default defineConfig({
 			use: {...devices['Desktop Chrome']},
 		},
 	],
-	timeout: 60000,
+	timeout: 60_000,
 });

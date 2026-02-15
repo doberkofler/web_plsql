@@ -28,7 +28,7 @@ describe('cgi', () => {
 				case 'referrer':
 					return 'HTTP-REFERER';
 				default:
-					return undefined;
+					return;
 			}
 		};
 
@@ -85,7 +85,9 @@ describe('cgi', () => {
 			DOC_ACCESS_PATH: 'doc',
 			DOCUMENT_TABLE: DOCUMENT_TABLE_NAME,
 			PATH_ALIAS: '',
+			// eslint-disable-next-line unicorn/text-encoding-identifier-case
 			REQUEST_CHARSET: 'UTF8',
+			// eslint-disable-next-line unicorn/text-encoding-identifier-case
 			REQUEST_IANA_CHARSET: 'UTF-8',
 			SCRIPT_PREFIX: '/pls',
 			HTTP_COOKIE: 'cookie1=value1;cookie2=value2;',

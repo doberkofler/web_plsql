@@ -3,15 +3,9 @@ import path from 'node:path';
 import type {procedureTraceEntry} from '../types.ts';
 
 class TraceManager {
-	enabled: boolean;
-	filename: string;
-	maxEntries: number;
-
-	constructor() {
-		this.enabled = false;
-		this.filename = 'trace.json.log';
-		this.maxEntries = 1000;
-	}
+	enabled = false;
+	filename = 'trace.json.log';
+	maxEntries = 1000;
 
 	/**
 	 * Toggle tracing

@@ -9,7 +9,7 @@
  * @returns The escaped value.
  */
 export const escapeHtml = (value: string): string =>
-	value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+	value.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#39;');
 
 /**
  *	Convert LF and/or CR to <br>
@@ -19,8 +19,8 @@ export const escapeHtml = (value: string): string =>
 export const convertAsciiToHtml = (text: string): string => {
 	let html = escapeHtml(text);
 
-	html = html.replace(/\r\n|\r|\n/g, '<br />');
-	html = html.replace(/\t/g, '&nbsp;&nbsp;&nbsp;');
+	html = html.replaceAll(/\r\n|\r|\n/g, '<br />');
+	html = html.replaceAll('\t', '&nbsp;&nbsp;&nbsp;');
 
 	return html;
 };
