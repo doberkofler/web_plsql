@@ -20,9 +20,20 @@ describe('handler/plsql/procedureNamed', () => {
 			assert.strictEqual(bind.val, 'val');
 		});
 
+		it('should handle empty string for VARCHAR2', () => {
+			const bind = getBinding('p1', '', 'VARCHAR2');
+			assert.strictEqual(bind.val, null);
+		});
+
 		it('should return CLOB binding', () => {
 			const bind = getBinding('p1', 'val', 'CLOB');
 			assert.strictEqual(bind.type, oracledb.DB_TYPE_CLOB);
+			assert.strictEqual(bind.val, 'val');
+		});
+
+		it('should handle empty string for CLOB', () => {
+			const bind = getBinding('p1', '', 'CLOB');
+			assert.strictEqual(bind.val, null);
 		});
 
 		it('should return NUMBER binding', () => {
@@ -37,10 +48,20 @@ describe('handler/plsql/procedureNamed', () => {
 			}, /invalid value/);
 		});
 
+		it('should handle empty string for NUMBER', () => {
+			const bind = getBinding('p1', '', 'NUMBER');
+			assert.strictEqual(bind.val, null);
+		});
+
+		it('should handle empty string for DATE', () => {
+			const bind = getBinding('p1', '', 'DATE');
+			assert.strictEqual(bind.val, null);
+		});
+
 		it('should return DATE binding', () => {
 			const dateStr = '2023-01-01';
 			const result = getBinding('p1', dateStr, 'DATE');
-			assert.strictEqual(result.type, oracledb.DB_TYPE_VARCHAR);
+			assert.strictEqual(result.type, oracledb.DB_TYPE_DATE);
 			assert.ok(result.val instanceof Date);
 		});
 
@@ -53,9 +74,7 @@ describe('handler/plsql/procedureNamed', () => {
 		it('should return PL/SQL TABLE binding', () => {
 			const bind = getBinding('p1', ['val1', 'val2'], 'PL/SQL TABLE');
 			assert.strictEqual(bind.dir, oracledb.BIND_IN);
-			assert.strictEqual(bind.type, oracledb.DB_TYPE_DATE); // Wait, DB_TYPE_DATE?
-			// Line 232 says: return {dir: oracledb.BIND_IN, type: oracledb.DB_TYPE_DATE, val: value};
-			// That seems weird for PL/SQL TABLE, but I must follow the code.
+			assert.strictEqual(bind.type, oracledb.DB_TYPE_VARCHAR);
 			assert.deepStrictEqual(bind.val, ['val1', 'val2']);
 		});
 

@@ -18,7 +18,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Updated all dependencies to latest versions.
 
 ### Fixed
-- ???
+- Empty String Handling: VARCHAR2, CHAR, CLOB, NUMBER, and DATE types now all treat empty strings (''), null, and undefined as NULL (binding val: null).
 
 ## [1.3.0] - 2026-02-14
 

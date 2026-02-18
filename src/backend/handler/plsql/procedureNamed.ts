@@ -10,7 +10,7 @@ import z from 'zod';
 import {RequestError} from './requestError.ts';
 import {errorToString} from '../../util/errorToString.ts';
 import {stringToNumber} from '../../util/util.ts';
-import {toTable, warningMessage} from '../../util/trace.ts';
+import {toTable, warningMessage, inspect} from '../../util/trace.ts';
 import {MAX_PROCEDURE_PARAMETERS} from '../../../common/constants.ts';
 import type {Request} from 'express';
 import type {Connection, Result, BindParameter, BindParameters} from 'oracledb';
@@ -160,39 +160,47 @@ const findArguments = async (procedure: string, databaseConnection: Connection, 
  *	@returns The binding.
  */
 export const getBinding = (argName: string, argValue: unknown, argType: string): BindParameter => {
+	const isEmpty = argValue === '' || argValue === null || argValue === undefined;
+
 	if (argType === DATA_TYPES.VARCHAR2 || argType === DATA_TYPES.CHAR) {
-		return {dir: BIND_IN, type: DB_TYPE_VARCHAR, val: argValue};
+		return {dir: BIND_IN, type: DB_TYPE_VARCHAR, val: isEmpty ? null : argValue};
 	}
 
 	if (argType === DATA_TYPES.CLOB) {
-		return {dir: BIND_IN, type: DB_TYPE_CLOB, val: argValue};
+		return {dir: BIND_IN, type: DB_TYPE_CLOB, val: isEmpty ? null : argValue};
 	}
 
 	if (argType === DATA_TYPES.NUMBER || argType === DATA_TYPES.BINARY_INTEGER) {
+		if (isEmpty) {
+			return {dir: BIND_IN, type: DB_TYPE_NUMBER, val: null};
+		}
 		const value = stringToNumber(argValue);
 		if (value === null) {
-			throw new Error(`Error in named parameter "${argName}": invalid value "${argValue}" for type "${argType}"`);
+			throw new Error(`Error in named parameter "${argName}": invalid value "${inspect(argValue)}" for type "${argType}"`);
 		}
 
 		return {dir: BIND_IN, type: DB_TYPE_NUMBER, val: value};
 	}
 
 	if (argType === DATA_TYPES.DATE) {
+		if (isEmpty) {
+			return {dir: BIND_IN, type: DB_TYPE_DATE, val: null};
+		}
 		if (typeof argValue !== 'string') {
-			throw new TypeError(`Error in named parameter "${argName}": invalid value "${argValue}" for type "${argType}"`);
+			throw new TypeError(`Error in named parameter "${argName}": invalid value "${inspect(argValue)}" for type "${argType}"`);
 		}
 		const value = new Date(argValue);
 		if (Number.isNaN(value.getTime())) {
-			throw new TypeError(`Error in named parameter "${argName}": invalid value "${argValue}" for type "${argType}"`);
+			throw new TypeError(`Error in named parameter "${argName}": invalid value "${inspect(argValue)}" for type "${argType}"`);
 		}
 
-		return {dir: BIND_IN, type: DB_TYPE_VARCHAR, val: value};
+		return {dir: BIND_IN, type: DB_TYPE_DATE, val: value};
 	}
 
 	if (argType === DATA_TYPES.PL_SQL_TABLE || Array.isArray(argValue)) {
 		const value = typeof argValue === 'string' ? [argValue] : argValue;
 
-		return {dir: BIND_IN, type: DB_TYPE_DATE, val: value};
+		return {dir: BIND_IN, type: DB_TYPE_VARCHAR, val: value};
 	}
 
 	throw new Error(`Error in named parameter "${argName}": invalid binding type "${argType}"`);
