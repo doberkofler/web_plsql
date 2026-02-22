@@ -2,10 +2,10 @@ import type {KnipConfig} from 'knip';
 
 const config: KnipConfig = {
 	$schema: 'https://unpkg.com/knip@5/schema.json',
-	entry: ['src/backend/index.ts', 'src/backend/server/server.ts'],
+	entry: ['src/backend/server/server.ts'],
 	project: ['src/backend/**/*.ts'],
 	ignore: [],
-	ignoreDependencies: ['chart.js', 'tailwindcss', '@eslint/js', 'globals'],
+	ignoreDependencies: ['chart.js', 'tailwindcss', '@eslint/js', 'globals', 'conventional-changelog-angular'],
 };
 
 export default config;

@@ -74,51 +74,53 @@ export const processRequest = async (
 	// open database connection
 	const connection = await connectionPool.getConnection();
 
-	// Get the CGI
-	const cgiObj = getCGI(req, options.documentTable, options.cgi ?? {}, authenticatedUser);
-	debug('processRequest: cgiObj=', cgiObj);
+	try {
+		// Get the CGI
+		const cgiObj = getCGI(req, options.documentTable, options.cgi ?? {}, authenticatedUser);
+		debug('processRequest: cgiObj=', cgiObj);
 
-	// Does the request contain any files
-	const filesToUpload = getFiles(req);
-	debug('processRequest: filesToUpload=', filesToUpload);
+		// Does the request contain any files
+		const filesToUpload = getFiles(req);
+		debug('processRequest: filesToUpload=', filesToUpload);
 
-	// Add the query properties
-	const argObj: argObjType = {};
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any, unicorn/no-immediate-mutation
-	Object.assign(argObj, req.query as any);
+		// Add the query properties
+		const argObj: argObjType = {};
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any, unicorn/no-immediate-mutation
+		Object.assign(argObj, req.query as any);
 
-	// For add the files that must be uploaded, we now copy the actual filename to the appropriate parameter to the invoked procedure.
-	filesToUpload.reduce((aggregator, file) => {
-		aggregator[file.fieldname] = file.filename;
-		return aggregator;
-	}, argObj);
+		// For add the files that must be uploaded, we now copy the actual filename to the appropriate parameter to the invoked procedure.
+		filesToUpload.reduce((aggregator, file) => {
+			aggregator[file.fieldname] = file.filename;
+			return aggregator;
+		}, argObj);
 
-	// Does the request contain a body
-	Object.assign(argObj, normalizeBody(req));
-	debug('processRequest: argObj=', argObj);
+		// Does the request contain a body
+		Object.assign(argObj, normalizeBody(req));
+		debug('processRequest: argObj=', argObj);
 
-	// invoke the Oracle procedure and get the page contenst
-	await invokeProcedure(req, res, argObj, cgiObj, filesToUpload, options, connection, procedureNameCache, argumentCache);
+		// invoke the Oracle procedure and get the page contenst
+		await invokeProcedure(req, res, argObj, cgiObj, filesToUpload, options, connection, procedureNameCache, argumentCache);
 
-	// transaction mode
-	if (options.transactionMode === 'rollback') {
-		debug('transactionMode: rollback');
-		await connection.rollback();
-	} else if (typeof options.transactionMode === 'function') {
-		debug('transactionMode: callback');
-		const procName = Array.isArray(req.params.name) ? req.params.name[0] : req.params.name;
-		const result = options.transactionMode(connection, procName ?? '');
-		debug('transactionMode: callback restult', result);
-		if (result && typeof result.then === 'function') {
-			await result;
+		// transaction mode
+		if (options.transactionMode === 'rollback') {
+			debug('transactionMode: rollback');
+			await connection.rollback();
+		} else if (typeof options.transactionMode === 'function') {
+			debug('transactionMode: callback');
+			const procName = Array.isArray(req.params.name) ? req.params.name[0] : req.params.name;
+			const result = options.transactionMode(connection, procName ?? '');
+			debug('transactionMode: callback restult', result);
+			if (result && typeof result.then === 'function') {
+				await result;
+			}
+		} else {
+			debug('transactionMode: commit');
+			await connection.commit();
 		}
-	} else {
-		debug('transactionMode: commit');
-		await connection.commit();
+	} finally {
+		// close database connection
+		await connection.release();
 	}
-
-	// close database connection
-	await connection.release();
 
 	debug('processRequest: EXIT');
 };

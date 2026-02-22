@@ -19,6 +19,7 @@ const config: KnipConfig = {
 		'cors',
 		'@eslint/js',
 		'globals',
+		'conventional-changelog-angular',
 	],
 };
 

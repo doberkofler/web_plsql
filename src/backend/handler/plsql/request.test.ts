@@ -116,4 +116,13 @@ describe('handler/plsql/request', () => {
 
 		expect(callback).toHaveBeenCalledWith(mockConnection, 'proc1');
 	});
+
+	it('should release connection when invokeProcedure throws an error', async () => {
+		const {invokeProcedure} = await import('./procedure.ts');
+		vi.mocked(invokeProcedure).mockRejectedValueOnce(new Error('Procedure failed'));
+
+		await expect(processRequest(mockReq, mockRes, mockOptions, mockPool, mockNameCache, mockArgCache)).rejects.toThrow('Procedure failed');
+
+		expect(mockConnection.release).toHaveBeenCalled();
+	});
 });
