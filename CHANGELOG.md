@@ -1,3 +1,12 @@
+## [1.3.2](https://github.com/doberkofler/web_plsql/compare/v1.3.1...v1.3.2) (2026-02-22)
+
+
+### Bug Fixes
+
+* release connection on procedure invocation errors ([8c73fa6](https://github.com/doberkofler/web_plsql/commit/8c73fa642c0e2de5e9135012cadfca351dfd8d47))
+
+
+
 ## [1.3.1](https://github.com/doberkofler/web_plsql/compare/v1.3.0...v1.3.1) (2026-02-18)
 
 
