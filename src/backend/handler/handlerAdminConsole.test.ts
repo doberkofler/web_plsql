@@ -113,5 +113,42 @@ describe('handlerAdminConsole', () => {
 
 			expect(spyRotate).toHaveBeenCalled();
 		});
+
+		it('should merge provided snapshots with current pool snapshots', () => {
+			const adminContext = new AdminContext(mockConfig);
+			adminContext.pools.push(mockPool);
+			adminContext.caches.push(mockCache as any);
+
+			// We need to spy on the ORIGINAL rotateBucket before it's wrapped
+			const statsManager = adminContext.statsManager;
+			const spyOriginal = vi.spyOn(statsManager, 'rotateBucket');
+
+			handlerAdminConsole({adminRoute: '/admin', staticDir: '/tmp/dist'}, adminContext);
+
+			const externalSnapshot = {
+				name: 'external',
+				connectionsOpen: 1,
+				connectionsInUse: 0,
+			};
+
+			// Call the WRAPPED rotateBucket
+			adminContext.statsManager.rotateBucket([externalSnapshot]);
+
+			// Verify the original was called with both snapshots
+			expect(spyOriginal).toHaveBeenCalled();
+			const callArgs = spyOriginal.mock.calls[0]?.[0];
+			expect(callArgs).toEqual(expect.arrayContaining([expect.objectContaining({name: 'test-pool'}), expect.objectContaining({name: 'external'})]));
+		});
+
+		it('should not wrap rotateBucket multiple times', () => {
+			const adminContext = new AdminContext(mockConfig);
+			handlerAdminConsole({adminRoute: '/admin', staticDir: '/tmp/dist'}, adminContext);
+			const firstWrapped = adminContext.statsManager.rotateBucket;
+
+			handlerAdminConsole({adminRoute: '/admin', staticDir: '/tmp/dist'}, adminContext);
+			const secondWrapped = adminContext.statsManager.rotateBucket;
+
+			expect(firstWrapped).toBe(secondWrapped);
+		});
 	});
 });

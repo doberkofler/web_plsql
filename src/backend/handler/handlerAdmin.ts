@@ -63,8 +63,8 @@ export const createAdminRouter = (adminContext: AdminContext): Router => {
 			const name = cache?.poolName ?? `pool-${index}`;
 			const p = pool as {getStatistics?: () => unknown};
 			const stats = typeof p.getStatistics === 'function' ? p.getStatistics() : null;
-			const procStats = cache?.procedureNameCache.getStats();
-			const argStats = cache?.argumentCache.getStats();
+			const procStats = cache?.procedureNameCache?.getStats();
+			const argStats = cache?.argumentCache?.getStats();
 
 			return {
 				name,
@@ -73,12 +73,12 @@ export const createAdminRouter = (adminContext: AdminContext): Router => {
 				connectionsInUse: pool.connectionsInUse,
 				cache: {
 					procedureName: {
-						size: cache?.procedureNameCache.keys().length ?? 0,
+						size: cache?.procedureNameCache?.keys().length ?? 0,
 						hits: procStats?.hits ?? 0,
 						misses: procStats?.misses ?? 0,
 					},
 					argument: {
-						size: cache?.argumentCache.keys().length ?? 0,
+						size: cache?.argumentCache?.keys().length ?? 0,
 						hits: argStats?.hits ?? 0,
 						misses: argStats?.misses ?? 0,
 					},

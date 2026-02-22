@@ -4,6 +4,7 @@ import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import expressStaticGzip from 'express-static-gzip';
 import type {AdminContext} from '../server/adminContext.ts';
+import type {PoolSnapshot} from '../util/statsManager.ts';
 import {createAdminRouter} from './handlerAdmin.ts';
 
 /**
@@ -60,35 +61,52 @@ export const handlerAdminConsole = (config: AdminConsoleConfig, adminContext: Ad
 		throw new Error(`Admin console not built. Run 'npm run build:frontend' first.\nExpected: ${resolvedStaticDir}`);
 	}
 
-	// StatsManager hook
-	const originalRotate = adminContext.statsManager.rotateBucket.bind(adminContext.statsManager);
-	adminContext.statsManager.rotateBucket = () => {
-		const poolSnapshots = adminContext.pools.map((pool, index) => {
-			const cache = adminContext.caches[index];
-			const name = cache?.poolName ?? `pool-${index}`;
-			const procStats = cache?.procedureNameCache.getStats();
-			const argStats = cache?.argumentCache.getStats();
+	// StatsManager hook - ensure we only wrap once
+	const statsManager = adminContext.statsManager;
+	// eslint-disable-next-line @typescript-eslint/unbound-method
+	const currentRotate = statsManager.rotateBucket;
+	if (!Object.prototype.hasOwnProperty.call(currentRotate, '_isWrapped')) {
+		// eslint-disable-next-line @typescript-eslint/unbound-method
+		const originalRotate = statsManager.rotateBucket;
+		const wrappedRotate = (poolSnapshots: PoolSnapshot[] = []) => {
+			const currentSnapshots: PoolSnapshot[] = adminContext.pools.map((pool, index) => {
+				const cache = adminContext.caches[index];
+				const name = cache?.poolName ?? `pool-${index}`;
+				const procStats = cache?.procedureNameCache?.getStats();
+				const argStats = cache?.argumentCache?.getStats();
 
-			return {
-				name,
-				connectionsOpen: pool.connectionsOpen,
-				connectionsInUse: pool.connectionsInUse,
-				cache: {
-					procedureName: {
-						size: cache?.procedureNameCache.keys().length ?? 0,
-						hits: procStats?.hits ?? 0,
-						misses: procStats?.misses ?? 0,
+				return {
+					name,
+					connectionsOpen: pool.connectionsOpen,
+					connectionsInUse: pool.connectionsInUse,
+					cache: {
+						procedureName: {
+							size: cache?.procedureNameCache?.keys().length ?? 0,
+							hits: procStats?.hits ?? 0,
+							misses: procStats?.misses ?? 0,
+						},
+						argument: {
+							size: cache?.argumentCache?.keys().length ?? 0,
+							hits: argStats?.hits ?? 0,
+							misses: argStats?.misses ?? 0,
+						},
 					},
-					argument: {
-						size: cache?.argumentCache.keys().length ?? 0,
-						hits: argStats?.hits ?? 0,
-						misses: argStats?.misses ?? 0,
-					},
-				},
-			};
-		});
-		originalRotate(poolSnapshots);
-	};
+				};
+			});
+			// Merge snapshots if provided
+			const mergedSnapshots: PoolSnapshot[] = [...currentSnapshots];
+			if (Array.isArray(poolSnapshots)) {
+				for (const ps of poolSnapshots) {
+					if (!mergedSnapshots.some((s) => s.name === ps.name)) {
+						mergedSnapshots.push(ps);
+					}
+				}
+			}
+			originalRotate.call(statsManager, mergedSnapshots);
+		};
+		Object.defineProperty(wrappedRotate, '_isWrapped', {value: true, writable: false});
+		statsManager.rotateBucket = wrappedRotate;
+	}
 
 	const router = Router();
 

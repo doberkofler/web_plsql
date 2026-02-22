@@ -1,373 +1,309 @@
-# Changelog
+## [1.3.1](https://github.com/doberkofler/web_plsql/compare/v1.3.0...v1.3.1) (2026-02-18)
 
-All notable changes to this project will be documented in this file.
 
-The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
-and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
+### Bug Fixes
 
-## [?.?.?] - ????-??-??
+* eslint errors from vitest and regexp plugins ([7bdc889](https://github.com/doberkofler/web_plsql/commit/7bdc889b5d5952ed95c8fae327119997604e1427))
+* treat empty strings as NULL in database bindings ([28dbd7a](https://github.com/doberkofler/web_plsql/commit/28dbd7a31ac3502384e03364424a01afee7d253b))
 
-### Added
-### Changed
-### Fixed
 
+### Features
 
-## [1.3.1] - 2026-02-18
+* add eslint-plugin-unicorn ([1fd910e](https://github.com/doberkofler/web_plsql/commit/1fd910e8865b495406d931bf190e69eb6d8538b4))
 
-### Changed
-- Updated all dependencies to latest versions.
 
-### Fixed
-- Empty String Handling: VARCHAR2, CHAR, CLOB, NUMBER, and DATE types now all treat empty strings (''), null, and undefined as NULL (binding val: null).
 
-## [1.3.0] - 2026-02-14
+# [1.3.0](https://github.com/doberkofler/web_plsql/compare/v1.2.0...v1.3.0) (2026-02-14)
 
-### Added
-- Added build-in support for basic authentification.
-- Added build-in support for SPA pages.
 
-### Changes
-- Improved UX of the stats page.
-- Test coverage is now 95%.
-- Simplified the API in custom servers.
-- Simplified the oracle mocking.
+### Bug Fixes
 
-### Fixed
-- Fixed a ton of small errors and imperfections.
+* docker deployment issue ([e64b17b](https://github.com/doberkofler/web_plsql/commit/e64b17b8c7ce6f2ebeab23cb7fa4cddfd5b7641f))
+* docker deployment issue ([8d308e6](https://github.com/doberkofler/web_plsql/commit/8d308e6da9ec4d0e589d3c1eb6448ea370766012))
+* missing cors dependency ([bfe678d](https://github.com/doberkofler/web_plsql/commit/bfe678d5f9af7e6ba215992b62fcb819733953fe))
+* missing Playwright browser in CI ([f752bd5](https://github.com/doberkofler/web_plsql/commit/f752bd5d1778e222c89c437fa09195d491b0ff8e))
 
 
-## [1.2.0] - 2026-02-09
+### Features
 
-### Added
-- Add "Request tracing" page for comprehensive request tracing.
-- Improved "Errors" page UX.
-- Improved "Access log" page UX.
-- Reduced amount of data needed for page refreshes.
-- Detect loss of connection and add reconnection dialog.
+* add built-in support for SPA pages ([bef2c54](https://github.com/doberkofler/web_plsql/commit/bef2c5409e9c3bc102bd4b7c5696a975f50c8efa))
 
 
-## [1.1.0] - 2026-02-08
 
-### Added
-- Major boost of unit test coverage now 95%.
-- Added performance regression testing.
+# [1.2.0](https://github.com/doberkofler/web_plsql/compare/v1.0.0...v1.2.0) (2026-02-09)
 
-### Changed
-- Updated all dependencies to latest versions.
 
+### Features
 
-## [1.0.0] - 2026-02-07
+* add comprehensive request tracing page ([10078d7](https://github.com/doberkofler/web_plsql/commit/10078d7ddf1cc386505e50b9d2f6e211b35fcfd7))
+* add disconnect sensing and recovery ([f4aec71](https://github.com/doberkofler/web_plsql/commit/f4aec7102fdbd970bc777507aca2d1188993ba23))
+* implement OWAPageStream for direct chunked delivery ([35fad55](https://github.com/doberkofler/web_plsql/commit/35fad55d23c03b1f6f713c55a938065236a59fdc))
+* improve data visualization charts ([16cd868](https://github.com/doberkofler/web_plsql/commit/16cd8683499f49134dda9c6f150507741b4ba3ed))
+* improve errors and access log UX ([ec71138](https://github.com/doberkofler/web_plsql/commit/ec7113866b53bda184d21d7fbe81fa09a74e7463))
+* improve memory and CPU monitoring charts ([91d042e](https://github.com/doberkofler/web_plsql/commit/91d042e2faf5575cf017d3163a77bea5e85b4e73))
+* improve metrics and test coverage ([bd82d73](https://github.com/doberkofler/web_plsql/commit/bd82d7313ce8c91790fed43fc0147aea0ffd434a))
+* improve system status page ([4b8f028](https://github.com/doberkofler/web_plsql/commit/4b8f028eb1e41e1a1ebaae46395cb78a1918a39d))
+* improve UI and specialize StatsManager ([2b38902](https://github.com/doberkofler/web_plsql/commit/2b389021e6d8fa8f8360d4aac71ef11eb6f70388))
 
-### Added
-- Introduced the new admin console middleware that allows to control and manage the web_plsql middleware.
-- Implemented `OWAPageStream` class that extends Node.js `Readable` stream to fetch page content in chunks and pipe directly to the HTTP response.
 
+### Performance Improvements
 
-## [0.19.0] - 2026-02-06
+* optimize access log page ([67160d9](https://github.com/doberkofler/web_plsql/commit/67160d931020304d37103453a44ff6f4e39a691c))
 
-### Added
-- Scoped Caching: Implemented per-handler caches to prevent conflicts.
-- Security: Added dbms_utility.name_resolve for safer procedure name handling.
-- Robustness: Added automatic cache invalidation on specific ORA errors.
-- Utilities: Added new cache utility and test files.
 
 
-## [0.18.0] - 2026-02-06
+# [1.0.0](https://github.com/doberkofler/web_plsql/compare/v0.17.0...v1.0.0) (2026-02-07)
 
-### Added
-- Refactored how file downloads are handled moving from buffering streams into memory to directly piping the stream to the response.
 
-### Changed
-- Migrated to vitest.
-- Improved unit tests.
+### Bug Fixes
 
+* package version ([39c6698](https://github.com/doberkofler/web_plsql/commit/39c66986fe9fa849f568372481fb9559b96e5ca1))
 
-## [0.17.1] - 2026-02-05
 
-### Changed
-- Automatically update the getVersion api.
-- Updated all dependencies to latest versions.
+### Features
 
+* add initial version of an admin console ([3eeb6bd](https://github.com/doberkofler/web_plsql/commit/3eeb6bd84b706be464f2541dea50cd67235c5de0))
+* implement scoped caching and procedure name resolution ([5aec80d](https://github.com/doberkofler/web_plsql/commit/5aec80d80bc09519fb72e1786f1541acb225f181))
+* improve admin console features ([08e4671](https://github.com/doberkofler/web_plsql/commit/08e4671a43923a1623eb21b7c8afb1d2cc5ee11e))
+* improve admin console UI/UX ([8a04eee](https://github.com/doberkofler/web_plsql/commit/8a04eee954bd3eefa9448ea9839f2ab6aa080ebf))
+* improve admin console UI/UX ([5e2bde5](https://github.com/doberkofler/web_plsql/commit/5e2bde50b3b702d3c70ef4f85d676353db2afb8f))
+* show response time in admin console ([7187cc9](https://github.com/doberkofler/web_plsql/commit/7187cc92705a0db081a576339b1280ad29184942))
 
-## [0.17.0] - 2026-01-26
 
-### Changed
-- Separated procedure invocation so only main procedure will be shown when an error occurs.
-- Updated all dependencies to latest versions.
 
+# [0.17.0](https://github.com/doberkofler/web_plsql/compare/v0.16.1...v0.17.0) (2026-01-26)
 
-## [0.16.1] - 2025-12-09
 
-### Fixed
-- Fix version.
+### Bug Fixes
 
+* version issue ([4ef08f6](https://github.com/doberkofler/web_plsql/commit/4ef08f64a35026b10c76720b0eaeab0ad485bbc3))
 
-## [0.16.0] - 2025-12-09
 
-### Added
-- Improved error handling.
-- Improved tracing.
 
-### Changed
-- Updated all dependencies to latest versions.
+## [0.16.1](https://github.com/doberkofler/web_plsql/compare/v0.16.0...v0.16.1) (2025-12-09)
 
-### Fixed
-- Allow to submit more named parameters than defined in procedure.
 
+### Bug Fixes
 
-## [0.15.1] - 2025-11-27
+* version resolution ([7b9302c](https://github.com/doberkofler/web_plsql/commit/7b9302c42a58203d866b7c0e348a82377e01070e))
 
-### Added
-- Add api `getVersion` to retrieve the current package version and show it in `showConfig`.
 
 
-## [0.15.0] - 2025-11-27
+# [0.16.0](https://github.com/doberkofler/web_plsql/compare/v0.15.1...v0.16.0) (2025-12-09)
 
-### Added
-- Add configuration option `uploadFileSizeLimit` to limit the max file size on uploads.
-- Increased the limits for `express.json` and `express.urlencoded` to 50MB.
 
-### Changed
-- Updated all dependencies to latest versions.
+### Features
 
+* allow submitting more named parameters than procedure defines ([cc3dbec](https://github.com/doberkofler/web_plsql/commit/cc3dbecf8841ce13b64726b527d08d622c314073))
 
-## [0.14.2] - 2025-11-02
 
-### Fixed
-- Type `transactionCallbackType` now offers procedure.
 
+## [0.15.1](https://github.com/doberkofler/web_plsql/compare/v0.15.0...v0.15.1) (2025-11-27)
 
-## [0.14.1] - 2025-11-02
 
-### Fixed
-- Small fix in TypeScript types.
+### Features
 
+* add getVersion API and include in showConfig ([8b10dde](https://github.com/doberkofler/web_plsql/commit/8b10dde195ad5edd3ea311eb1f5e6206cc8d6df4))
 
-## [0.14.0] - 2025-11-02
 
-### Added
-- The option `transactionModeType` specifies an optional transaction mode.<br>
-"commit" this automatically commits any open transaction after each request. This is the defaults because this is what mod_plsql and ohs are doing.<br>
-"rollback" this automatically rolles back any open transaction after each request.<br>
-"transactionCallbackType" this allows to defined a custom handler as a JavaScript function.
 
-### Changed
-- Updated all dependencies to latest versions.
+# [0.15.0](https://github.com/doberkofler/web_plsql/compare/v0.14.2...v0.15.0) (2025-11-27)
 
-### Fixed
-- The filename of uploaded files now has the some format as in ords and mod_plsql by including the actual filename after a slash at the end.
 
+### Features
 
-## [0.13.2] - 2025-09-22
+* add uploadFileSizeLimit configuration option ([a4e5568](https://github.com/doberkofler/web_plsql/commit/a4e556834b20ac67c3c02dc445c86a05ac54b8d7))
 
-### Changed
-- Updated all dependencies to latest versions.
 
 
-## [0.13.1] - 2025-09-10
+## [0.14.2](https://github.com/doberkofler/web_plsql/compare/v0.14.1...v0.14.2) (2025-11-02)
 
-### Fixed
-- Fixed documentation.
 
 
-## [0.13.0] - 2025-09-10
+## [0.14.1](https://github.com/doberkofler/web_plsql/compare/v0.14.0...v0.14.1) (2025-11-02)
 
-### Added
-- Add handling to keep track of connections and close them at shutdown.
-- Add a simple cli console to quit server.
 
-### Changed
-- Improved metrics handler.
-- Removed configuration option `monitorConsole`.
-- Updated all dependencies to latest versions.
+### Bug Fixes
 
-### Fixed
-- Fixed a problem with cookies that did not have all options properly set.
+* TypeScript types for transactionMode ([7ebfa53](https://github.com/doberkofler/web_plsql/commit/7ebfa53febc76fe3f8bb0da00fb3522da8707e78))
 
 
-## [0.12.1] - 2025-09-04
 
-### Fixed
-- Fixed regression with removed version API.
+# [0.14.0](https://github.com/doberkofler/web_plsql/compare/v0.13.2...v0.14.0) (2025-11-02)
 
 
-## [0.12.0] - 2025-09-04
+### Features
 
-### Changed
-- Updated all dependencies to latest versions.
+* add transactionModeType and improve upload filename format ([7233bd9](https://github.com/doberkofler/web_plsql/commit/7233bd97b1bdbc567ff0be318ce7c30ccc79b673))
 
-### Fixed
-- Removed version API.
 
 
-## [0.11.0] - 2025-08-22
+## [0.13.2](https://github.com/doberkofler/web_plsql/compare/v0.13.1...v0.13.2) (2025-09-22)
 
-### Changed
-- Updated all dependencies to latest versions.
 
-### Fixed
-- Fixed a problem causing file uploads to fail.
 
-## [0.10.0] - 2025-08-18
+## [0.13.1](https://github.com/doberkofler/web_plsql/compare/v0.13.0...v0.13.1) (2025-09-10)
 
-### Changed
-- Make oracledb a peer dependency.
-- Updated all dependencies to latest versions.
 
 
-## [0.9.0] - 2025-04-15
+# [0.13.0](https://github.com/doberkofler/web_plsql/compare/v0.12.1...v0.13.0) (2025-09-10)
 
-### Added
-- Improved configuration on container environments.
 
+### Bug Fixes
 
-## [0.8.0] - 2025-04-15
+* missing options in cookie configuration ([578a823](https://github.com/doberkofler/web_plsql/commit/578a8231bb2db2ddf448543e91442bb3e58dca1e))
 
-### Added
-- Add support for docker container.
 
+### Features
 
-## [0.7.0] - 2025-04-14
+* add date utilities ([1855630](https://github.com/doberkofler/web_plsql/commit/185563048bd68d52d5a96005ba2d12cc5563db3f))
 
-### Changed
-- Support for Express 5.1.0 or higher.
-- Updated all dependencies to latest versions.
 
-## [0.6.0] - 2025-02-09
 
-### Changed
-- Reimplement using native JavaScript code with JSDOC type annotations.
-- Improved API and examples.
-- Add support for PlsqlExclusionList parameter.
-- Add support for PlsqlRequestValidationFunction.
-- Show  use of basic and custom authentication methods.
-- Switch to ESM.
-- Support for NodeJS 22 or higher.
-- Updated all dependencies to latest versions.
+## [0.12.1](https://github.com/doberkofler/web_plsql/compare/v0.12.0...v0.12.1) (2025-09-04)
 
 
-## [0.5.2] - 2023-02-26
+### Bug Fixes
 
-### Fixed
-- Updated all dependencies.
+* regression caused by removed version API ([48fbc47](https://github.com/doberkofler/web_plsql/commit/48fbc47a0ee6a1f8ec2e24db8d92f60a3bbac851))
 
 
-## [0.5.1] - 2022-09-11
 
-### Fixed
-- Updated all dependencies.
+# [0.12.0](https://github.com/doberkofler/web_plsql/compare/v0.11.0...v0.12.0) (2025-09-04)
 
 
-## [0.5.0] - 2022-05-09
 
-### Changed
-- Replaced mocha with jest.
-- Added support for node 18.
+# [0.11.0](https://github.com/doberkofler/web_plsql/compare/v0.10.0...v0.11.0) (2025-08-22)
 
-### Fixed
-- Updated all dependencies.
 
+### Bug Fixes
 
-## [0.4.2] - 2022-01-17
+* file upload failure issue ([34d8f3e](https://github.com/doberkofler/web_plsql/commit/34d8f3e7fd8bf15317e7a8ffbb14bceb92b05cd7))
 
-### Changed
-- node.js support starting with v16.
 
-### Fixed
-- Updated all dependencies.
 
+# [0.10.0](https://github.com/doberkofler/web_plsql/compare/v0.8.0...v0.10.0) (2025-08-18)
 
-## [0.4.1] - 2021-08-30
 
-### Fixed
-- Updated all dependencies.
+### Features
 
+* improve container configuration options ([54f931e](https://github.com/doberkofler/web_plsql/commit/54f931eede59a7e47d5c6fa731c51d25a2838a26))
 
-## [0.4.0] - 2021-04-09
 
-### Added
-- Added a simple oracledb example "examples/oracledb_example.js".
 
-### Changed
-- The credentials for the "examples/sample.js" are stored in "examples/credentials.js" and can also be set using the environment.
+# [0.8.0](https://github.com/doberkofler/web_plsql/compare/0.6.0...v0.8.0) (2025-04-16)
 
-### Fixed
-- Updated to oracledb 5 and full binary support for node 14 and later.
-- Updated all minor dependencies.
 
+### Bug Fixes
 
-## [0.3.2] - 2020-03-29
+* isFile check for files ([4266b55](https://github.com/doberkofler/web_plsql/commit/4266b558e3c0123845886be18d674f5a9e120fdd))
 
-### Fixed
-- Updated all minor dependencies.
 
+### Features
 
-## [0.3.1] - 2020-02-19
+* add createHttp*Server API ([56e5479](https://github.com/doberkofler/web_plsql/commit/56e547966f688f9248bb44d99d1433368ef8e76c))
+* add createHttp*Server API ([57bd6d2](https://github.com/doberkofler/web_plsql/commit/57bd6d26a938739ff124d10adbe0c13c67665fb8))
+* add createServer API ([499936b](https://github.com/doberkofler/web_plsql/commit/499936be6ae92105c2a7b200d61ef79a4f705425))
+* return Server instance in create functions ([d68dead](https://github.com/doberkofler/web_plsql/commit/d68deadbdf2039daae5a7e90edc1482548d9205b))
+* support for containerized environments ([a0d39b4](https://github.com/doberkofler/web_plsql/commit/a0d39b4a66af9e46014edc00c8d391f7c379ebd4))
 
-### Fixed
-- Updated all minor dependencies.
 
 
-## [0.2.0] - 2019-06-02
+# [0.6.0](https://github.com/doberkofler/web_plsql/compare/0.5.0...0.6.0) (2025-02-09)
 
-## [0.2.0] - 2019-06-02
 
-### Fixed
-- Fixed a problem with the dependencies when installing the npm package.
-- Fixed link to the official oracledb installation documentation.
-- Updated all dependencies.
+### Bug Fixes
 
+* missing .js extensions in imports ([2633d77](https://github.com/doberkofler/web_plsql/commit/2633d779a7dde288be6035fb5145459d44bfbd12))
+* pathAlias option ([ab18639](https://github.com/doberkofler/web_plsql/commit/ab186390d75a885c3f847960bc552267831b5b9f))
+* TypeScript types ([b70573d](https://github.com/doberkofler/web_plsql/commit/b70573d21bac4b0c7062c85a5c201e7059430cf5))
+* unique file names issue ([a8d1155](https://github.com/doberkofler/web_plsql/commit/a8d1155f2cae23d08ed3e37a347de74a8470b4e2))
 
-## [0.1.2] - 2019-03-02
 
-### Fixed
-- Updated all dependencies.
+### Features
 
+* add caching for procedure definitions ([6ee63bc](https://github.com/doberkofler/web_plsql/commit/6ee63bc483dbf8569329bf757510059340e67a25))
+* add preconfigured server ([b60c898](https://github.com/doberkofler/web_plsql/commit/b60c89812738ef4f16fa2fc36bddc2400f0a4c11))
+* add public API and type declarations ([0cc2fb0](https://github.com/doberkofler/web_plsql/commit/0cc2fb03b456b34c178435a6edb8002b8541e463))
+* export file.js in index.js ([97bc1e7](https://github.com/doberkofler/web_plsql/commit/97bc1e752cae23d3f7021c4302340055ae7b082b))
+* support PlsqlExclusionList and PlsqlRequestValidationFunction ([76b2a51](https://github.com/doberkofler/web_plsql/commit/76b2a5173881a5b5bb1c21782e7ac6361824dc1a))
 
-## [0.1.1] - 2019-02-05
 
-### Changed
-- Migrated from Babel to TypeScript
+### Performance Improvements
 
-### Fixed
-- Updated all dependencies.
+* general performance improvements ([2d38540](https://github.com/doberkofler/web_plsql/commit/2d385402fe6a01b6fcce4cb53ecb8e04bd566aaa))
 
 
-## [0.1.0] - 2018-09-03
 
-### Added
-- Added the configuration open "errorStyle" that can be set to "basic" or "debug".
-- The current web_plsql version is now a string property "version" in the middleware object.
-- Added the express status monitor to the sample. (http://localhost:8000/status)
+# [0.5.0](https://github.com/doberkofler/web_plsql/compare/0.4.0...0.5.0) (2022-05-09)
 
-### Fixed
-- When downloading a file, first send any eventual "other headers" like "Content-Disposition".
-- Changed x-db-xontent-length to x-db-content-length.
-- Updated all dependencies.
 
+### Bug Fixes
 
-## [0.0.3] - 2018-03-20
+* resolve type error ([de1e60c](https://github.com/doberkofler/web_plsql/commit/de1e60c71d404cf7457a5b2da75df58d776d9fb6))
+* step in CI workflow ([7906985](https://github.com/doberkofler/web_plsql/commit/79069856a03b9d292caf0872ef4e1b0bff86aacf))
 
-### Added
-- Added support for the PlsqlPathAlias and PlsqlPathAliasProcedure DAD settings.
-- Partial support of APEX application.
-- Added example configuration for APEX application.
-- Added unit tests with a code coverage of over 90%.
 
-### Fixed
-- Fixed some edge cases when processing the http headers.
 
+# [0.4.0](https://github.com/doberkofler/web_plsql/compare/0.3.0...0.4.0) (2021-04-09)
 
-## [0.0.2] - 2018-03-19
 
-### Added
-- Allow to add or override CGI environment variables using the "cgi" property in the configuration object.
-- Added unit tests with a code coverage of over 80%.
 
-### Fixed
-- Fixed wrong field name when uploading files using a form.
+# [0.3.0](https://github.com/doberkofler/web_plsql/compare/0.2.0...0.3.0) (2019-09-17)
 
 
-## [0.0.1] - 2018-03-17
+### Bug Fixes
 
-- Initial release
+* workaround for wrong typing ([97e13cb](https://github.com/doberkofler/web_plsql/commit/97e13cb16a805a1546fc827759629337c234088e))
+
+
+
+# [0.2.0](https://github.com/doberkofler/web_plsql/compare/0.1.2...0.2.0) (2019-06-02)
+
+
+### Bug Fixes
+
+* dependency issue during npm install ([d1a8252](https://github.com/doberkofler/web_plsql/commit/d1a825283fc0d94acc809ad4d2409dce5175feaf))
+
+
+
+## [0.1.2](https://github.com/doberkofler/web_plsql/compare/0.1.1...0.1.2) (2019-03-02)
+
+
+
+## [0.1.1](https://github.com/doberkofler/web_plsql/compare/0.1.0...0.1.1) (2019-02-05)
+
+
+
+# [0.1.0](https://github.com/doberkofler/web_plsql/compare/72cb6d1d902b5f55b8abc8b550e85d60e7c3f4fa...0.1.0) (2018-09-03)
+
+
+### Bug Fixes
+
+* APEX application http parsing issues ([5d01b4e](https://github.com/doberkofler/web_plsql/commit/5d01b4e4850c37b5c115642f9b62d078195535b5))
+* build scripts for Travis ([1c80565](https://github.com/doberkofler/web_plsql/commit/1c805656bc59d155ea951604071d29ca76baeced))
+* cgi values and automated DAD_NAME ([73821d2](https://github.com/doberkofler/web_plsql/commit/73821d247fd0d58665b81059633a8076ee6ada32))
+* edge cases in header parsing ([199947e](https://github.com/doberkofler/web_plsql/commit/199947ee306ed66fce09d29c6bacc78ebd880317))
+* NODE_ENV in Travis ([fb7901b](https://github.com/doberkofler/web_plsql/commit/fb7901bff2016c4086e68d384fa94b216455e8d5))
+* resolve error when tracing is disabled ([a03e61d](https://github.com/doberkofler/web_plsql/commit/a03e61db4312e5e87777798e2ddc360dd7e67e0d))
+* resolve flow warning ([c99676c](https://github.com/doberkofler/web_plsql/commit/c99676c8c1c38351820d15fd9600f4d18cf642c2))
+
+
+### Features
+
+* add errorStyle config and express status monitor, fix download headers ([d8d8948](https://github.com/doberkofler/web_plsql/commit/d8d894809388621ce17968c861b32d0fcaaf18a9))
+* add flow support and default page, update dependencies ([0218975](https://github.com/doberkofler/web_plsql/commit/0218975231d375cc944da18cf15d653f0dfca316))
+* add missing arguments for file uploads ([2e2fe17](https://github.com/doberkofler/web_plsql/commit/2e2fe17ad92e11f5f0bcaeeebe85adff5b2f473a))
+* add partial APEX support, example config, and unit tests ([0817ae3](https://github.com/doberkofler/web_plsql/commit/0817ae3e8a34d9f4d205dce1a279874a62203e99))
+* add static files support ([19aa362](https://github.com/doberkofler/web_plsql/commit/19aa36258c4910de3aa9342c270f725230ca53e5))
+* add support for file download ([7837191](https://github.com/doberkofler/web_plsql/commit/7837191d62a841a3a6ff6764205c858c31db87d9))
+* allow CGI environment variables override via config ([3480c7b](https://github.com/doberkofler/web_plsql/commit/3480c7bba406f89af8d88c8a09d999002f1b27ee))
+* finalize page parsing ([5758b46](https://github.com/doberkofler/web_plsql/commit/5758b4645e9bb7c9d83ad35dd1370be607bb7174))
+* implement basic fixed arguments processing ([6ec851c](https://github.com/doberkofler/web_plsql/commit/6ec851c07977f6b95ae73f9cd21bd1a9b463fed9))
+* improve error handling and cgi properties configuration ([25e1574](https://github.com/doberkofler/web_plsql/commit/25e1574f51a451d1970c3d7eb41de74b427bce09))
+* improve error handling and default page support ([47fbb0e](https://github.com/doberkofler/web_plsql/commit/47fbb0ec29cb012f425d34719c9cdc9df5b62dd2))
+* initial commit ([72cb6d1](https://github.com/doberkofler/web_plsql/commit/72cb6d1d902b5f55b8abc8b550e85d60e7c3f4fa))
+* move trace files to dedicated directory ([e6b1fe0](https://github.com/doberkofler/web_plsql/commit/e6b1fe01a25006005994300a76b4c07419ecacc4))
+
+
+
