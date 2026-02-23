@@ -116,4 +116,23 @@ describe('handler/plsql/errorPage', () => {
 
 		assert.strictEqual(res.status.mock.calls.length, 1);
 	});
+
+	it('should not send response if headers are already sent', () => {
+		const req = {
+			get: vi.fn(),
+		} as any;
+
+		const res = {
+			status: vi.fn().mockReturnThis(),
+			send: vi.fn(),
+			headersSent: true,
+		} as any;
+		const options = {errorStyle: 'debug'} as configPlSqlHandlerType;
+		const error = new Error('Some error');
+
+		errorPage(req, res, options, error);
+
+		assert.strictEqual(res.status.mock.calls.length, 0);
+		assert.strictEqual(res.send.mock.calls.length, 0);
+	});
 });

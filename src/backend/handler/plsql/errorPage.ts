@@ -95,6 +95,12 @@ export const errorPage = (req: Request, res: Response, options: configPlSqlHandl
 	// console
 	console.error(text);
 
+	// If headers have already been sent, we cannot show the error page
+	if (res.headersSent) {
+		console.warn('errorPage: Response headers already sent. Cannot show error page.');
+		return;
+	}
+
 	// show page
 	if (options.errorStyle === 'basic') {
 		res.status(404).send('Page not found');
