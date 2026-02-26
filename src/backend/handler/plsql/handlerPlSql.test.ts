@@ -86,7 +86,7 @@ describe('handler/plsql/handlerPlSql', () => {
 		handler(req, res, next);
 		await new Promise((resolve) => setTimeout(resolve, 10));
 
-		expect(authCallback).toHaveBeenCalledWith(pool, {username: 'user', password: 'pass'});
+		expect(authCallback).toHaveBeenCalledWith({username: 'user', password: 'pass'}, pool);
 		expect(processRequest).toHaveBeenCalledWith(
 			expect.anything(),
 			expect.anything(),
@@ -128,6 +128,79 @@ describe('handler/plsql/handlerPlSql', () => {
 		await new Promise((resolve) => setTimeout(resolve, 10));
 
 		expect(res.set).toHaveBeenCalledWith('WWW-Authenticate', 'Basic realm="Test Realm"');
+		expect(res.status).toHaveBeenCalledWith(401);
+		expect(processRequest).not.toHaveBeenCalled();
+	});
+
+	it('should handle successful custom authentication', async () => {
+		const pool = {} as any;
+		const authCallback = vi.fn().mockResolvedValue('CUSTOM_USER');
+		const config = {
+			route: '/pls',
+			user: 'scott',
+			password: 'tiger',
+			connectString: 'xe',
+			defaultPage: 'index',
+			documentTable: 'docs',
+			errorStyle: 'basic',
+			auth: {
+				type: 'custom',
+				callback: authCallback,
+			},
+		} as any;
+
+		const handler = handlerWebPlSql(pool, config);
+		const req = {
+			params: {name: 'proc'},
+			headers: {authorization: 'Bearer token'},
+			originalUrl: '/pls/proc',
+		} as any;
+		const res = {set: vi.fn(), status: vi.fn().mockReturnThis(), send: vi.fn()} as any;
+		const next = vi.fn();
+
+		handler(req, res, next);
+		await new Promise((resolve) => setTimeout(resolve, 10));
+
+		expect(authCallback).toHaveBeenCalledWith(req, pool);
+		expect(processRequest).toHaveBeenCalledWith(
+			expect.anything(),
+			expect.anything(),
+			expect.anything(),
+			expect.anything(),
+			expect.anything(),
+			expect.anything(),
+			'CUSTOM_USER',
+		);
+	});
+
+	it('should return 401 on failed custom authentication', async () => {
+		const pool = {} as any;
+		const authCallback = vi.fn().mockResolvedValue(null);
+		const config = {
+			route: '/pls',
+			user: 'scott',
+			password: 'tiger',
+			connectString: 'xe',
+			defaultPage: 'index',
+			documentTable: 'docs',
+			errorStyle: 'basic',
+			auth: {
+				type: 'custom',
+				callback: authCallback,
+			},
+		} as any;
+
+		const handler = handlerWebPlSql(pool, config);
+		const req = {
+			params: {name: 'proc'},
+			headers: {authorization: 'Bearer invalid'},
+		} as any;
+		const res = {set: vi.fn(), status: vi.fn().mockReturnThis(), send: vi.fn()} as any;
+		const next = vi.fn();
+
+		handler(req, res, next);
+		await new Promise((resolve) => setTimeout(resolve, 10));
+
 		expect(res.status).toHaveBeenCalledWith(401);
 		expect(processRequest).not.toHaveBeenCalled();
 	});

@@ -1,0 +1,62 @@
+import {describe, it, vi, expect} from 'vitest';
+import {Readable} from 'node:stream';
+import {sendResponse} from './sendResponse.js';
+import type {Response} from 'express';
+import type {pageType} from '../../types.ts';
+
+describe('handler/plsql/sendResponse_extra', () => {
+	const createMockRes = () =>
+		({
+			cookie: vi.fn(),
+			redirect: vi.fn(),
+			set: vi.fn(),
+			writeHead: vi.fn(),
+			end: vi.fn(),
+			status: vi.fn().mockReturnThis(),
+			send: vi.fn(),
+			on: vi.fn(),
+		}) as unknown as Response;
+
+	const createEmptyPage = (): pageType => ({
+		head: {
+			cookies: [],
+			otherHeaders: {},
+		},
+		file: {
+			fileType: null,
+			fileSize: null,
+			fileBlob: null,
+		},
+		body: '',
+	});
+
+	it('should handle body streaming', async () => {
+		const pipeMock = vi.fn();
+		const res = {
+			...createMockRes(),
+			on: vi.fn(),
+		} as any;
+
+		const mockStream = new Readable({
+			read() {
+				this.push('body content');
+				this.push(null);
+			},
+		});
+
+		// Mock pipe to emit 'end' on the stream to resolve the promise
+		(mockStream.pipe as any) = pipeMock.mockImplementation((_destination: any) => {
+			setTimeout(() => mockStream.emit('end'), 10);
+			return res;
+		});
+
+		const page = createEmptyPage();
+		page.body = mockStream;
+
+		const req = {} as any;
+
+		await sendResponse(req, res, page);
+
+		expect(pipeMock).toHaveBeenCalledWith(res);
+	});
+});

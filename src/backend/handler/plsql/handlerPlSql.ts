@@ -48,12 +48,19 @@ const requestHandler = async (
 			const [login, password] = Buffer.from(b64auth, 'base64').toString().split(':');
 
 			if (login) {
-				authenticatedUser = await options.auth.callback(connectionPool, {username: login, password});
+				authenticatedUser = await options.auth.callback({username: login, password}, connectionPool);
 			}
 
 			if (authenticatedUser === null) {
 				const realm = options.auth.realm ?? 'PL/SQL Gateway';
 				res.set('WWW-Authenticate', `Basic realm="${realm}"`);
+				res.status(401).send('Authentication required.');
+				return;
+			}
+		} else if (options.auth?.type === 'custom') {
+			authenticatedUser = await options.auth.callback(req, connectionPool);
+
+			if (authenticatedUser === null) {
 				res.status(401).send('Authentication required.');
 				return;
 			}

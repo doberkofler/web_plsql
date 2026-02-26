@@ -1,7 +1,7 @@
 import z from 'zod';
 import {configStaticSchema} from '../common/configStaticSchema.ts';
 import type {Connection, Pool} from 'oracledb';
-import type {CookieOptions} from 'express';
+import type {CookieOptions, Request} from 'express';
 import type {Readable} from 'node:stream';
 import type {Cache} from './util/cache.ts';
 
@@ -38,25 +38,42 @@ const transactionModeSchema = z.union([
 export type transactionModeType = z.infer<typeof transactionModeSchema>;
 
 /**
- * Authentication callback signature.
+ * Basic authentication callback signature.
  * Returns the identity string on success, or null on failure.
  * @public
  */
-export type AuthCallback = (connectionPool: Pool, credentials: {username: string; password?: string | undefined}) => Promise<string | null>;
+export type BasicAuthCallback = (credentials: {username: string; password?: string | undefined}, connectionPool: Pool) => Promise<string | null>;
+
+/**
+ * Custom authentication callback signature.
+ * Returns the identity string on success, or null on failure.
+ * @public
+ */
+export type CustomAuthCallback = (req: Request, connectionPool: Pool) => Promise<string | null>;
 
 /**
  * Authentication configuration for a PL/SQL route
  */
-const z$authSchema = z.strictObject({
-	/** Authentication type */
-	type: z.literal('basic'),
-	/** Callback function to validate credentials */
-	callback: z.custom<AuthCallback>((val) => typeof val === 'function', {
-		message: 'Invalid auth callback',
+const z$authSchema = z.union([
+	z.strictObject({
+		/** Authentication type */
+		type: z.literal('basic'),
+		/** Callback function to validate credentials */
+		callback: z.custom<BasicAuthCallback>((val) => typeof val === 'function', {
+			message: 'Invalid auth callback',
+		}),
+		/** Authentication realm */
+		realm: z.string().optional(),
 	}),
-	/** Authentication realm */
-	realm: z.string().optional(),
-});
+	z.strictObject({
+		/** Authentication type */
+		type: z.literal('custom'),
+		/** Callback function to validate request */
+		callback: z.custom<CustomAuthCallback>((val) => typeof val === 'function', {
+			message: 'Invalid auth callback',
+		}),
+	}),
+]);
 
 /**
  * PL/SQL handler behavior configuration

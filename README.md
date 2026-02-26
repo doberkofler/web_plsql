@@ -216,6 +216,33 @@ The following mod_plsql DAD configuration translates to the configuration option
   "commit" this automatically commits any open transaction after each request. This is the defaults because this is what mod_plsql and ohs are doing.
   "rollback" this automatically rolls back any open transaction after each request.
   "transactionCallbackType" this allows defining a custom handler as a JavaScript function.
+- The option `auth` allows for custom authentication strategies.
+  
+  **Basic Authentication**:
+  ```typescript
+  auth: {
+      type: 'basic',
+      callback: async (credentials, pool) => {
+          // validate credentials against database or other source
+          // return username string if valid, null if invalid
+          return isValid ? credentials.username : null;
+      },
+      realm: 'My Realm' // optional
+  }
+  ```
+
+  **Custom Authentication**:
+  ```typescript
+  auth: {
+      type: 'custom',
+      callback: async (req, pool) => {
+          // inspect request (headers, cookies, etc)
+          // return username string if valid, null if invalid
+          const token = req.headers.authorization;
+          return validateToken(token) ? 'user' : null;
+      }
+  }
+  ```
 
 
 # License
