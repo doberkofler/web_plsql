@@ -5,9 +5,9 @@
 
 # Oracle PL/SQL Gateway Middleware for the Express web framework for Node.js
 This Express Middleware is a bridge between a PL/SQL application running in an Oracle Database and an Express web server for Node.js.
-It is an open-source alternative to mod_plsql, the Embedded PL/SQL Gateway and ORDS,
-allowing you to develop PL/SQL web applications using the PL/SQL Web Toolkit (OWA) and Oracle Application Express (Apex),
-and serve the content using the Express web framework for Node.js.
+It is an open-source alternative to the legacy **mod_plsql**, the Embedded PL/SQL Gateway, and the modern **Oracle REST Data Services (ORDS)** (specifically its PL/SQL Gateway mode).
+
+It allows you to develop PL/SQL web applications using the PL/SQL Web Toolkit (OWA) and serve the content using the Express web framework for Node.js.
 
 Please feel free to try and suggest any improvements. Your thoughts and ideas are most welcome.
 
@@ -64,148 +64,14 @@ There are 2 options on how to use the web_plsql express middleware:
 
 ## Use the predefined `startServer` function
 
-The `startServer` api uses the following configuration object:
-
-```typescript
-/**
- * @typedef {'basic' | 'debug'} errorStyleType
- */
-
-/**
- * @typedef {object} configStaticType
- * @property {string} route - The Static route path.
- * @property {string} directoryPath - The Static directory.
- */
-
-/**
- * @typedef {(connection: Connection, procedure: string) => void | Promise<void>} transactionCallbackType
- * @typedef {'commit' | 'rollback' | transactionCallbackType | undefined | null} transactionModeType
- */
-
-/**
- * @typedef {object} configPlSqlHandlerType
- * @property {string} defaultPage - The default page.
- * @property {string} [pathAlias] - The path alias.
- * @property {string} [pathAliasProcedure] - The path alias.
- * @property {string} documentTable - The document table.
- * @property {string[]} [exclusionList] - The exclusion list.
- * @property {string} [requestValidationFunction] - The request validation function.
- * @property {Record<string, string>} [cgi] - The additional CGI.
- * @property {transactionModeType} [transactionMode='commit'] - Specifies an optional transaction mode.
- * "commit" this automatically commits any open transaction after each request. This is the defaults because this is what mod_plsql and ohs are doing.
- * "rollback" this automatically rolles back any open transaction after each request.
- * "transactionCallbackType" this allows to defined a custom handler as a JavaScript function.
- * @property {errorStyleType} errorStyle - The error style.
- */
-
-/**
- * @typedef {object} configPlSqlConfigType
- * @property {string} route - The PL/SQL route path.
- * @property {string} user - The Oracle username.
- * @property {string} password - The Oracle password.
- * @property {string} connectString - The Oracle connect string.
- */
-
-/**
- * @typedef {configPlSqlHandlerType & configPlSqlConfigType} configPlSqlType
- */
-
-/**
- * @typedef {object} configType
- * @property {number} port - The server port number.
- * @property {configAdminType} [admin] - The admin console configuration.
- * @property {configStaticType[]} routeStatic - The static routes.
- * @property {configPlSqlType[]} routePlSql - The PL/SQL routes.
- * @property {number} [uploadFileSizeLimit] - Maximum size of each uploaded file in bytes or no limit if omitted.
- * @property {string} loggerFilename - name of the request logger filename or '' if not required.
- */
-```
+The `startServer` API uses a `configType` configuration object. You can review the complete type definitions in the source code:
+[src/backend/types.ts](https://github.com/doberkofler/web_plsql/blob/master/src/backend/types.ts)
 
 ## Hand Craft Express Server with Composable Middleware
 
-web_plsql exports composable middleware components that can be integrated into any Express application.
-
-### Complete Manual Setup
-
-For full control over your Express application with PL/SQL routes and admin console:
-
-```typescript
-import express from 'express';
-import path from 'path';
-import {
-	handlerWebPlSql,
-	handlerAdminConsole,
-	AdminContext,
-	oracledb,
-	type configType,
-	type PoolCacheEntry,
-} from 'web_plsql';
-
-(async () => {
-	const app = express();
-
-	// 1. Define configuration
-	const config: configType = {
-		port: 8080,
-		routeStatic: [],
-		routePlSql: [{
-			route: '/myapp',
-			user: 'sample',
-			password: 'sample',
-			connectString: 'localhost:1521/ORCL',
-			defaultPage: 'myapp.home',
-			documentTable: 'doctable',
-			errorStyle: 'debug',
-		}],
-		uploadFileSizeLimit: 50 * 1024 * 1024,
-		loggerFilename: 'access.log',
-	};
-
-	// 2. Create Oracle connection pool
-	const pool = await oracledb.createPool({
-		user: config.routePlSql[0].user,
-		password: config.routePlSql[0].password,
-		connectString: config.routePlSql[0].connectString,
-	});
-
-	// 3. Create PL/SQL handler
-	const plsqlHandler = handlerWebPlSql(pool, {
-		defaultPage: config.routePlSql[0].defaultPage,
-		documentTable: config.routePlSql[0].documentTable,
-		errorStyle: config.routePlSql[0].errorStyle,
-	});
-
-	// 4. Create AdminContext (required for admin console)
-	const caches: PoolCacheEntry[] = [{
-		poolName: config.routePlSql[0].route,
-		procedureNameCache: plsqlHandler.procedureNameCache,
-		argumentCache: plsqlHandler.argumentCache,
-	}];
-	const adminContext = new AdminContext(config, [pool], caches);
-
-	// 5. Mount PL/SQL handler with stats tracking
-	app.use(config.routePlSql[0].route, (req, res, next) => {
-		const start = process.hrtime();
-		res.on('finish', () => {
-			const [s, ns] = process.hrtime(start);
-			adminContext.statsManager.recordRequest(s * 1000 + ns / 1e6, res.statusCode >= 400);
-		});
-		plsqlHandler(req, res, next);
-	});
-
-	// 6. Mount admin console
-	app.use('/admin', handlerAdminConsole({
-		staticDir: path.join(__dirname, 'node_modules/web_plsql/dist/frontend'),
-		user: 'admin',
-		password: 'secret',
-	}, adminContext));
-
-	// 7. Start server
-	app.listen(config.port, () => {
-		console.log(`Server running on port ${config.port}`);
-	});
-})();
-```
+The web_plsql API exports composable middleware components that can be integrated into any Express application.
+Start by having a look at the build-in server code:
+[src/backend/server/server.ts](https://github.com/doberkofler/web_plsql/blob/master/src/backend/server/server.ts)
 
 ### AdminContext Requirement
 
@@ -218,6 +84,49 @@ The admin console requires an `AdminContext` instance to be passed as the second
 ```typescript
 const adminContext = new AdminContext(config, pools, caches);
 app.use('/admin', handlerAdminConsole(config, adminContext));
+```
+
+# Compare with Oracle REST Data Services (ORDS)
+
+`web_plsql` is a specialized, lightweight alternative to ORDS for scenarios where only the **PL/SQL Gateway** functionality is required.
+
+| Feature | web_plsql | Oracle REST Data Services (ORDS) |
+| :--- | :--- | :--- |
+| **Primary Goal** | Focused, high-performance PL/SQL Gateway | Full REST platform and PL/SQL Gateway |
+| **Technology** | Node.js (V8 engine) | Java (JVM) |
+| **Deployment** | Lightweight, Docker-native | Requires Jetty/Tomcat or WebLogic |
+| **Configuration** | Modern JSON / Environment Variables | XML files and Database Metadata |
+| **Monitoring** | Built-in real-time SPA Admin Console | SQL Developer or separate OCI monitoring |
+| **Caching** | Efficient LFU (Least Frequently Used) memory cache | Java-based metadata and result caching |
+
+The following ORDS configuration (typically found in `conf/ords/defaults.xml` or `settings.xml`) translates to the `web_plsql` configuration options as follows:
+
+**ORDS**
+```xml
+<entry key="db.username">sample</entry>
+<entry key="db.password">sample</entry>
+<entry key="db.hostname">localhost</entry>
+<entry key="db.port">1521</entry>
+<entry key="db.servicename">ORCL</entry>
+<entry key="misc.defaultPage">sample_pkg.page_index</entry>
+<entry key="security.requestValidationFunction">sample_pkg.request_validation_function</entry>
+<entry key="owa.docTable">LJP_Documents</entry>
+```
+
+**web_plsql**
+```typescript
+{
+    routePlSql: [
+        {
+            user: 'sample', // db.username
+            password: 'sample', // db.password
+            connectString: 'localhost:1521/ORCL', // db.hostname, db.port, db.servicename
+            defaultPage: 'sample_pkg.page_index', // misc.defaultPage
+            requestValidationFunction: 'sample_pkg.request_validation_function', // security.requestValidationFunction
+            documentTable: 'LJP_Documents', // owa.docTable
+        }
+    ]
+}
 ```
 
 # Compare with mod_plsql
@@ -244,7 +153,7 @@ The following mod_plsql DAD configuration translates to the configuration option
 </Location>
 ```
 
-**mod_plsql**
+**web_plsql**
 ```typescript
 {
 	port: 80,
@@ -275,11 +184,15 @@ The following mod_plsql DAD configuration translates to the configuration option
 }
 ```
 
-## Create a custom Express application based on the default server implemented in `src/backend/server/server.ts`.
-
-...
-
 # Configuration options
+
+## Supported ORDS configuration options
+- db.username -> routePlSql[].user
+- db.password -> routePlSql[].password
+- db.hostname, db.port, db.servicename -> routePlSql[].connectString
+- misc.defaultPage -> routePlSql[].defaultPage
+- security.requestValidationFunction -> routePlSql[].requestValidationFunction
+- owa.docTable -> routePlSql[].documentTable
 
 ## Supported mod_plsql configuration options
 - PlsqlDatabaseConnectString -> routePlSql[].connectString
@@ -292,33 +205,17 @@ The following mod_plsql DAD configuration translates to the configuration option
 - PlsqlLogDirectory -> loggerFilename
 - PlsqlPathAlias -> routePlSql[].pathAlias
 - PlsqlPathAliasProcedure -> routePlSql[].pathAliasProcedure
-- Default exclusion list.
-- PlsqlRequestValidationFunction -> routePlSql[].pathAliasProcedure
-- PlsqlExclusionList
+- PlsqlRequestValidationFunction -> routePlSql[].requestValidationFunction
+- PlsqlExclusionList -> routePlSql[].exclusionList
 - Basic and custom authentication methods, based on the OWA_SEC package and custom packages.
 - Caching of procedure metadata and validation results for high performance.
 - Real-time monitoring and management via a built-in Admin Console.
 
-## Features that are only available in web_plsql
+## Options that are only available in web_plsql
 - The option `transactionModeType` specifies an optional transaction mode.
   "commit" this automatically commits any open transaction after each request. This is the defaults because this is what mod_plsql and ohs are doing.
   "rollback" this automatically rolls back any open transaction after each request.
   "transactionCallbackType" this allows defining a custom handler as a JavaScript function.
-
-## Features that are planned to be available in web_plsql
-- Support for APEX 5 or greater.
-
-## Configuration options that will not be supported:
-- PlsqlAlwaysDescribeProcedure
-- PlsqlAfterProcedure
-- PlsqlBeforeProcedure
-- PlsqlCGIEnvironmentList
-- PlsqlDocumentProcedure
-- PlsqlDocumentPath
-- PlsqlIdleSessionCleanupInterval
-- PlsqlSessionCookieName
-- PlsqlSessionStateManagement
-- PlsqlTransferMode
 
 
 # License
