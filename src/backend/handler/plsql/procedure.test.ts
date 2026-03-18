@@ -65,7 +65,7 @@ describe('handler/plsql/procedure', () => {
 		} as any;
 
 		// Setup executeCallback for mock
-		// eslint-disable-next-line @typescript-eslint/require-await
+		// oxlint-disable-next-line typescript/require-await
 		const executeCallback: ExecuteCallback = async (sql: string) => {
 			if (sql.includes('owa.get_page')) {
 				return {outBinds: {lines: [], irows: 0}};
@@ -109,7 +109,7 @@ describe('handler/plsql/procedure', () => {
 		} as any;
 
 		// Simulate ORA-04068 during procedure execution
-		// eslint-disable-next-line @typescript-eslint/require-await
+		// oxlint-disable-next-line typescript/require-await
 		setExecuteCallback(async (sql: string) => {
 			if (sql.includes('BEGIN my_proc(); END;')) {
 				throw new ProcedureError('ORA-04068: existing state of packages has been discarded', {}, 'my_proc', {});
@@ -141,7 +141,7 @@ describe('handler/plsql/procedure', () => {
 		} as any;
 
 		// Mock execute for procedureDownloadFiles
-		// eslint-disable-next-line @typescript-eslint/require-await
+		// oxlint-disable-next-line typescript/require-await
 		setExecuteCallback(async (sql: string) => {
 			if (sql.includes('wpg_docload.is_file_download()')) {
 				return {
@@ -214,7 +214,7 @@ describe('handler/plsql/procedure', () => {
 			documentTable: 'docs',
 		} as any;
 
-		// eslint-disable-next-line @typescript-eslint/require-await
+		// oxlint-disable-next-line typescript/require-await
 		setExecuteCallback(async (sql: string) => {
 			if (sql.includes('wpg_docload.is_file_download()')) {
 				return {
@@ -259,7 +259,7 @@ describe('handler/plsql/procedure', () => {
 		} as any;
 
 		const executedSqls: string[] = [];
-		// eslint-disable-next-line @typescript-eslint/require-await
+		// oxlint-disable-next-line typescript/require-await
 		setExecuteCallback(async (sql: string) => {
 			executedSqls.push(sql);
 			if (sql.includes('owa.get_page')) {

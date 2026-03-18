@@ -295,7 +295,7 @@ async function updateStatus(fullHistory = false, includeConfig = false): Promise
 
 		// Schedule next refresh if auto-refresh is on
 		if (autoRefreshToggle?.checked && refreshIntervalSelect) {
-			const interval = Number.parseInt(refreshIntervalSelect.value);
+			const interval = Number.parseInt(refreshIntervalSelect.value, 10);
 			scheduleNextRefresh(interval);
 		}
 	} catch (err) {
@@ -379,7 +379,7 @@ function updateHistoryLabels(): void {
 // Navigation
 document.querySelectorAll('nav button').forEach((btnEl) => {
 	const btn = btnEl as HTMLButtonElement;
-	// eslint-disable-next-line @typescript-eslint/no-misused-promises
+	// oxlint-disable-next-line typescript/no-misused-promises
 	btn.addEventListener('click', async () => {
 		try {
 			const view = btn.dataset.view;
@@ -499,7 +499,7 @@ if (traceFilterInput) {
 
 const traceClearBtn = document.getElementById('trace-clear-btn') as HTMLButtonElement | null;
 if (traceClearBtn) {
-	// eslint-disable-next-line @typescript-eslint/no-misused-promises
+	// oxlint-disable-next-line typescript/no-misused-promises
 	traceClearBtn.addEventListener('click', async () => {
 		if (confirm('Are you sure you want to clear all traces?')) {
 			await withLoading(traceClearBtn, async () => {
@@ -512,7 +512,7 @@ if (traceClearBtn) {
 
 const traceStatusToggle = document.getElementById('trace-status-toggle') as HTMLButtonElement | null;
 if (traceStatusToggle) {
-	// eslint-disable-next-line @typescript-eslint/no-misused-promises
+	// oxlint-disable-next-line typescript/no-misused-promises
 	traceStatusToggle.addEventListener('click', async () => {
 		await withLoading(traceStatusToggle, async () => {
 			const {enabled: currentEnabled} = await typedApi.getTraceStatus();

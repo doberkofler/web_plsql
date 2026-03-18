@@ -10,6 +10,7 @@ class MockElement {
 	classList: {
 		add: Mock;
 		remove: Mock;
+		toggle: Mock;
 		contains: (cls: string) => boolean;
 		classes: string[];
 	};
@@ -38,6 +39,16 @@ class MockElement {
 					this._updateClassName();
 				}
 			}),
+			toggle: vi.fn((cls: string, force?: boolean) => {
+				const has = this.classList.classes.includes(cls);
+				const want = force ?? !has;
+				if (want) {
+					this.classList.add(cls);
+				} else {
+					this.classList.remove(cls);
+				}
+				return want;
+			}),
 			contains: (cls: string) => this.classList.classes.includes(cls),
 			classes: [],
 		};
@@ -63,6 +74,18 @@ class MockElement {
 	appendChild(child: MockElement): MockElement {
 		this.children.push(child);
 		return child;
+	}
+
+	append(...nodes: (MockElement | string)[]): void {
+		nodes.forEach((node) => {
+			if (typeof node === 'string') {
+				const textNode = new MockElement('#text');
+				textNode.textContent = node;
+				this.children.push(textNode);
+			} else {
+				this.children.push(node);
+			}
+		});
 	}
 
 	querySelector(selector: string): MockElement | null {
@@ -155,13 +178,15 @@ describe('DataTable', () => {
 	it('should apply dense class when option is enabled', () => {
 		dataTable = new DataTable<TestRow>('my-table', {columns, dense: true});
 		dataTable.render(data);
-		expect(tableElement.classList.add).toHaveBeenCalledWith('dense-table');
+		expect(tableElement.classList.toggle).toHaveBeenCalledWith('dense-table', true);
+		expect(tableElement.classList.contains('dense-table')).toBe(true);
 	});
 
 	it('should remove dense class when option is disabled', () => {
 		dataTable = new DataTable<TestRow>('my-table', {columns, dense: false});
 		dataTable.render(data);
-		expect(tableElement.classList.remove).toHaveBeenCalledWith('dense-table');
+		expect(tableElement.classList.toggle).toHaveBeenCalledWith('dense-table', false);
+		expect(tableElement.classList.contains('dense-table')).toBe(false);
 	});
 
 	it('should handle row click events', () => {

@@ -75,9 +75,7 @@ export function initTheme(state: State): void {
 
 	document.body.className = theme;
 
-	// FIXME: This is a simplified event handler for mocking purposes. In production, consider using addEventListener.
-	// eslint-disable-next-line unicorn/prefer-add-event-listener
-	btn.onclick = (): void => {
+	btn.addEventListener('click', (): void => {
 		const isDark = document.body.classList.contains('dark');
 		const newTheme = isDark ? 'light' : 'dark';
 		document.body.className = newTheme;
@@ -91,5 +89,5 @@ export function initTheme(state: State): void {
 				updateChartForTheme(chart, colors);
 			}
 		});
-	};
+	});
 }

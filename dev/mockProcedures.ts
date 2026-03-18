@@ -327,7 +327,7 @@ export const createMockProcedureCallback = (): ExecuteCallback => {
 	let lastResponse: string[] = [];
 	let delayMs = 0;
 
-	// eslint-disable-next-line @typescript-eslint/require-await
+	// oxlint-disable-next-line typescript/require-await
 	return async (sql: string, bindParams?: BindParameters) => {
 		const sqlLower = sql.toLowerCase();
 
@@ -447,7 +447,7 @@ export const createMockProcedureCallback = (): ExecuteCallback => {
 		if (sqlLower.includes('begin') && sqlLower.includes('end') && !sqlLower.includes('declare')) {
 			// Extract procedure name from SQL
 			// Patterns: BEGIN schema.proc(...) or BEGIN proc(...)
-			// eslint-disable-next-line unicorn/better-regex
+			// oxlint-disable-next-line unicorn/better-regex
 			const beginMatch = /BEGIN\s+([\w.$]+)/i.exec(sql);
 			if (beginMatch?.[1]) {
 				lastProcedureName = beginMatch[1];

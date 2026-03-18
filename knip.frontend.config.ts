@@ -2,7 +2,7 @@ import type {KnipConfig} from 'knip';
 
 const config: KnipConfig = {
 	$schema: 'https://unpkg.com/knip@5/schema.json',
-	entry: ['src/frontend/main.ts'],
+	entry: [],
 	project: ['src/frontend/**/*.ts'],
 	ignore: [],
 	ignoreDependencies: [
@@ -17,8 +17,6 @@ const config: KnipConfig = {
 		'@types/cors',
 		'@types/morgan',
 		'cors',
-		'@eslint/js',
-		'globals',
 		'conventional-changelog-angular',
 	],
 };

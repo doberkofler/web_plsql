@@ -20,7 +20,7 @@ class MockLob {
 	constructor(type: DbType | number) {
 		this.type = type;
 	}
-	// eslint-disable-next-line @typescript-eslint/no-empty-function
+	// oxlint-disable-next-line typescript/no-empty-function
 	destroy(): void {}
 }
 
@@ -35,7 +35,7 @@ class MockConnection {
 		return {rows: []} as Result<T>;
 	}
 
-	// eslint-disable-next-line @typescript-eslint/require-await
+	// oxlint-disable-next-line typescript/require-await
 	async createLob(type: DbType | number): Promise<Lob> {
 		return new MockLob(type) as unknown as Lob;
 	}
@@ -58,14 +58,14 @@ class MockPool {
 	connectionsOpen = 0;
 	connectionsInUse = 0;
 
-	// eslint-disable-next-line @typescript-eslint/require-await
+	// oxlint-disable-next-line typescript/require-await
 	async getConnection(): Promise<Connection> {
 		this.connectionsInUse++;
 		this.connectionsOpen = Math.max(this.connectionsOpen, this.connectionsInUse);
 		return new MockConnection() as unknown as Connection;
 	}
 
-	// eslint-disable-next-line @typescript-eslint/require-await
+	// oxlint-disable-next-line typescript/require-await
 	async close(_drainTime?: number): Promise<void> {
 		this.connectionsOpen = 0;
 		this.connectionsInUse = 0;
@@ -77,7 +77,7 @@ class MockPool {
  * @param _config - The configuration
  * @returns The pool
  */
-// eslint-disable-next-line @typescript-eslint/require-await
+// oxlint-disable-next-line typescript/require-await
 export async function createPool(_config: unknown): Promise<Pool> {
 	return new MockPool() as unknown as Pool;
 }

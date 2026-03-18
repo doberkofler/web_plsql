@@ -35,7 +35,7 @@ export const stringToNumber = (value: unknown): number | null => {
 	}
 
 	// Test for invalid characters
-	// eslint-disable-next-line unicorn/better-regex
+	// oxlint-disable-next-line unicorn/better-regex
 	if (typeof value !== 'string' || !/^[+-]?(?:\d+(?:\.\d+)?|\.\d+)(?:E[+-]?\d+)?$/i.test(value)) {
 		return null;
 	}

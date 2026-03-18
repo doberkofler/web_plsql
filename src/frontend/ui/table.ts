@@ -65,13 +65,7 @@ export class DataTable<T> {
 		if (!this.element) return;
 
 		// Apply dense class if enabled
-		// FIXME: This is a simplified class toggle for mocking purposes. In production, consider using classList.toggle.
-		// eslint-disable-next-line unicorn/prefer-classlist-toggle
-		if (this.options.dense) {
-			this.element.classList.add('dense-table');
-		} else {
-			this.element.classList.remove('dense-table');
-		}
+		this.element.classList.toggle('dense-table', !!this.options.dense);
 
 		// Apply table layout if specified
 		if (this.options.tableLayout) {
@@ -91,9 +85,7 @@ export class DataTable<T> {
 		let thead = this.element.querySelector('thead');
 		if (!thead) {
 			thead = document.createElement('thead');
-			// FIXME: This is a simplified append for mocking purposes. In production, consider using appendChild or insertAdjacentElement.
-			// eslint-disable-next-line unicorn/prefer-dom-node-append
-			this.element.appendChild(thead);
+			this.element.append(thead);
 		}
 
 		thead.innerHTML = '';
@@ -111,14 +103,10 @@ export class DataTable<T> {
 			if (col.align) {
 				th.style.textAlign = col.align;
 			}
-			// FIXME: This is a simplified append for mocking purposes. In production, consider using appendChild or insertAdjacentElement.
-			// eslint-disable-next-line unicorn/prefer-dom-node-append
-			tr.appendChild(th);
+			tr.append(th);
 		});
 
-		// FIXME: This is a simplified append for mocking purposes. In production, consider using appendChild or insertAdjacentElement.
-		// eslint-disable-next-line unicorn/prefer-dom-node-append
-		thead.appendChild(tr);
+		thead.append(tr);
 	}
 
 	/**
@@ -132,9 +120,7 @@ export class DataTable<T> {
 		let tbody = this.element.querySelector('tbody');
 		if (!tbody) {
 			tbody = document.createElement('tbody');
-			// FIXME: This is a simplified append for mocking purposes. In production, consider using appendChild or insertAdjacentElement.
-			// eslint-disable-next-line unicorn/prefer-dom-node-append
-			this.element.appendChild(tbody);
+			this.element.append(tbody);
 		}
 
 		tbody.innerHTML = '';
@@ -183,14 +169,10 @@ export class DataTable<T> {
 					td.title = col.cellTitle(row);
 				}
 
-				// FIXME: This is a simplified append for mocking purposes. In production, consider using appendChild or insertAdjacentElement.
-				// eslint-disable-next-line unicorn/prefer-dom-node-append
-				tr.appendChild(td);
+				tr.append(td);
 			});
 
-			// FIXME: This is a simplified append for mocking purposes. In production, consider using appendChild or insertAdjacentElement.
-			// eslint-disable-next-line unicorn/prefer-dom-node-append
-			tbody.appendChild(tr);
+			tbody.append(tr);
 		});
 	}
 }

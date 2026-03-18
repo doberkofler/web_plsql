@@ -63,10 +63,10 @@ export const handlerAdminConsole = (config: AdminConsoleConfig, adminContext: Ad
 
 	// StatsManager hook - ensure we only wrap once
 	const statsManager = adminContext.statsManager;
-	// eslint-disable-next-line @typescript-eslint/unbound-method
+	// oxlint-disable-next-line typescript/unbound-method
 	const currentRotate = statsManager.rotateBucket;
 	if (!Object.prototype.hasOwnProperty.call(currentRotate, '_isWrapped')) {
-		// eslint-disable-next-line @typescript-eslint/unbound-method
+		// oxlint-disable-next-line typescript/unbound-method
 		const originalRotate = statsManager.rotateBucket;
 		const wrappedRotate = (poolSnapshots: PoolSnapshot[] = []) => {
 			const currentSnapshots: PoolSnapshot[] = adminContext.pools.map((pool, index) => {

@@ -5,7 +5,7 @@ const config: KnipConfig = {
 	entry: ['src/backend/server/server.ts'],
 	project: ['src/backend/**/*.ts'],
 	ignore: [],
-	ignoreDependencies: ['chart.js', 'tailwindcss', '@eslint/js', 'globals', 'conventional-changelog-angular'],
+	ignoreDependencies: ['chart.js', 'tailwindcss', 'conventional-changelog-angular'],
 };
 
 export default config;

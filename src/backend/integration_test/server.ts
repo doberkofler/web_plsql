@@ -223,7 +223,7 @@ export const sqlExecuteProxy = (config: {proc: string; para?: paraType; lines?: 
 	 *	@param bindParams - The bind parameters.
 	 *	@returns The result.
 	 */
-	// eslint-disable-next-line @typescript-eslint/require-await
+	// oxlint-disable-next-line typescript/require-await
 	const sqlExecuteProxyCallback: ExecuteCallback = async (sql: string, bindParams?: BindParameters) => {
 		// New Check for Name Resolution (procedureSanitize.js)
 		if (sql.toLowerCase().includes('dbms_utility.name_resolve') && bindParams && 'resolved' in bindParams) {

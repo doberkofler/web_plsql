@@ -2,12 +2,16 @@ import {describe, it, expect, vi, beforeEach} from 'vitest';
 import {initTheme} from '../ui/theme.ts';
 
 describe('Theme Management', () => {
-	let mockBtn: {onclick: ((e: object) => void) | null};
+	let mockBtn: {
+		addEventListener: import('vitest').Mock;
+		click: () => void;
+	};
 	let state: import('../types.ts').State;
 	let setItemMock: import('vitest').Mock;
 
 	beforeEach(() => {
 		const storage: Record<string, string> = {};
+		const eventListeners: Record<string, (() => void)[]> = {};
 
 		setItemMock = vi.fn().mockImplementation((key: string, value: string) => {
 			storage[key] = value;
@@ -42,7 +46,15 @@ describe('Theme Management', () => {
 		});
 
 		mockBtn = {
-			onclick: null,
+			addEventListener: vi.fn().mockImplementation((event: string, callback: () => void) => {
+				if (!eventListeners[event]) {
+					eventListeners[event] = [];
+				}
+				eventListeners[event]?.push(callback);
+			}),
+			click: () => {
+				eventListeners['click']?.forEach((cb) => cb());
+			},
 		};
 
 		state = {
@@ -95,9 +107,7 @@ describe('Theme Management', () => {
 		initTheme(state);
 
 		// Simulate click to toggle to light mode
-		if (mockBtn.onclick) {
-			mockBtn.onclick({});
-		}
+		mockBtn.click();
 
 		const lightColors = {
 			gridColor: 'rgba(0,0,0,0.1)',
@@ -125,9 +135,7 @@ describe('Theme Management', () => {
 		state.charts.test = mockChart as unknown as import('../types.ts').ChartInstance;
 		initTheme(state);
 
-		if (mockBtn.onclick) {
-			mockBtn.onclick({});
-		}
+		mockBtn.click();
 
 		expect(mockChart.update).not.toHaveBeenCalled();
 	});
@@ -147,9 +155,7 @@ describe('Theme Management', () => {
 		state.charts.test = mockChart as unknown as import('../types.ts').ChartInstance;
 		initTheme(state);
 
-		if (mockBtn.onclick) {
-			mockBtn.onclick({});
-		}
+		mockBtn.click();
 
 		expect(mockChart.update).toHaveBeenCalled();
 	});

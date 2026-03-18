@@ -59,7 +59,7 @@ export const showConfig = (config: configType): void => {
 		console.log('');
 		console.log('⚙️  PL/SQL Gateways:');
 		config.routePlSql.forEach((e) => {
-			console.log('  ' + `${e.route.padEnd(28)} ${baseUrl}${e.route}`);
+			console.log(`  ${e.route.padEnd(28)} ${baseUrl}${e.route}`);
 		});
 	}
 

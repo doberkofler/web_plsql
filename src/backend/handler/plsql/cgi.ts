@@ -37,9 +37,9 @@ const DEFAULT_CGI: environmentType = {
 	DOC_ACCESS_PATH: 'doc',
 	DOCUMENT_TABLE: '',
 	PATH_ALIAS: '',
-	// eslint-disable-next-line unicorn/text-encoding-identifier-case
+	// oxlint-disable-next-line unicorn/text-encoding-identifier-case
 	REQUEST_CHARSET: 'UTF8',
-	// eslint-disable-next-line unicorn/text-encoding-identifier-case
+	// oxlint-disable-next-line unicorn/text-encoding-identifier-case
 	REQUEST_IANA_CHARSET: 'UTF-8',
 	SCRIPT_PREFIX: '',
 };

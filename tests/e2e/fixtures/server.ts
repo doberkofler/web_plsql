@@ -30,7 +30,7 @@ const config: configType = {
 };
 
 export const test = base.extend<ServerFixture>({
-	// eslint-disable-next-line no-empty-pattern -- Playwright fixture pattern requires empty destructuring
+	// oxlint-disable-next-line no-empty-pattern -- Playwright fixture pattern requires empty destructuring
 	server: async ({}, use) => {
 		const server = await startServer(config);
 		await use(server);

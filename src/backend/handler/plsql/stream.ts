@@ -10,9 +10,8 @@ export const streamToBuffer = async (readable: Readable): Promise<Buffer> => {
 	return new Promise((resolve, reject) => {
 		const buffers: Buffer[] = [];
 
-		readable.on('data', (buffer) => {
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-			buffers.push(buffer);
+		readable.on('data', (buffer: Buffer | string) => {
+			buffers.push(Buffer.isBuffer(buffer) ? buffer : Buffer.from(buffer));
 		});
 
 		readable.on('end', () => {
