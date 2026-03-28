@@ -1,34 +1,31 @@
 {
 	"name": "web_plsql",
 	"version": "1.4.0",
-	"author": "Dieter Oberkofler <dieter.oberkofler@gmail.com>",
-	"license": "MIT",
 	"description": "The Express Middleware for Oracle PL/SQL",
 	"keywords": [
-		"node",
-		"nodejs",
+		"apex",
 		"express",
 		"middleware",
-		"plsql",
-		"pl/sql",
-		"oracle",
+		"node",
+		"nodejs",
 		"ohs",
+		"oracle",
 		"ords",
-		"apex"
+		"pl/sql",
+		"plsql"
 	],
 	"homepage": "https://github.com/doberkofler/web_plsql",
-	"engines": {
-		"node": ">=24"
+	"bugs": {
+		"url": "https://github.com/doberkofler/web_plsql/issues"
 	},
+	"license": "MIT",
+	"author": "Dieter Oberkofler <dieter.oberkofler@gmail.com>",
 	"maintainers": [
 		{
 			"name": "Dieter Oberkofler",
 			"email": "dieter.oberkofler@gmail.com"
 		}
 	],
-	"bugs": {
-		"url": "https://github.com/doberkofler/web_plsql/issues"
-	},
 	"repository": {
 		"type": "git",
 		"url": "git://github.com/doberkofler/web_plsql.git"
@@ -37,9 +34,9 @@
 		"dist/",
 		"examples/"
 	],
+	"type": "module",
 	"main": "./dist/index.mjs",
 	"types": "./dist/index.d.mts",
-	"type": "module",
 	"scripts": {
 		"build": "npm run build:backend && npm run build:frontend",
 		"build:backend": "tsdown",
@@ -47,7 +44,9 @@
 		"dev": "concurrently -n backend,frontend -c blue,green \"npm:dev:backend\" \"npm:dev:frontend\"",
 		"dev:backend": "node --experimental-strip-types --no-warnings dev/server.ts",
 		"dev:frontend": "vite",
-		"lint": "tsc && oxlint --type-aware --type-check . && prettier --check .",
+		"lint": "tsc && oxlint --type-aware --type-check . && npm run format",
+		"format": "oxfmt --check .",
+		"format-write": "oxfmt .",
 		"knip:backend": "knip --config knip.backend.config.ts",
 		"knip:frontend": "knip --config knip.frontend.config.ts",
 		"test": "vitest run",
@@ -64,9 +63,6 @@
 		"image-save": "cd docker && docker save web_plsql > web_plsql.tar",
 		"pack:dev": "VERSION=$(node -p 'require(\"./package.json\").version'); npm pack; mv web_plsql-$VERSION.tgz web_plsql-dev.tgz",
 		"prepare": "husky"
-	},
-	"peerDependencies": {
-		"oracledb": "6.10.0"
 	},
 	"dependencies": {
 		"chart.js": "4.5.1",
@@ -103,9 +99,9 @@
 		"husky": "9.1.7",
 		"knip": "6.1.0",
 		"oracledb": "6.10.0",
+		"oxfmt": "0.42.0",
 		"oxlint": "1.57.0",
 		"oxlint-tsgolint": "0.18.1",
-		"prettier": "3.8.1",
 		"shx": "0.4.0",
 		"stylelint": "17.6.0",
 		"stylelint-config-standard": "40.0.0",
@@ -116,5 +112,11 @@
 		"vite": "8.0.3",
 		"vite-plugin-compression2": "2.5.3",
 		"vitest": "4.1.2"
+	},
+	"peerDependencies": {
+		"oracledb": "6.10.0"
+	},
+	"engines": {
+		"node": ">=24"
 	}
 }
