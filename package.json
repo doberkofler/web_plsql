@@ -47,7 +47,7 @@
 		"dev": "concurrently -n backend,frontend -c blue,green \"npm:dev:backend\" \"npm:dev:frontend\"",
 		"dev:backend": "node --experimental-strip-types --no-warnings dev/server.ts",
 		"dev:frontend": "vite",
-		"lint": "oxlint --type-aware --type-check . && prettier --check .",
+		"lint": "tsc && oxlint --type-aware --type-check . && prettier --check .",
 		"knip:backend": "knip --config knip.backend.config.ts",
 		"knip:frontend": "knip --config knip.frontend.config.ts",
 		"test": "vitest run",
@@ -112,7 +112,7 @@
 		"supertest": "7.2.2",
 		"tailwindcss": "4.2.2",
 		"tsdown": "0.21.7",
-		"typescript": "5.9.3",
+		"typescript": "6.0.2",
 		"vite": "8.0.3",
 		"vite-plugin-compression2": "2.5.3",
 		"vitest": "4.1.2"
