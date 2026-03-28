@@ -1,6 +1,6 @@
 {
 	"name": "web_plsql",
-	"version": "1.4.0",
+	"version": "1.5.0",
 	"description": "The Express Middleware for Oracle PL/SQL",
 	"keywords": [
 		"apex",
