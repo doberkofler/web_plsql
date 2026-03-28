@@ -143,6 +143,11 @@ export const startServer = async (config: configType, ssl?: sslConfig): Promise<
 		app.use(handlerLogger(internalConfig.loggerFilename));
 	}
 
+	// Execute custom extensions before static/SPA routes capture the request
+	if (internalConfig.setupExtensions) {
+		await internalConfig.setupExtensions(app, adminContext.pools);
+	}
+
 	// Serving static files
 	for (const i of internalConfig.routeStatic) {
 		app.use(
