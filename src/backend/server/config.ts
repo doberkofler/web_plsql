@@ -16,6 +16,7 @@ export const showConfig = (config: configType): void => {
 	console.log(`NODE PL/SQL SERVER version ${getVersion()}`);
 	console.log(LINE);
 
+	paddedLine('Started', new Date().toString());
 	paddedLine('Server port', config.port);
 	paddedLine('Admin route', `${config.adminRoute ?? '/admin'}${config.adminUser ? ' (authenticated)' : ''}`);
 	paddedLine('Access log', config.loggerFilename.length > 0 ? config.loggerFilename : '-');
