@@ -5,7 +5,6 @@
 import debugModule from 'debug';
 const debug = debugModule('webplsql:handlerPlSql');
 
-import url from 'node:url';
 import {processRequest} from './request.ts';
 import {RequestError} from './requestError.ts';
 import {errorPage} from './errorPage.ts';
@@ -69,7 +68,10 @@ const requestHandler = async (
 		// should we switch to the default page if there is one defined
 		if (typeof req.params.name !== 'string' || req.params.name.length === 0) {
 			if (typeof options.defaultPage === 'string' && options.defaultPage.length > 0) {
-				const newUrl = url.resolve(`${req.originalUrl}/${options.defaultPage}`, '');
+				const currentUrl = new URL(req.originalUrl, 'http://localhost');
+				const basePath = currentUrl.pathname.endsWith('/') ? currentUrl.pathname : `${currentUrl.pathname}/`;
+				const defaultPage = options.defaultPage.replace(/^\/+/, '');
+				const newUrl = `${basePath}${defaultPage}${currentUrl.search}`;
 				debug(`Redirect to the url "${newUrl}"`);
 				res.redirect(newUrl);
 			} else {
