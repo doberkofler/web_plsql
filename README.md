@@ -1,4 +1,5 @@
-  [![NPM Version][npm-image]][npm-url]
+  [![pnpm][pnpm-image]][pnpm-url]
+  [![GitHub Release][release-image]][release-url]
   [![NPM Downloads][downloads-image]][downloads-url]
   [![Node.js CI](https://github.com/doberkofler/web_plsql/actions/workflows/node.js.yml/badge.svg)](https://github.com/doberkofler/web_plsql/actions/workflows/node.js.yml)
   [![Coverage Status](https://coveralls.io/repos/github/doberkofler/web_plsql/badge.svg?branch=main)](https://coveralls.io/github/doberkofler/web_plsql?branch=main)
@@ -250,8 +251,11 @@ The following mod_plsql DAD configuration translates to the configuration option
 [MIT](LICENSE)
 
 
-[npm-image]: https://img.shields.io/npm/v/web_plsql.svg
-[npm-url]: https://npmjs.org/package/web_plsql
+[pnpm-image]: https://img.shields.io/badge/pnpm-managed-blueviolet?logo=pnpm
+[pnpm-url]: https://pnpm.io/
+
+[release-image]: https://img.shields.io/github/v/release/doberkofler/web_plsql
+[release-url]: https://github.com/doberkofler/web_plsql/releases
 
 [downloads-image]: https://img.shields.io/npm/dm/web_plsql.svg
 [downloads-url]: https://npmjs.org/package/web_plsql
