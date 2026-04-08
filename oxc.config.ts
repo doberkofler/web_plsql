@@ -141,7 +141,7 @@ export const formatter = {
 	useTabs: true,
 	singleQuote: true,
 	bracketSpacing: false,
-	ignorePatterns: [...commonIgnore, '*.md'],
+	ignorePatterns: [...commonIgnore, '*.md', '*.yaml'],
 	overrides: [
 		{
 			files: ['src/**/*.{scss,css}'],
