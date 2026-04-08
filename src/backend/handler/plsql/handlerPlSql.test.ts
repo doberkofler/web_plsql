@@ -4,11 +4,11 @@ import {errorPage} from '../../handler/plsql/errorPage.ts';
 import {processRequest} from '../../handler/plsql/request.ts';
 
 vi.mock('../../handler/plsql/errorPage.ts', () => ({
-	errorPage: vi.fn(),
+	errorPage: vi.fn<(...args: unknown[]) => unknown>(),
 }));
 
 vi.mock('../../handler/plsql/request.ts', () => ({
-	processRequest: vi.fn(),
+	processRequest: vi.fn<(...args: unknown[]) => unknown>(),
 }));
 
 // Mock Cache
@@ -42,9 +42,9 @@ describe('handler/plsql/handlerPlSql', () => {
 			originalUrl: '/pls',
 		} as any;
 		const res = {
-			redirect: vi.fn(),
+			redirect: vi.fn<(...args: unknown[]) => unknown>(),
 		} as any;
-		const next = vi.fn();
+		const next = vi.fn<(...args: unknown[]) => unknown>();
 
 		handler(req, res, next);
 
@@ -59,7 +59,7 @@ describe('handler/plsql/handlerPlSql', () => {
 
 	it('should handle successful authentication', async () => {
 		const pool = {} as any;
-		const authCallback = vi.fn().mockResolvedValue('AUTH_USER');
+		const authCallback = vi.fn<(...args: unknown[]) => unknown>().mockResolvedValue('AUTH_USER');
 		const config = {
 			route: '/pls',
 			user: 'scott',
@@ -80,8 +80,12 @@ describe('handler/plsql/handlerPlSql', () => {
 			headers: {authorization: 'Basic ' + Buffer.from('user:pass').toString('base64')},
 			originalUrl: '/pls/proc',
 		} as any;
-		const res = {set: vi.fn(), status: vi.fn().mockReturnThis(), send: vi.fn()} as any;
-		const next = vi.fn();
+		const res = {
+			set: vi.fn<(...args: unknown[]) => unknown>(),
+			status: vi.fn<(...args: unknown[]) => unknown>().mockReturnThis(),
+			send: vi.fn<(...args: unknown[]) => unknown>(),
+		} as any;
+		const next = vi.fn<(...args: unknown[]) => unknown>();
 
 		handler(req, res, next);
 		await new Promise((resolve) => setTimeout(resolve, 10));
@@ -100,7 +104,7 @@ describe('handler/plsql/handlerPlSql', () => {
 
 	it('should return 401 on failed authentication', async () => {
 		const pool = {} as any;
-		const authCallback = vi.fn().mockResolvedValue(null);
+		const authCallback = vi.fn<(...args: unknown[]) => unknown>().mockResolvedValue(null);
 		const config = {
 			route: '/pls',
 			user: 'scott',
@@ -121,8 +125,12 @@ describe('handler/plsql/handlerPlSql', () => {
 			params: {name: 'proc'},
 			headers: {authorization: 'Basic ' + Buffer.from('user:wrong').toString('base64')},
 		} as any;
-		const res = {set: vi.fn(), status: vi.fn().mockReturnThis(), send: vi.fn()} as any;
-		const next = vi.fn();
+		const res = {
+			set: vi.fn<(...args: unknown[]) => unknown>(),
+			status: vi.fn<(...args: unknown[]) => unknown>().mockReturnThis(),
+			send: vi.fn<(...args: unknown[]) => unknown>(),
+		} as any;
+		const next = vi.fn<(...args: unknown[]) => unknown>();
 
 		handler(req, res, next);
 		await new Promise((resolve) => setTimeout(resolve, 10));
@@ -134,7 +142,7 @@ describe('handler/plsql/handlerPlSql', () => {
 
 	it('should handle successful custom authentication', async () => {
 		const pool = {} as any;
-		const authCallback = vi.fn().mockResolvedValue('CUSTOM_USER');
+		const authCallback = vi.fn<(...args: unknown[]) => unknown>().mockResolvedValue('CUSTOM_USER');
 		const config = {
 			route: '/pls',
 			user: 'scott',
@@ -155,8 +163,12 @@ describe('handler/plsql/handlerPlSql', () => {
 			headers: {authorization: 'Bearer token'},
 			originalUrl: '/pls/proc',
 		} as any;
-		const res = {set: vi.fn(), status: vi.fn().mockReturnThis(), send: vi.fn()} as any;
-		const next = vi.fn();
+		const res = {
+			set: vi.fn<(...args: unknown[]) => unknown>(),
+			status: vi.fn<(...args: unknown[]) => unknown>().mockReturnThis(),
+			send: vi.fn<(...args: unknown[]) => unknown>(),
+		} as any;
+		const next = vi.fn<(...args: unknown[]) => unknown>();
 
 		handler(req, res, next);
 		await new Promise((resolve) => setTimeout(resolve, 10));
@@ -175,7 +187,7 @@ describe('handler/plsql/handlerPlSql', () => {
 
 	it('should return 401 on failed custom authentication', async () => {
 		const pool = {} as any;
-		const authCallback = vi.fn().mockResolvedValue(null);
+		const authCallback = vi.fn<(...args: unknown[]) => unknown>().mockResolvedValue(null);
 		const config = {
 			route: '/pls',
 			user: 'scott',
@@ -195,8 +207,12 @@ describe('handler/plsql/handlerPlSql', () => {
 			params: {name: 'proc'},
 			headers: {authorization: 'Bearer invalid'},
 		} as any;
-		const res = {set: vi.fn(), status: vi.fn().mockReturnThis(), send: vi.fn()} as any;
-		const next = vi.fn();
+		const res = {
+			set: vi.fn<(...args: unknown[]) => unknown>(),
+			status: vi.fn<(...args: unknown[]) => unknown>().mockReturnThis(),
+			send: vi.fn<(...args: unknown[]) => unknown>(),
+		} as any;
+		const next = vi.fn<(...args: unknown[]) => unknown>();
 
 		handler(req, res, next);
 		await new Promise((resolve) => setTimeout(resolve, 10));

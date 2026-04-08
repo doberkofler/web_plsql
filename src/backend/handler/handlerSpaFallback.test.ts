@@ -10,7 +10,7 @@ describe('handler/handlerSpaFallback', () => {
 	let sendFileSpy: ReturnType<typeof vi.fn>;
 
 	beforeEach(() => {
-		sendFileSpy = vi.fn((_, callback) => {
+		sendFileSpy = vi.fn<(filePath: string, callback?: (error: Error | null) => void) => void>((_, callback) => {
 			if (callback) callback(null);
 		});
 
@@ -26,7 +26,7 @@ describe('handler/handlerSpaFallback', () => {
 			sendFile: sendFileSpy as unknown as Response['sendFile'],
 		};
 
-		mockNext = vi.fn();
+		mockNext = vi.fn<NextFunction>() as unknown as NextFunction;
 	});
 
 	it('should create a request handler function', () => {

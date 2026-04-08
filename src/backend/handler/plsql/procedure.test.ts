@@ -13,19 +13,19 @@ import type {Mock} from 'vitest';
 import type {Connection} from 'oracledb';
 
 vi.mock('../../handler/plsql/upload.ts', () => ({
-	uploadFile: vi.fn().mockResolvedValue(undefined),
+	uploadFile: vi.fn<(...args: unknown[]) => unknown>().mockResolvedValue(undefined),
 }));
 
 vi.mock('../../handler/plsql/procedureSanitize.ts', () => ({
-	sanitizeProcName: vi.fn((name) => Promise.resolve(name)),
+	sanitizeProcName: vi.fn<(...args: unknown[]) => unknown>((name) => Promise.resolve(name)),
 }));
 
 vi.mock('../../handler/plsql/procedureNamed.ts', () => ({
-	getProcedureNamed: vi.fn((_req, name) => Promise.resolve({sql: `${name}()`, bind: {}})),
+	getProcedureNamed: vi.fn<(...args: unknown[]) => unknown>((_req, name) => Promise.resolve({sql: `${name}()`, bind: {}})),
 }));
 
 vi.mock('../../handler/plsql/parsePage.ts', () => ({
-	parsePage: vi.fn(() => ({
+	parsePage: vi.fn<(...args: unknown[]) => unknown>(() => ({
 		head: {cookies: [], otherHeaders: {}},
 		body: '<html></html>',
 		file: {fileType: '', fileSize: 0, fileBlob: null},
@@ -33,12 +33,12 @@ vi.mock('../../handler/plsql/parsePage.ts', () => ({
 }));
 
 vi.mock('../../handler/plsql/sendResponse.ts', () => ({
-	sendResponse: vi.fn().mockResolvedValue(undefined),
+	sendResponse: vi.fn<(...args: unknown[]) => unknown>().mockResolvedValue(undefined),
 }));
 
 vi.mock('../../handler/plsql/owaPageStream.ts', () => {
 	return {
-		OWAPageStream: vi.fn(),
+		OWAPageStream: vi.fn<(...args: unknown[]) => unknown>(),
 	};
 });
 
@@ -53,8 +53,8 @@ describe('handler/plsql/procedure', () => {
 
 	beforeEach(async () => {
 		vi.clearAllMocks();
-		mockDeleteName = vi.fn();
-		mockDeleteArg = vi.fn();
+		mockDeleteName = vi.fn<(...args: unknown[]) => unknown>();
+		mockDeleteArg = vi.fn<(...args: unknown[]) => unknown>();
 
 		mockNameCache = {
 			delete: mockDeleteName,
@@ -90,9 +90,9 @@ describe('handler/plsql/procedure', () => {
 				},
 			});
 			// @ts-expect-error - mock fetchChunk implementation for test coverage
-			s.fetchChunk = vi.fn().mockResolvedValue(['<html></html>']);
+			s.fetchChunk = vi.fn<(...args: unknown[]) => unknown>().mockResolvedValue(['<html></html>']);
 			// @ts-expect-error - mock addBody implementation for test coverage
-			s.addBody = vi.fn();
+			s.addBody = vi.fn<(...args: unknown[]) => unknown>();
 			return s as any;
 		});
 	});
@@ -337,9 +337,9 @@ describe('handler/plsql/procedure', () => {
 			},
 		});
 		// @ts-expect-error - mock fetchChunk implementation for test coverage
-		mockStream.fetchChunk = vi.fn().mockResolvedValue(['<html></html>']);
+		mockStream.fetchChunk = vi.fn<(...args: unknown[]) => unknown>().mockResolvedValue(['<html></html>']);
 		// @ts-expect-error - mock addBody implementation for test coverage
-		mockStream.addBody = vi.fn();
+		mockStream.addBody = vi.fn<(...args: unknown[]) => unknown>();
 
 		vi.mocked(OWAPageStream).mockImplementation(function () {
 			return mockStream as any;
@@ -388,9 +388,9 @@ describe('handler/plsql/procedure', () => {
 			},
 		});
 		// @ts-expect-error - mock fetchChunk implementation for test coverage
-		mockStream.fetchChunk = vi.fn().mockResolvedValue(['<html></html>']);
+		mockStream.fetchChunk = vi.fn<(...args: unknown[]) => unknown>().mockResolvedValue(['<html></html>']);
 		// @ts-expect-error - mock addBody implementation for test coverage
-		mockStream.addBody = vi.fn();
+		mockStream.addBody = vi.fn<(...args: unknown[]) => unknown>();
 
 		vi.mocked(OWAPageStream).mockImplementation(function () {
 			return mockStream as any;
@@ -442,9 +442,9 @@ describe('handler/plsql/procedure', () => {
 			},
 		});
 		// @ts-expect-error - mock fetchChunk implementation for test coverage
-		mockStream.fetchChunk = vi.fn().mockResolvedValue(['']);
+		mockStream.fetchChunk = vi.fn<(...args: unknown[]) => unknown>().mockResolvedValue(['']);
 		// @ts-expect-error - mock addBody implementation for test coverage
-		mockStream.addBody = vi.fn();
+		mockStream.addBody = vi.fn<(...args: unknown[]) => unknown>();
 
 		vi.mocked(OWAPageStream).mockImplementation(function () {
 			return mockStream as any;

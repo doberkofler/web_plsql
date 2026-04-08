@@ -26,20 +26,20 @@ class MockElement {
 		this.style = {};
 		this._className = '';
 		this.classList = {
-			add: vi.fn((cls: string) => {
+			add: vi.fn<(cls: string) => void>((cls: string) => {
 				if (!this.classList.classes.includes(cls)) {
 					this.classList.classes.push(cls);
 					this._updateClassName();
 				}
 			}),
-			remove: vi.fn((cls: string) => {
+			remove: vi.fn<(cls: string) => void>((cls: string) => {
 				const idx = this.classList.classes.indexOf(cls);
 				if (idx > -1) {
 					this.classList.classes.splice(idx, 1);
 					this._updateClassName();
 				}
 			}),
-			toggle: vi.fn((cls: string, force?: boolean) => {
+			toggle: vi.fn<(cls: string, force?: boolean) => boolean>((cls: string, force?: boolean) => {
 				const has = this.classList.classes.includes(cls);
 				const want = force ?? !has;
 				if (want) {
@@ -108,8 +108,8 @@ class MockElement {
 
 // Mock document
 const mockDocument = {
-	getElementById: vi.fn() as Mock,
-	createElement: vi.fn((tagName: string) => new MockElement(tagName)) as Mock,
+	getElementById: vi.fn<(id: string) => MockElement | null>() as Mock,
+	createElement: vi.fn<(tagName: string) => MockElement>((tagName: string) => new MockElement(tagName)) as Mock,
 };
 
 // Inject mock document into global scope
@@ -190,7 +190,7 @@ describe('DataTable', () => {
 	});
 
 	it('should handle row click events', () => {
-		const onRowClick = vi.fn();
+		const onRowClick = vi.fn<(...args: unknown[]) => unknown>();
 		dataTable = new DataTable<TestRow>('my-table', {columns, onRowClick});
 		dataTable.render(data);
 
@@ -357,7 +357,7 @@ describe('DataTable', () => {
 	});
 
 	it('should handle onRowClick becoming falsy after render', () => {
-		const onRowClick = vi.fn();
+		const onRowClick = vi.fn<(...args: unknown[]) => unknown>();
 		dataTable = new DataTable<TestRow>('my-table', {columns, onRowClick});
 		dataTable.render(data);
 

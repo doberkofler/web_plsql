@@ -97,7 +97,7 @@ describe('handler/plsql/procedureNamed', () => {
 
 	describe('loadArguments', () => {
 		it('should throw RequestError when names and types length mismatch', async () => {
-			const mockExecute = vi.fn().mockResolvedValue({
+			const mockExecute = vi.fn<(...args: unknown[]) => unknown>().mockResolvedValue({
 				outBinds: {
 					names: ['P1'],
 					types: ['VARCHAR2', 'NUMBER'], // Mismatch
@@ -122,7 +122,7 @@ describe('handler/plsql/procedureNamed', () => {
 		});
 
 		it('should throw error when zod parsing fails', async () => {
-			const mockExecute = vi.fn().mockResolvedValue({
+			const mockExecute = vi.fn<(...args: unknown[]) => unknown>().mockResolvedValue({
 				outBinds: {
 					names: 'not-an-array',
 					types: ['VARCHAR2'],
@@ -145,7 +145,7 @@ describe('handler/plsql/procedureNamed', () => {
 		});
 
 		it('should throw error when database execute fails', async () => {
-			const mockExecute = vi.fn().mockRejectedValue(new Error('ORA-00942'));
+			const mockExecute = vi.fn<(...args: unknown[]) => unknown>().mockRejectedValue(new Error('ORA-00942'));
 
 			const connection = {execute: mockExecute} as any as Connection;
 			const cache = new Cache<argsType>();
@@ -163,7 +163,7 @@ describe('handler/plsql/procedureNamed', () => {
 		});
 
 		it('should handle missing argument name/type in loadArguments', async () => {
-			const mockExecute = vi.fn().mockResolvedValue({
+			const mockExecute = vi.fn<(...args: unknown[]) => unknown>().mockResolvedValue({
 				outBinds: {
 					names: ['P1', null],
 					types: ['VARCHAR2', 'NUMBER'],
@@ -189,7 +189,7 @@ describe('handler/plsql/procedureNamed', () => {
 
 	describe('getProcedureNamed', () => {
 		it('should construct SQL and bindings correctly', async () => {
-			const mockExecute = vi.fn().mockResolvedValue({
+			const mockExecute = vi.fn<(...args: unknown[]) => unknown>().mockResolvedValue({
 				outBinds: {
 					names: ['P1', 'P2'],
 					types: ['VARCHAR2', 'NUMBER'],
@@ -211,7 +211,7 @@ describe('handler/plsql/procedureNamed', () => {
 		});
 
 		it('should handle unknown argument gracefully (log warning and use default string bind)', async () => {
-			const mockExecute = vi.fn().mockResolvedValue({
+			const mockExecute = vi.fn<(...args: unknown[]) => unknown>().mockResolvedValue({
 				outBinds: {
 					names: ['P1'],
 					types: ['VARCHAR2'],

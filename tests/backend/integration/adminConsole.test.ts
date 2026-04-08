@@ -15,7 +15,7 @@ describe('Admin Console Integration', () => {
 		const mockPool = {
 			connectionsOpen: 1,
 			connectionsInUse: 0,
-			close: vi.fn() as any,
+			close: vi.fn<(...args: unknown[]) => unknown>() as any,
 		} as any;
 
 		const mockCache = {

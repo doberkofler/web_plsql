@@ -5,7 +5,7 @@ import type {NextFunction} from 'express';
 
 vi.mock('node:fs');
 vi.mock('morgan', () => ({
-	default: vi.fn(() => (_req: any, _res: any, next: NextFunction) => next()),
+	default: vi.fn<(...args: unknown[]) => unknown>(() => (_req: any, _res: any, next: NextFunction) => next()),
 }));
 
 describe('handler/handlerLogger', () => {

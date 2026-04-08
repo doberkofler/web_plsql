@@ -13,13 +13,13 @@ describe('Theme Management', () => {
 		const storage: Record<string, string> = {};
 		const eventListeners: Record<string, (() => void)[]> = {};
 
-		setItemMock = vi.fn().mockImplementation((key: string, value: string) => {
+		setItemMock = vi.fn<(key: string, value: string) => void>().mockImplementation((key: string, value: string) => {
 			storage[key] = value;
 		});
 
 		// Mock localStorage
 		vi.stubGlobal('localStorage', {
-			getItem: vi.fn().mockImplementation((key: string) => {
+			getItem: vi.fn<(key: string) => string | null>().mockImplementation((key: string) => {
 				const val = storage[key];
 				return typeof val === 'string' ? val : null;
 			}),
@@ -31,13 +31,13 @@ describe('Theme Management', () => {
 			body: {
 				className: '',
 				classList: {
-					contains: vi.fn().mockImplementation((cls: string) => {
+					contains: vi.fn<(cls: string) => boolean>().mockImplementation((cls: string) => {
 						const name = document.body.className;
 						return typeof name === 'string' && name.includes(cls);
 					}),
 				},
 			},
-			getElementById: vi.fn().mockImplementation((id: string) => {
+			getElementById: vi.fn<(id: string) => typeof mockBtn | null>().mockImplementation((id: string) => {
 				if (id === 'theme-toggle-btn') {
 					return mockBtn;
 				}
@@ -46,7 +46,7 @@ describe('Theme Management', () => {
 		});
 
 		mockBtn = {
-			addEventListener: vi.fn().mockImplementation((event: string, callback: () => void) => {
+			addEventListener: vi.fn<(event: string, callback: () => void) => void>().mockImplementation((event: string, callback: () => void) => {
 				if (!eventListeners[event]) {
 					eventListeners[event] = [];
 				}
@@ -98,7 +98,7 @@ describe('Theme Management', () => {
 					},
 				},
 			},
-			update: vi.fn(),
+			update: vi.fn<() => void>(),
 		};
 
 		// Cast to unknown first to bypass type checking for the mock
@@ -129,7 +129,7 @@ describe('Theme Management', () => {
 	it('should handle chart without scales safely', () => {
 		const mockChart = {
 			options: {},
-			update: vi.fn(),
+			update: vi.fn<() => void>(),
 		};
 
 		state.charts.test = mockChart as unknown as import('../types.ts').ChartInstance;
@@ -149,7 +149,7 @@ describe('Theme Management', () => {
 					y1: {},
 				},
 			},
-			update: vi.fn(),
+			update: vi.fn<() => void>(),
 		};
 
 		state.charts.test = mockChart as unknown as import('../types.ts').ChartInstance;
@@ -162,7 +162,7 @@ describe('Theme Management', () => {
 
 	it('should return if button is not found', () => {
 		vi.stubGlobal('document', {
-			getElementById: vi.fn().mockReturnValue(null),
+			getElementById: vi.fn<(id: string) => null>().mockReturnValue(null),
 			body: {className: ''},
 		});
 		initTheme(state);

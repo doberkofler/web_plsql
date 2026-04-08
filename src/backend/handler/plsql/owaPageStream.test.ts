@@ -3,21 +3,23 @@ import {OWAPageStream} from './owaPageStream.ts';
 import {OWA_STREAM_CHUNK_SIZE} from '../../../common/constants.ts';
 import type {Connection} from 'oracledb';
 
+type OwaExecuteMock = () => Promise<{outBinds: {lines: string[]; irows: number}}>;
+
 describe('OWAPageStream', () => {
 	it('should stream data in chunks', async () => {
 		// Create array of chunkSize lines for first chunk
 		const firstChunkLines = Array.from({length: OWA_STREAM_CHUNK_SIZE}, (_, i) => `Line ${i + 1}\n`);
 		const secondChunkLines = ['Final Line\n'];
+		const executeMock = vi.fn<OwaExecuteMock>();
+		executeMock.mockResolvedValueOnce({
+			outBinds: {lines: firstChunkLines, irows: OWA_STREAM_CHUNK_SIZE},
+		});
+		executeMock.mockResolvedValueOnce({
+			outBinds: {lines: secondChunkLines, irows: 1}, // Less than chunkSize, so it should be the last chunk
+		});
 
 		const mockConnection = {
-			execute: vi
-				.fn()
-				.mockResolvedValueOnce({
-					outBinds: {lines: firstChunkLines, irows: OWA_STREAM_CHUNK_SIZE},
-				})
-				.mockResolvedValueOnce({
-					outBinds: {lines: secondChunkLines, irows: 1}, // Less than chunkSize, so it should be the last chunk
-				}),
+			execute: executeMock,
 		} as unknown as Connection;
 
 		const stream = new OWAPageStream(mockConnection);
@@ -35,7 +37,7 @@ describe('OWAPageStream', () => {
 
 	it('should handle empty response', async () => {
 		const mockConnection = {
-			execute: vi.fn().mockResolvedValueOnce({
+			execute: vi.fn<(...args: unknown[]) => unknown>().mockResolvedValueOnce({
 				outBinds: {lines: [], irows: 0},
 			}),
 		} as unknown as Connection;
@@ -53,7 +55,7 @@ describe('OWAPageStream', () => {
 
 	it('should add initial body content', async () => {
 		const mockConnection = {
-			execute: vi.fn().mockResolvedValueOnce({
+			execute: vi.fn<(...args: unknown[]) => unknown>().mockResolvedValueOnce({
 				outBinds: {lines: [], irows: 0},
 			}),
 		} as unknown as Connection;
@@ -71,7 +73,7 @@ describe('OWAPageStream', () => {
 
 	it('should handle database errors', async () => {
 		const mockConnection = {
-			execute: vi.fn().mockRejectedValue(new Error('DB Error')),
+			execute: vi.fn<(...args: unknown[]) => unknown>().mockRejectedValue(new Error('DB Error')),
 		} as unknown as Connection;
 
 		const stream = new OWAPageStream(mockConnection);
@@ -89,7 +91,7 @@ describe('OWAPageStream', () => {
 
 	it('should handle non-Error catch in _read', async () => {
 		const mockConnection = {
-			execute: vi.fn().mockRejectedValue('String Error'),
+			execute: vi.fn<(...args: unknown[]) => unknown>().mockRejectedValue('String Error'),
 		} as unknown as Connection;
 
 		const stream = new OWAPageStream(mockConnection);
@@ -111,7 +113,7 @@ describe('OWAPageStream', () => {
 
 	it('should do nothing if addBody called with empty content', () => {
 		const mockConnection = {
-			execute: vi.fn(),
+			execute: vi.fn<(...args: unknown[]) => unknown>(),
 		} as unknown as Connection;
 		const stream = new OWAPageStream(mockConnection);
 		const pushSpy = vi.spyOn(stream, 'push');

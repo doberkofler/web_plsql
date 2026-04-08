@@ -7,14 +7,14 @@ import type {pageType} from '../../types.ts';
 describe('handler/plsql/sendResponse_extra', () => {
 	const createMockRes = () =>
 		({
-			cookie: vi.fn(),
-			redirect: vi.fn(),
-			set: vi.fn(),
-			writeHead: vi.fn(),
-			end: vi.fn(),
-			status: vi.fn().mockReturnThis(),
-			send: vi.fn(),
-			on: vi.fn(),
+			cookie: vi.fn<(...args: unknown[]) => unknown>(),
+			redirect: vi.fn<(...args: unknown[]) => unknown>(),
+			set: vi.fn<(...args: unknown[]) => unknown>(),
+			writeHead: vi.fn<(...args: unknown[]) => unknown>(),
+			end: vi.fn<(...args: unknown[]) => unknown>(),
+			status: vi.fn<(...args: unknown[]) => unknown>().mockReturnThis(),
+			send: vi.fn<(...args: unknown[]) => unknown>(),
+			on: vi.fn<(...args: unknown[]) => unknown>(),
 		}) as unknown as Response;
 
 	const createEmptyPage = (): pageType => ({
@@ -31,10 +31,10 @@ describe('handler/plsql/sendResponse_extra', () => {
 	});
 
 	it('should handle body streaming', async () => {
-		const pipeMock = vi.fn();
+		const pipeMock = vi.fn<(...args: unknown[]) => unknown>();
 		const res = {
 			...createMockRes(),
-			on: vi.fn(),
+			on: vi.fn<(...args: unknown[]) => unknown>(),
 		} as any;
 
 		const mockStream = new Readable({

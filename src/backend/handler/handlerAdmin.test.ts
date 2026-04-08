@@ -13,7 +13,7 @@ vi.mock('../util/shutdown.ts');
 // Mock readline here
 vi.mock('node:readline', () => ({
 	default: {
-		createInterface: vi.fn(() => ({
+		createInterface: vi.fn<(...args: unknown[]) => unknown>(() => ({
 			[Symbol.asyncIterator]: async function* () {
 				await Promise.resolve(null);
 				yield 'line 1';
@@ -48,8 +48,8 @@ describe('handler/handlerAdmin', () => {
 					documentTable: 'docs',
 					defaultPage: 'home',
 					errorStyle: 'basic',
-					auth: {type: 'basic', callback: vi.fn(), realm: 'test'},
-					transactionMode: vi.fn(),
+					auth: {type: 'basic', callback: vi.fn<(...args: unknown[]) => unknown>(), realm: 'test'},
+					transactionMode: vi.fn<(...args: unknown[]) => unknown>(),
 					cgi: {TEST: 'value'},
 				},
 			],
@@ -210,8 +210,8 @@ describe('handler/handlerAdmin', () => {
 
 	describe('POST /api/cache/clear', () => {
 		it('should clear all caches', async () => {
-			const clearProc = vi.fn();
-			const clearArg = vi.fn();
+			const clearProc = vi.fn<(...args: unknown[]) => unknown>();
+			const clearArg = vi.fn<(...args: unknown[]) => unknown>();
 			// @ts-expect-error - overriding readonly caches for testing
 			adminContext.caches = [
 				{

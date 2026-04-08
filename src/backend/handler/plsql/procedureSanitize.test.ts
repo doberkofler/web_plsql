@@ -6,8 +6,10 @@ import {Cache} from '../../util/cache.ts';
 import type {Connection} from 'oracledb';
 import type {configPlSqlHandlerType} from '../../types.ts';
 
+type ValidationOrResolve = () => Promise<{outBinds: {valid: number}} | {outBinds: {resolved: string}}>;
+
 describe('handler/plsql/procedureSanitize', () => {
-	const mockExecute = vi.fn().mockResolvedValue({
+	const mockExecute = vi.fn<(...args: unknown[]) => unknown>().mockResolvedValue({
 		outBinds: {resolved: 'myproc'},
 	});
 
@@ -67,10 +69,9 @@ describe('handler/plsql/procedureSanitize', () => {
 
 	it('should call request validation function if provided', async () => {
 		// Mock needs to handle both validation check (first call) and name resolve (second call)
-		const mockExecuteSeq = vi
-			.fn()
-			.mockResolvedValueOnce({outBinds: {valid: 1}}) // requestValidationFunction
-			.mockResolvedValueOnce({outBinds: {resolved: 'myproc'}}); // resolveProcedureName
+		const mockExecuteSeq = vi.fn<ValidationOrResolve>();
+		mockExecuteSeq.mockResolvedValueOnce({outBinds: {valid: 1}}); // requestValidationFunction
+		mockExecuteSeq.mockResolvedValueOnce({outBinds: {resolved: 'myproc'}}); // resolveProcedureName
 
 		const connection = {execute: mockExecuteSeq} as unknown as Connection;
 		const options = {...defaultOptions, requestValidationFunction: 'check_valid'};
@@ -85,7 +86,7 @@ describe('handler/plsql/procedureSanitize', () => {
 		const cache = new Cache<string>();
 		cache.set('myproc', 'SCHEMA.MYPROC');
 
-		const connection = {execute: vi.fn()} as unknown as Connection;
+		const connection = {execute: vi.fn<(...args: unknown[]) => unknown>()} as unknown as Connection;
 
 		const result = await sanitizeProcName('myproc', connection, defaultOptions, cache);
 		assert.strictEqual(result, 'SCHEMA.MYPROC');
@@ -94,7 +95,7 @@ describe('handler/plsql/procedureSanitize', () => {
 	});
 
 	it('should handle resolveProcedureName failure', async () => {
-		const mockExecuteFail = vi.fn().mockRejectedValue(new Error('ORA-00942'));
+		const mockExecuteFail = vi.fn<(...args: unknown[]) => unknown>().mockRejectedValue(new Error('ORA-00942'));
 
 		const connection = {execute: mockExecuteFail} as unknown as Connection;
 		const cache = new Cache<string>();
@@ -112,12 +113,14 @@ describe('handler/plsql/procedureSanitize', () => {
 	});
 
 	it('should handle requestValidationFunction caching', async () => {
-		const mockExecuteSeq = vi.fn().mockImplementation((sql: string) => {
-			if (sql.includes('check_valid')) {
-				return Promise.resolve({outBinds: {valid: 1}});
-			}
-			return Promise.resolve({outBinds: {resolved: 'myproc'}});
-		});
+		const mockExecuteSeq = vi
+			.fn<(sql: string) => Promise<{outBinds: {valid: number}}> | Promise<{outBinds: {resolved: string}}>>()
+			.mockImplementation((sql: string) => {
+				if (sql.includes('check_valid')) {
+					return Promise.resolve({outBinds: {valid: 1}});
+				}
+				return Promise.resolve({outBinds: {resolved: 'myproc'}});
+			});
 
 		const connection = {execute: mockExecuteSeq} as unknown as Connection;
 		const options = {...defaultOptions, requestValidationFunction: 'check_valid'};
@@ -133,12 +136,14 @@ describe('handler/plsql/procedureSanitize', () => {
 	});
 
 	it('should handle zod parsing failure in loadRequestValid', async () => {
-		const mockExecuteFail = vi.fn().mockImplementation((sql: string) => {
-			if (sql.includes('check_valid')) {
-				return Promise.resolve({outBinds: {valid: 'not-a-number'}});
-			}
-			return Promise.resolve({outBinds: {resolved: 'myproc'}});
-		});
+		const mockExecuteFail = vi
+			.fn<(sql: string) => Promise<{outBinds: {valid: string}}> | Promise<{outBinds: {resolved: string}}>>()
+			.mockImplementation((sql: string) => {
+				if (sql.includes('check_valid')) {
+					return Promise.resolve({outBinds: {valid: 'not-a-number'}});
+				}
+				return Promise.resolve({outBinds: {resolved: 'myproc'}});
+			});
 
 		const connection = {execute: mockExecuteFail} as unknown as Connection;
 		const options = {...defaultOptions, requestValidationFunction: 'check_valid'};
@@ -155,7 +160,7 @@ describe('handler/plsql/procedureSanitize', () => {
 	});
 
 	it('should throw error if request validation function returns invalid', async () => {
-		const mockExecuteSeq = vi.fn().mockResolvedValueOnce({
+		const mockExecuteSeq = vi.fn<(...args: unknown[]) => unknown>().mockResolvedValueOnce({
 			outBinds: {valid: 0},
 		});
 
@@ -176,7 +181,7 @@ describe('handler/plsql/procedureSanitize', () => {
 	});
 
 	it('should handle resolveProcedureName returning null/empty', async () => {
-		const mockExecuteNull = vi.fn().mockResolvedValue({
+		const mockExecuteNull = vi.fn<(...args: unknown[]) => unknown>().mockResolvedValue({
 			outBinds: {resolved: null},
 		});
 
@@ -197,7 +202,7 @@ describe('handler/plsql/procedureSanitize', () => {
 	it('should handle special characters in removeSpecialCharacters', async () => {
 		// Test various characters including those allowed: . _ # $
 		const input = 'abc!@%^&*()_+={}|[]\\:";\'<>?,./~`123_#$.';
-		const mockExecute = vi.fn().mockResolvedValue({outBinds: {resolved: 'CLEANED'}});
+		const mockExecute = vi.fn<(...args: unknown[]) => unknown>().mockResolvedValue({outBinds: {resolved: 'CLEANED'}});
 
 		const connection = {execute: mockExecute} as unknown as Connection;
 		const cache = new Cache<string>();
@@ -212,7 +217,7 @@ describe('handler/plsql/procedureSanitize', () => {
 	});
 
 	it('should handle null/undefined procedure name', async () => {
-		const mockExecute = vi.fn().mockResolvedValue({outBinds: {resolved: 'DEFAULT'}});
+		const mockExecute = vi.fn<(...args: unknown[]) => unknown>().mockResolvedValue({outBinds: {resolved: 'DEFAULT'}});
 
 		const connection = {execute: mockExecute} as unknown as Connection;
 		const cache = new Cache<string>();
@@ -224,7 +229,7 @@ describe('handler/plsql/procedureSanitize', () => {
 	});
 
 	it('should handle resolveProcedureName returning NULL in outBinds', async () => {
-		const mockExecuteNull = vi.fn().mockResolvedValue({
+		const mockExecuteNull = vi.fn<(...args: unknown[]) => unknown>().mockResolvedValue({
 			outBinds: {resolved: undefined},
 		});
 

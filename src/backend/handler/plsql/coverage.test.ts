@@ -10,19 +10,19 @@ import type {Connection} from 'oracledb';
 import type {configPlSqlHandlerType} from '../../types.ts';
 
 vi.mock('../../handler/plsql/errorPage.ts', () => ({
-	errorPage: vi.fn(),
+	errorPage: vi.fn<(...args: unknown[]) => unknown>(),
 }));
 
 vi.mock('../../handler/plsql/procedure.ts', () => ({
-	invokeProcedure: vi.fn().mockResolvedValue(undefined),
+	invokeProcedure: vi.fn<(...args: unknown[]) => unknown>().mockResolvedValue(undefined),
 }));
 
 vi.mock('../../handler/plsql/cgi.ts', () => ({
-	getCGI: vi.fn().mockReturnValue({}),
+	getCGI: vi.fn<(...args: unknown[]) => unknown>().mockReturnValue({}),
 }));
 
 vi.mock('../../handler/plsql/upload.ts', () => ({
-	getFiles: vi.fn().mockReturnValue([]),
+	getFiles: vi.fn<(...args: unknown[]) => unknown>().mockReturnValue([]),
 }));
 
 describe('handler/plsql coverage tests', () => {
@@ -81,7 +81,7 @@ describe('handler/plsql coverage tests', () => {
 	describe('procedureSanitize.js coverage', () => {
 		it('should handle null/undefined in removeSpecialCharacters', async () => {
 			const mockConn = {
-				execute: vi.fn().mockResolvedValue({outBinds: {resolved: 'PROC'}}),
+				execute: vi.fn<(...args: unknown[]) => unknown>().mockResolvedValue({outBinds: {resolved: 'PROC'}}),
 			} as unknown as Connection;
 			const procCache = new Cache<string>();
 
@@ -91,7 +91,7 @@ describe('handler/plsql coverage tests', () => {
 
 		it('should throw error when resolved name is empty', async () => {
 			const mockConn = {
-				execute: vi.fn().mockResolvedValue({outBinds: {resolved: ''}}),
+				execute: vi.fn<(...args: unknown[]) => unknown>().mockResolvedValue({outBinds: {resolved: ''}}),
 			} as unknown as Connection;
 			const procCache = new Cache<string>();
 
@@ -99,7 +99,7 @@ describe('handler/plsql coverage tests', () => {
 		});
 
 		it('should handle database error in loadRequestValid', async () => {
-			const mockExecuteFail = vi.fn().mockImplementation((sql: string) => {
+			const mockExecuteFail = vi.fn<(sql: string) => Promise<{outBinds: {resolved: string}}>>().mockImplementation((sql: string) => {
 				if (sql.includes('check_valid')) {
 					throw new Error('DB Error');
 				}
@@ -120,7 +120,7 @@ describe('handler/plsql coverage tests', () => {
 	describe('owaPageStream.js coverage', () => {
 		it('should rethrow ProcedureError', async () => {
 			const mockConn = {
-				execute: vi.fn().mockRejectedValue(new ProcedureError('Test error', {}, 'SQL', {})),
+				execute: vi.fn<(...args: unknown[]) => unknown>().mockRejectedValue(new ProcedureError('Test error', {}, 'SQL', {})),
 			} as unknown as Connection;
 
 			const stream = new OWAPageStream(mockConn);

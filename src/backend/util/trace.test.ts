@@ -6,11 +6,11 @@ import util from 'node:util';
 
 // Mock rotating-file-stream
 const mockStream = {
-	write: vi.fn(),
-	end: vi.fn(),
+	write: vi.fn<(...args: unknown[]) => unknown>(),
+	end: vi.fn<(...args: unknown[]) => unknown>(),
 };
 vi.mock('rotating-file-stream', () => ({
-	createStream: vi.fn(() => mockStream),
+	createStream: vi.fn<(...args: unknown[]) => unknown>(() => mockStream),
 }));
 
 // Mock console.warn

@@ -9,8 +9,8 @@ describe('handler/plsql/upload', () => {
 	describe('getFiles', () => {
 		it('should return empty if no files property', () => {
 			const req = {
-				header: vi.fn(),
-				get: vi.fn(),
+				header: vi.fn<(...args: unknown[]) => unknown>(),
+				get: vi.fn<(...args: unknown[]) => unknown>(),
 			} as any;
 			expect(getFiles(req)).toEqual([]);
 		});
@@ -18,8 +18,8 @@ describe('handler/plsql/upload', () => {
 		it('should return empty if files is an empty object', () => {
 			const req = {
 				files: {},
-				header: vi.fn(),
-				get: vi.fn(),
+				header: vi.fn<(...args: unknown[]) => unknown>(),
+				get: vi.fn<(...args: unknown[]) => unknown>(),
 			} as any;
 			expect(getFiles(req)).toEqual([]);
 		});
@@ -38,8 +38,8 @@ describe('handler/plsql/upload', () => {
 						size: 10,
 					},
 				],
-				header: vi.fn(),
-				get: vi.fn(),
+				header: vi.fn<(...args: unknown[]) => unknown>(),
+				get: vi.fn<(...args: unknown[]) => unknown>(),
 			} as any;
 			const files = getFiles(req);
 			expect(files).toHaveLength(1);
@@ -60,7 +60,7 @@ describe('handler/plsql/upload', () => {
 		};
 
 		const mockConn = {
-			execute: vi.fn().mockResolvedValue({}),
+			execute: vi.fn<(...args: unknown[]) => unknown>().mockResolvedValue({}),
 			connectString: 'test',
 			oracleServerVersion: 12,
 			oracleServerVersionString: '12.1.0.2.0',

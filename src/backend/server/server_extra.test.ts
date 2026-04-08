@@ -4,10 +4,10 @@ import type {configType} from '../types.js';
 
 const mocks = vi.hoisted(() => {
 	return {
-		useMock: vi.fn(),
-		handlerLogger: vi.fn(() => 'loggerMiddleware'),
-		createSpaFallback: vi.fn(() => 'spaFallbackMiddleware'),
-		handlerWebPlSql: vi.fn(() => vi.fn()),
+		useMock: vi.fn<(...args: unknown[]) => unknown>(),
+		handlerLogger: vi.fn<(...args: unknown[]) => unknown>(() => 'loggerMiddleware'),
+		createSpaFallback: vi.fn<(...args: unknown[]) => unknown>(() => 'spaFallbackMiddleware'),
+		handlerWebPlSql: vi.fn<(...args: unknown[]) => unknown>(() => vi.fn<(...args: unknown[]) => unknown>()),
 	};
 });
 
@@ -15,11 +15,11 @@ const mocks = vi.hoisted(() => {
 vi.mock('express', () => {
 	const app = {
 		use: mocks.useMock,
-		on: vi.fn(),
+		on: vi.fn<(...args: unknown[]) => unknown>(),
 	};
 	const expressFn = () => app;
-	(expressFn as any).json = vi.fn(() => 'jsonMiddleware');
-	(expressFn as any).urlencoded = vi.fn(() => 'urlencodedMiddleware');
+	(expressFn as any).json = vi.fn<(...args: unknown[]) => unknown>(() => 'jsonMiddleware');
+	(expressFn as any).urlencoded = vi.fn<(...args: unknown[]) => unknown>(() => 'urlencodedMiddleware');
 	return {
 		default: expressFn,
 	};
@@ -59,16 +59,16 @@ vi.mock('../index.ts', async () => {
 		...actual,
 		handlerLogger: mocks.handlerLogger,
 		createSpaFallback: mocks.createSpaFallback,
-		handlerUpload: vi.fn(() => 'uploadMiddleware'),
-		handlerAdminConsole: vi.fn(() => 'adminConsoleMiddleware'),
+		handlerUpload: vi.fn<(...args: unknown[]) => unknown>(() => 'uploadMiddleware'),
+		handlerAdminConsole: vi.fn<(...args: unknown[]) => unknown>(() => 'adminConsoleMiddleware'),
 		handlerWebPlSql: mocks.handlerWebPlSql,
-		showConfig: vi.fn(),
-		installShutdown: vi.fn(),
+		showConfig: vi.fn<(...args: unknown[]) => unknown>(),
+		installShutdown: vi.fn<(...args: unknown[]) => unknown>(),
 	};
 });
 
 vi.mock('express-static-gzip', () => ({
-	default: vi.fn(() => 'staticMiddleware'),
+	default: vi.fn<(...args: unknown[]) => unknown>(() => 'staticMiddleware'),
 }));
 
 describe('server/server_extra', () => {
@@ -120,15 +120,16 @@ describe('server/server_extra', () => {
 
 		expect(plSqlCall).toBeDefined();
 		if (!plSqlCall) throw new Error('plSqlCall is undefined');
-		const middleware = plSqlCall[1];
+		type StatsMiddleware = (req: object, res: {on: (event: string, callback: () => void) => void; statusCode: number}, next: () => void) => void;
+		const middleware = plSqlCall[1] as StatsMiddleware;
 
 		// Test the stats middleware
 		const req = {};
 		const res = {
-			on: vi.fn(),
+			on: vi.fn<(event: string, callback: () => void) => void>(),
 			statusCode: 200,
 		};
-		const next = vi.fn();
+		const next = vi.fn<() => void>();
 
 		middleware(req, res, next);
 
@@ -136,9 +137,9 @@ describe('server/server_extra', () => {
 		expect(res.on).toHaveBeenCalledWith('finish', expect.any(Function));
 
 		// Simulate finish event
-		const finishCall = res.on.mock.calls.find((call: any[]) => call[0] === 'finish');
+		const finishCall = res.on.mock.calls.find((call) => call[0] === 'finish');
 		if (!finishCall) throw new Error('finish listener not added');
-		const finishCallback = finishCall[1];
+		const finishCallback = finishCall[1] as () => void;
 
 		// Spy on adminContext.statsManager.recordRequest
 		const recordSpy = vi.spyOn(adminContext.statsManager, 'recordRequest');

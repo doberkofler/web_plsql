@@ -1,34 +1,31 @@
 {
 	"name": "web_plsql",
 	"version": "1.4.0",
-	"author": "Dieter Oberkofler <dieter.oberkofler@gmail.com>",
-	"license": "MIT",
 	"description": "The Express Middleware for Oracle PL/SQL",
 	"keywords": [
-		"node",
-		"nodejs",
+		"apex",
 		"express",
 		"middleware",
-		"plsql",
-		"pl/sql",
-		"oracle",
+		"node",
+		"nodejs",
 		"ohs",
+		"oracle",
 		"ords",
-		"apex"
+		"pl/sql",
+		"plsql"
 	],
 	"homepage": "https://github.com/doberkofler/web_plsql",
-	"engines": {
-		"node": ">=24"
+	"bugs": {
+		"url": "https://github.com/doberkofler/web_plsql/issues"
 	},
+	"license": "MIT",
+	"author": "Dieter Oberkofler <dieter.oberkofler@gmail.com>",
 	"maintainers": [
 		{
 			"name": "Dieter Oberkofler",
 			"email": "dieter.oberkofler@gmail.com"
 		}
 	],
-	"bugs": {
-		"url": "https://github.com/doberkofler/web_plsql/issues"
-	},
 	"repository": {
 		"type": "git",
 		"url": "git://github.com/doberkofler/web_plsql.git"
@@ -37,9 +34,9 @@
 		"dist/",
 		"examples/"
 	],
+	"type": "module",
 	"main": "./dist/index.mjs",
 	"types": "./dist/index.d.mts",
-	"type": "module",
 	"scripts": {
 		"build": "npm run build:backend && npm run build:frontend",
 		"build:backend": "tsdown",
@@ -47,7 +44,9 @@
 		"dev": "concurrently -n backend,frontend -c blue,green \"npm:dev:backend\" \"npm:dev:frontend\"",
 		"dev:backend": "node --experimental-strip-types --no-warnings dev/server.ts",
 		"dev:frontend": "vite",
-		"lint": "oxlint --type-aware --type-check . && prettier --check .",
+		"format": "oxfmt --write",
+		"format:check": "oxfmt --check",
+		"lint": "tsc && oxlint && pnpm run format:check",
 		"knip:backend": "knip --config knip.backend.config.ts",
 		"knip:frontend": "knip --config knip.frontend.config.ts",
 		"test": "vitest run",
@@ -65,9 +64,6 @@
 		"pack:dev": "VERSION=$(node -p 'require(\"./package.json\").version'); npm pack; mv web_plsql-$VERSION.tgz web_plsql-dev.tgz",
 		"prepare": "husky"
 	},
-	"peerDependencies": {
-		"oracledb": "6.10.0"
-	},
 	"dependencies": {
 		"chart.js": "4.5.1",
 		"compression": "1.8.1",
@@ -84,37 +80,44 @@
 	"devDependencies": {
 		"@commitlint/cli": "20.5.0",
 		"@commitlint/config-conventional": "20.5.0",
-		"@playwright/test": "1.58.2",
-		"@tailwindcss/vite": "4.2.1",
+		"@playwright/test": "1.59.1",
+		"@tailwindcss/vite": "4.2.2",
 		"@types/compression": "1.8.1",
 		"@types/cookie-parser": "1.4.10",
 		"@types/cors": "2.8.19",
-		"@types/debug": "4.1.12",
+		"@types/debug": "4.1.13",
+		"@types/express": "5.0.6",
 		"@types/morgan": "1.9.10",
 		"@types/multer": "2.1.0",
-		"@types/node": "25.5.0",
+		"@types/node": "25.5.2",
 		"@types/oracledb": "6.10.2",
 		"@types/supertest": "7.2.0",
-		"@vitest/coverage-v8": "4.1.0",
+		"@vitest/coverage-v8": "4.1.2",
 		"cheerio": "1.2.0",
 		"concurrently": "9.2.1",
 		"conventional-changelog": "7.2.0",
-		"conventional-changelog-angular": "8.3.0",
+		"conventional-changelog-angular": "8.3.1",
 		"husky": "9.1.7",
-		"knip": "5.88.0",
+		"knip": "6.3.0",
 		"oracledb": "6.10.0",
-		"oxlint": "^1.56.0",
-		"oxlint-tsgolint": "^0.17.0",
-		"prettier": "3.8.1",
+		"oxfmt": "0.43.0",
+		"oxlint": "1.58.0",
+		"oxlint-tsgolint": "0.19.0",
 		"shx": "0.4.0",
-		"stylelint": "17.4.0",
+		"stylelint": "17.6.0",
 		"stylelint-config-standard": "40.0.0",
 		"supertest": "7.2.2",
-		"tailwindcss": "4.2.1",
-		"tsdown": "0.21.4",
-		"typescript": "5.9.3",
-		"vite": "7.3.1",
-		"vite-plugin-compression2": "2.5.2",
-		"vitest": "4.1.0"
+		"tailwindcss": "4.2.2",
+		"tsdown": "0.21.7",
+		"typescript": "6.0.2",
+		"vite": "8.0.3",
+		"vite-plugin-compression2": "2.5.3",
+		"vitest": "4.1.2"
+	},
+	"peerDependencies": {
+		"oracledb": "6.10.0"
+	},
+	"engines": {
+		"node": ">=24"
 	}
 }

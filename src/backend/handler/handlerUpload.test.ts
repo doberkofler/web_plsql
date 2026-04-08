@@ -1,9 +1,9 @@
 import {describe, it, expect, vi} from 'vitest';
 
 vi.mock('multer', () => {
-	const mockDiskStorage = vi.fn().mockReturnValue({});
-	const mockUploadAny = vi.fn(() => (_req: any, _res: any, next: any) => next());
-	const mockMulter = vi.fn().mockImplementation(() => ({
+	const mockDiskStorage = vi.fn<(...args: unknown[]) => unknown>().mockReturnValue({});
+	const mockUploadAny = vi.fn<(...args: unknown[]) => unknown>(() => (_req: any, _res: any, next: any) => next());
+	const mockMulter = vi.fn<(...args: unknown[]) => unknown>().mockImplementation(() => ({
 		any: mockUploadAny,
 	}));
 	(mockMulter as any).diskStorage = mockDiskStorage;

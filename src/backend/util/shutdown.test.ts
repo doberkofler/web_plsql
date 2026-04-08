@@ -20,7 +20,7 @@ describe('util/shutdown', () => {
 	});
 
 	it('should install shutdown handlers', () => {
-		const handler = vi.fn();
+		const handler = vi.fn<() => Promise<void>>().mockResolvedValue(undefined);
 		installShutdown(handler);
 
 		expect(processOnSpy).toHaveBeenCalledWith('unhandledRejection', expect.any(Function));
@@ -29,7 +29,7 @@ describe('util/shutdown', () => {
 	});
 
 	it('should handle unhandledRejection', () => {
-		const handler = vi.fn().mockResolvedValue(undefined);
+		const handler = vi.fn<() => Promise<void>>().mockResolvedValue(undefined);
 
 		// First instance for Error case
 		installShutdown(handler);
@@ -64,7 +64,7 @@ describe('util/shutdown', () => {
 	});
 
 	it('should handle SIGTERM', () => {
-		const handler = vi.fn().mockResolvedValue(undefined);
+		const handler = vi.fn<() => Promise<void>>().mockResolvedValue(undefined);
 		installShutdown(handler);
 
 		const sigtermCall = processOnSpy.mock.calls.find((call) => call[0] === 'SIGTERM');
@@ -78,7 +78,7 @@ describe('util/shutdown', () => {
 	});
 
 	it('should handle SIGINT', () => {
-		const handler = vi.fn().mockResolvedValue(undefined);
+		const handler = vi.fn<() => Promise<void>>().mockResolvedValue(undefined);
 		installShutdown(handler);
 
 		const sigintCall = processOnSpy.mock.calls.find((call) => call[0] === 'SIGINT');

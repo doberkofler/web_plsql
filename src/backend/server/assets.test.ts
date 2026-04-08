@@ -10,9 +10,9 @@ import path from 'node:path';
 vi.mock('oracledb', () => {
 	return {
 		default: {
-			createPool: vi.fn().mockResolvedValue({
-				close: vi.fn(),
-				getConnection: vi.fn(),
+			createPool: vi.fn<(...args: unknown[]) => unknown>().mockResolvedValue({
+				close: vi.fn<(...args: unknown[]) => unknown>(),
+				getConnection: vi.fn<(...args: unknown[]) => unknown>(),
 			}),
 			BIND_IN: 1,
 			BIND_OUT: 3,

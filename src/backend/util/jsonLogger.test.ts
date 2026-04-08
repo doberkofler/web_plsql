@@ -112,14 +112,14 @@ describe('JsonLogger', () => {
 		const filename = 'test-close.log';
 		const logger = createLogger(filename);
 		// Mock internal stream
-		const mockEnd = vi.fn();
+		const mockEnd = vi.fn<(...args: unknown[]) => unknown>();
 
 		(logger.stream as any) = {
-			write: vi.fn(),
+			write: vi.fn<(...args: unknown[]) => unknown>(),
 			end: mockEnd,
-			on: vi.fn(),
-			once: vi.fn(),
-			emit: vi.fn(),
+			on: vi.fn<(...args: unknown[]) => unknown>(),
+			once: vi.fn<(...args: unknown[]) => unknown>(),
+			emit: vi.fn<(...args: unknown[]) => unknown>(),
 		};
 		logger.close();
 		expect(mockEnd).toHaveBeenCalled();
@@ -130,13 +130,13 @@ describe('JsonLogger', () => {
 		const logger = createLogger(filename);
 
 		(logger.stream as any) = {
-			write: vi.fn().mockImplementation(() => {
+			write: vi.fn<(...args: unknown[]) => unknown>().mockImplementation(() => {
 				throw new Error('Write failed');
 			}),
-			end: vi.fn(),
-			on: vi.fn(),
-			once: vi.fn(),
-			emit: vi.fn(),
+			end: vi.fn<(...args: unknown[]) => unknown>(),
+			on: vi.fn<(...args: unknown[]) => unknown>(),
+			once: vi.fn<(...args: unknown[]) => unknown>(),
+			emit: vi.fn<(...args: unknown[]) => unknown>(),
 		};
 		const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {
 			// ignore

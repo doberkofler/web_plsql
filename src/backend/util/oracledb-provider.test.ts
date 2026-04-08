@@ -21,7 +21,7 @@ vi.mock('oracledb', () => {
 
 	return {
 		default: {
-			createPool: vi.fn(),
+			createPool: vi.fn<(...args: unknown[]) => unknown>(),
 			...constants,
 		},
 		...constants,
@@ -31,8 +31,8 @@ vi.mock('oracledb', () => {
 // Mock the mock implementation
 vi.mock('./oracledb-mock.ts', () => {
 	return {
-		createPool: vi.fn(),
-		setExecuteCallback: vi.fn(),
+		createPool: vi.fn<(...args: unknown[]) => unknown>(),
+		setExecuteCallback: vi.fn<(...args: unknown[]) => unknown>(),
 	};
 });
 

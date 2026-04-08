@@ -2,6 +2,8 @@ import {describe, it, expect, vi, beforeEach} from 'vitest';
 import mockOracledb, {createPool, setExecuteCallback} from './oracledb-mock.js';
 import type {DbType} from 'oracledb';
 
+type ExecuteResult = {rows: string[]};
+
 describe('oracledb-mock', () => {
 	beforeEach(() => {
 		setExecuteCallback(null);
@@ -43,7 +45,7 @@ describe('oracledb-mock', () => {
 	});
 
 	it('should execute a query with callback', async () => {
-		const mockCallback = vi.fn().mockResolvedValue({rows: ['test']});
+		const mockCallback = vi.fn<(sql: string, bindParams?: object) => Promise<ExecuteResult>>().mockResolvedValue({rows: ['test']});
 		setExecuteCallback(mockCallback);
 
 		const pool = (await createPool({})) as any;

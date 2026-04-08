@@ -4,19 +4,19 @@ import {RequestError} from '../../handler/plsql/requestError.ts';
 
 // Mocks
 vi.mock('../../handler/plsql/procedure.ts', () => ({
-	invokeProcedure: vi.fn().mockResolvedValue(undefined),
+	invokeProcedure: vi.fn<(...args: unknown[]) => unknown>().mockResolvedValue(undefined),
 }));
 vi.mock('../../handler/plsql/cgi.ts', () => ({
-	getCGI: vi.fn().mockReturnValue({}),
+	getCGI: vi.fn<(...args: unknown[]) => unknown>().mockReturnValue({}),
 }));
 vi.mock('../../handler/plsql/upload.ts', () => ({
-	getFiles: vi.fn().mockReturnValue([]),
+	getFiles: vi.fn<(...args: unknown[]) => unknown>().mockReturnValue([]),
 }));
 vi.mock('../../handler/plsql/cgi.ts', () => ({
-	getCGI: vi.fn().mockReturnValue({}),
+	getCGI: vi.fn<(...args: unknown[]) => unknown>().mockReturnValue({}),
 }));
 vi.mock('../../handler/plsql/upload.ts', () => ({
-	getFiles: vi.fn().mockReturnValue([]),
+	getFiles: vi.fn<(...args: unknown[]) => unknown>().mockReturnValue([]),
 }));
 
 describe('handler/plsql/request', () => {
@@ -37,12 +37,12 @@ describe('handler/plsql/request', () => {
 		};
 		mockRes = {};
 		mockConnection = {
-			rollback: vi.fn().mockResolvedValue(undefined),
-			commit: vi.fn().mockResolvedValue(undefined),
-			release: vi.fn().mockResolvedValue(undefined),
+			rollback: vi.fn<(...args: unknown[]) => unknown>().mockResolvedValue(undefined),
+			commit: vi.fn<(...args: unknown[]) => unknown>().mockResolvedValue(undefined),
+			release: vi.fn<(...args: unknown[]) => unknown>().mockResolvedValue(undefined),
 		};
 		mockPool = {
-			getConnection: vi.fn().mockResolvedValue(mockConnection),
+			getConnection: vi.fn<(...args: unknown[]) => unknown>().mockResolvedValue(mockConnection),
 		};
 		mockOptions = {
 			documentTable: 'docs',
@@ -97,7 +97,7 @@ describe('handler/plsql/request', () => {
 	});
 
 	it('should execute callback if transactionMode is a function', async () => {
-		const callback = vi.fn().mockResolvedValue(undefined);
+		const callback = vi.fn<(...args: unknown[]) => unknown>().mockResolvedValue(undefined);
 		mockOptions.transactionMode = callback;
 
 		await processRequest(mockReq, mockRes, mockOptions, mockPool, mockNameCache, mockArgCache);
@@ -108,7 +108,7 @@ describe('handler/plsql/request', () => {
 	});
 
 	it('should execute callback if transactionMode is a function (array param)', async () => {
-		const callback = vi.fn().mockResolvedValue(undefined);
+		const callback = vi.fn<(...args: unknown[]) => unknown>().mockResolvedValue(undefined);
 		mockOptions.transactionMode = callback;
 		mockReq.params.name = ['proc1'];
 

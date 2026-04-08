@@ -4,44 +4,56 @@ import type {Mock} from 'vitest';
 import type {RequestHandler} from 'express';
 
 vi.mock('node:http', () => {
-	const server = {
-		listen: vi.fn().mockReturnThis(),
-		on: vi.fn().mockReturnThis(),
-		close: vi.fn((cb) => {
+	type MockServer = {
+		listen: () => MockServer;
+		on: () => MockServer;
+		close: (cb?: () => void) => MockServer;
+		address: () => {port: number};
+	};
+	const server: MockServer = {
+		listen: vi.fn<() => MockServer>().mockReturnThis(),
+		on: vi.fn<() => MockServer>().mockReturnThis(),
+		close: vi.fn<(cb?: () => void) => MockServer>((cb) => {
 			if (cb) cb();
 			return server;
 		}),
-		address: vi.fn().mockReturnValue({port: 1234}),
+		address: vi.fn<() => {port: number}>().mockReturnValue({port: 1234}),
 	};
 	return {
-		createServer: vi.fn(() => server),
+		createServer: vi.fn<() => MockServer>(() => server),
 		default: {
-			createServer: vi.fn(() => server),
+			createServer: vi.fn<() => MockServer>(() => server),
 		},
 	};
 });
 
 vi.mock('node:https', () => {
-	const server = {
-		listen: vi.fn().mockReturnThis(),
-		on: vi.fn().mockReturnThis(),
-		close: vi.fn((cb) => {
+	type MockServer = {
+		listen: () => MockServer;
+		on: () => MockServer;
+		close: (cb?: () => void) => MockServer;
+		address: () => {port: number};
+	};
+	const server: MockServer = {
+		listen: vi.fn<() => MockServer>().mockReturnThis(),
+		on: vi.fn<() => MockServer>().mockReturnThis(),
+		close: vi.fn<(cb?: () => void) => MockServer>((cb) => {
 			if (cb) cb();
 			return server;
 		}),
-		address: vi.fn().mockReturnValue({port: 1234}),
+		address: vi.fn<() => {port: number}>().mockReturnValue({port: 1234}),
 	};
 	return {
-		createServer: vi.fn(() => server),
+		createServer: vi.fn<() => MockServer>(() => server),
 		default: {
-			createServer: vi.fn(() => server),
+			createServer: vi.fn<() => MockServer>(() => server),
 		},
 	};
 });
 
 vi.mock('oracledb', () => ({
 	default: {
-		createPool: vi.fn(),
+		createPool: vi.fn<(...args: unknown[]) => unknown>(),
 		BIND_IN: 1,
 		BIND_OUT: 2,
 		BIND_INOUT: 3,
@@ -76,24 +88,24 @@ type MockHandler = RequestHandler & {
 };
 
 vi.mock('../handler/plsql/handlerPlSql.ts', () => ({
-	handlerWebPlSql: vi.fn(() => {
-		const handler = vi.fn() as unknown as MockHandler;
+	handlerWebPlSql: vi.fn<() => MockHandler>(() => {
+		const handler = vi.fn<RequestHandler>() as unknown as MockHandler;
 		handler.procedureNameCache = {
-			clear: vi.fn(),
-			keys: vi.fn(() => []),
-			getStats: vi.fn(() => ({hits: 0, misses: 0})),
+			clear: vi.fn<() => void>(),
+			keys: vi.fn<() => string[]>(() => []),
+			getStats: vi.fn<() => {hits: number; misses: number}>(() => ({hits: 0, misses: 0})),
 		};
 		handler.argumentCache = {
-			clear: vi.fn(),
-			keys: vi.fn(() => []),
-			getStats: vi.fn(() => ({hits: 0, misses: 0})),
+			clear: vi.fn<() => void>(),
+			keys: vi.fn<() => string[]>(() => []),
+			getStats: vi.fn<() => {hits: number; misses: number}>(() => ({hits: 0, misses: 0})),
 		};
 		return handler;
 	}),
 }));
 
 vi.mock('../handler/handlerAdmin.ts', () => ({
-	createAdminRouter: vi.fn(() => {
+	createAdminRouter: vi.fn<() => ReturnType<typeof express.Router>>(() => {
 		const router = express.Router();
 		router.all('/', (_req, res) => {
 			res.status(200).send('admin');
@@ -128,7 +140,7 @@ describe('server/server', () => {
 		vi.spyOn(processExitMock, 'exit').mockImplementation(() => {
 			return undefined as never;
 		});
-		vi.mocked(oracledb.createPool).mockResolvedValue({close: vi.fn()} as any);
+		vi.mocked(oracledb.createPool).mockResolvedValue({close: vi.fn<(...args: unknown[]) => unknown>()} as any);
 	});
 
 	describe('createServer', () => {
@@ -242,8 +254,8 @@ describe('server/server', () => {
 			});
 
 			const webServer = await startServer(validConfig);
-			const socket1 = {destroy: vi.fn(), on: vi.fn()};
-			const socket2 = {destroy: vi.fn(), on: vi.fn()};
+			const socket1 = {destroy: vi.fn<(...args: unknown[]) => unknown>(), on: vi.fn<(...args: unknown[]) => unknown>()};
+			const socket2 = {destroy: vi.fn<(...args: unknown[]) => unknown>(), on: vi.fn<(...args: unknown[]) => unknown>()};
 
 			if (connectionCallback) {
 				connectionCallback(socket1);

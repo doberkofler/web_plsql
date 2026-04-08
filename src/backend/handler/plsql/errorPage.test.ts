@@ -8,13 +8,13 @@ import type {configPlSqlHandlerType} from '../../types.ts';
 // Mock trace.js
 vi.mock('../../util/trace.ts', () => {
 	return {
-		getFormattedMessage: vi.fn((data: any) => ({
+		getFormattedMessage: vi.fn<(...args: unknown[]) => unknown>((data: any) => ({
 			html: `<div>${data.message}</div>`,
 			text: data.message,
 		})),
-		logToFile: vi.fn(),
+		logToFile: vi.fn<(...args: unknown[]) => unknown>(),
 
-		inspect: vi.fn((v: any) => JSON.stringify(v)),
+		inspect: vi.fn<(...args: unknown[]) => unknown>((v: any) => JSON.stringify(v)),
 	};
 });
 
@@ -30,12 +30,12 @@ describe('handler/plsql/errorPage', () => {
 
 	it('should send basic 404 page when errorStyle is basic', () => {
 		const req = {
-			get: vi.fn(),
+			get: vi.fn<(...args: unknown[]) => unknown>(),
 		} as any;
 
 		const res = {
-			status: vi.fn().mockReturnThis(),
-			send: vi.fn(),
+			status: vi.fn<(...args: unknown[]) => unknown>().mockReturnThis(),
+			send: vi.fn<(...args: unknown[]) => unknown>(),
 		} as any;
 		const options = {errorStyle: 'basic'} as configPlSqlHandlerType;
 		const error = new Error('Some error');
@@ -49,12 +49,12 @@ describe('handler/plsql/errorPage', () => {
 
 	it('should send detailed html page when errorStyle is debug', () => {
 		const req = {
-			get: vi.fn(),
+			get: vi.fn<(...args: unknown[]) => unknown>(),
 		} as any;
 
 		const res = {
-			status: vi.fn().mockReturnThis(),
-			send: vi.fn(),
+			status: vi.fn<(...args: unknown[]) => unknown>().mockReturnThis(),
+			send: vi.fn<(...args: unknown[]) => unknown>(),
 		} as any;
 		const options = {errorStyle: 'debug'} as configPlSqlHandlerType;
 		const error = new Error('Some error');
@@ -68,12 +68,12 @@ describe('handler/plsql/errorPage', () => {
 
 	it('should handle ProcedureError correctly', () => {
 		const req = {
-			get: vi.fn(),
+			get: vi.fn<(...args: unknown[]) => unknown>(),
 		} as any;
 
 		const res = {
-			status: vi.fn().mockReturnThis(),
-			send: vi.fn(),
+			status: vi.fn<(...args: unknown[]) => unknown>().mockReturnThis(),
+			send: vi.fn<(...args: unknown[]) => unknown>(),
 		} as any;
 		const options = {errorStyle: 'debug'} as configPlSqlHandlerType;
 		const error = new ProcedureError('Proc Error', {}, 'SELECT', {});
@@ -85,12 +85,12 @@ describe('handler/plsql/errorPage', () => {
 
 	it('should handle RequestError correctly', () => {
 		const req = {
-			get: vi.fn(),
+			get: vi.fn<(...args: unknown[]) => unknown>(),
 		} as any;
 
 		const res = {
-			status: vi.fn().mockReturnThis(),
-			send: vi.fn(),
+			status: vi.fn<(...args: unknown[]) => unknown>().mockReturnThis(),
+			send: vi.fn<(...args: unknown[]) => unknown>(),
 		} as any;
 		const options = {errorStyle: 'debug'} as configPlSqlHandlerType;
 		const error = new RequestError('Req Error');
@@ -102,12 +102,12 @@ describe('handler/plsql/errorPage', () => {
 
 	it('should handle string error correctly', () => {
 		const req = {
-			get: vi.fn(),
+			get: vi.fn<(...args: unknown[]) => unknown>(),
 		} as any;
 
 		const res = {
-			status: vi.fn().mockReturnThis(),
-			send: vi.fn(),
+			status: vi.fn<(...args: unknown[]) => unknown>().mockReturnThis(),
+			send: vi.fn<(...args: unknown[]) => unknown>(),
 		} as any;
 		const options = {errorStyle: 'debug'} as configPlSqlHandlerType;
 		const error = 'String Error';
@@ -119,12 +119,12 @@ describe('handler/plsql/errorPage', () => {
 
 	it('should not send response if headers are already sent', () => {
 		const req = {
-			get: vi.fn(),
+			get: vi.fn<(...args: unknown[]) => unknown>(),
 		} as any;
 
 		const res = {
-			status: vi.fn().mockReturnThis(),
-			send: vi.fn(),
+			status: vi.fn<(...args: unknown[]) => unknown>().mockReturnThis(),
+			send: vi.fn<(...args: unknown[]) => unknown>(),
 			headersSent: true,
 		} as any;
 		const options = {errorStyle: 'debug'} as configPlSqlHandlerType;
