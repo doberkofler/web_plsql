@@ -85,6 +85,34 @@ describe('handler/plsql/handlerPlSql', () => {
 		expect(res.redirect).toHaveBeenCalledWith('/pls/index?x=1');
 	});
 
+	it('should redirect to default page and preserve query string without trailing slash', async () => {
+		const pool = {} as any;
+		const config = {
+			route: '/pls',
+			user: 'scott',
+			password: 'tiger',
+			connectString: 'xe',
+			defaultPage: 'index',
+			documentTable: 'docs',
+			errorStyle: 'basic',
+		} as any;
+
+		const handler = handlerWebPlSql(pool, config);
+		const req = {
+			params: {}, // No name
+			originalUrl: '/pls?x=1',
+		} as any;
+		const res = {
+			redirect: vi.fn<(...args: unknown[]) => unknown>(),
+		} as any;
+		const next = vi.fn<(...args: unknown[]) => unknown>();
+
+		handler(req, res, next);
+		await new Promise((resolve) => setTimeout(resolve, 10));
+
+		expect(res.redirect).toHaveBeenCalledWith('/pls/index?x=1');
+	});
+
 	it('should handle successful authentication', async () => {
 		const pool = {} as any;
 		const authCallback = vi.fn<(...args: unknown[]) => unknown>().mockResolvedValue('AUTH_USER');
