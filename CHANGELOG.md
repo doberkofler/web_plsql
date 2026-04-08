@@ -1,4 +1,13 @@
+# [1.7.0](https://github.com/doberkofler/web_plsql/compare/v1.6.0...v1.7.0) (2026-04-08)
+
+
+### Features
+
+* restore setupExtensions hook for custom express routes ([02d340c](https://github.com/doberkofler/web_plsql/commit/02d340cc27eab10af3b5af8f536e2ad54882ea12))
+
 # [1.6.0](https://github.com/doberkofler/web_plsql/compare/v1.5.0...v1.6.0) (2026-04-08)
+
+# [1.5.0](https://github.com/doberkofler/web_plsql/compare/v1.4.0...v1.5.0) (2026-04-08)
 
 
 ### Features
