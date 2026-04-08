@@ -1,3 +1,10 @@
+## [1.7.1](https://github.com/doberkofler/web_plsql/compare/v1.7.0...v1.7.1) (2026-04-08)
+
+
+### Bug Fixes
+
+* [DEP0169] DeprecationWarning: url.parse() behavior is not standardized and prone to errors ([e4b5a3f](https://github.com/doberkofler/web_plsql/commit/e4b5a3f5e4e897a80131d2358132b6550abaf3ee))
+
 # [1.7.0](https://github.com/doberkofler/web_plsql/compare/v1.6.0...v1.7.0) (2026-04-08)
 
 
@@ -5,9 +12,7 @@
 
 * restore setupExtensions hook for custom express routes ([02d340c](https://github.com/doberkofler/web_plsql/commit/02d340cc27eab10af3b5af8f536e2ad54882ea12))
 
-# [1.6.0](https://github.com/doberkofler/web_plsql/compare/v1.5.0...v1.6.0) (2026-04-08)
-
-# [1.5.0](https://github.com/doberkofler/web_plsql/compare/v1.4.0...v1.5.0) (2026-04-08)
+# [1.6.0](https://github.com/doberkofler/web_plsql/compare/v1.4.0...v1.6.0) (2026-04-08)
 
 
 ### Features
