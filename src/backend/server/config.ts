@@ -22,14 +22,17 @@ export const showConfig = (config: configType): void => {
 	paddedLine('Upload file size limit', typeof config.uploadFileSizeLimit === 'number' ? `${config.uploadFileSizeLimit} bytes` : '-');
 
 	if (config.routeStatic.length > 0) {
-		config.routeStatic.forEach((e) => {
-			paddedLine('Static route', e.route);
-			paddedLine('Directory path', e.directoryPath);
+		config.routeStatic.forEach((e, i) => {
+			console.log(`Static route #${i + 1}:`);
+			paddedLine(' Route', e.route);
+			paddedLine(' Path', e.directoryPath);
 		});
 	}
 
 	if (config.routePlSql.length > 0) {
-		config.routePlSql.forEach((e) => {
+		config.routePlSql.forEach((e, i) => {
+			console.log(`PL/SQL route #${i + 1}:`);
+
 			let transactionMode = '';
 			if (typeof e.transactionMode === 'string') {
 				transactionMode = e.transactionMode;
@@ -37,17 +40,17 @@ export const showConfig = (config: configType): void => {
 				transactionMode = 'custom callback';
 			}
 
-			paddedLine('Route', `http://localhost:${config.port}${e.route}`);
-			paddedLine('Oracle user', e.user);
-			paddedLine('Oracle server', e.connectString);
-			paddedLine('Oracle document table', e.documentTable);
-			paddedLine('Default page', e.defaultPage.length > 0 ? e.defaultPage : '-');
-			paddedLine('Path alias', e.pathAlias ?? '-');
-			paddedLine('Path alias procedure', e.pathAliasProcedure ?? '-');
-			paddedLine('Exclution list', e.exclusionList ? e.exclusionList.join(', ') : '-');
-			paddedLine('Validation function', e.requestValidationFunction ?? '-');
-			paddedLine('After request handler', transactionMode.length > 0 ? transactionMode : '-');
-			paddedLine('Error style', e.errorStyle);
+			paddedLine(' Route', `http://localhost:${config.port}${e.route}`);
+			paddedLine(' Oracle user', e.user);
+			paddedLine(' Oracle server', e.connectString);
+			paddedLine(' Oracle document table', e.documentTable);
+			paddedLine(' Default page', e.defaultPage.length > 0 ? e.defaultPage : '-');
+			paddedLine(' Path alias', e.pathAlias ?? '-');
+			paddedLine(' Path alias procedure', e.pathAliasProcedure ?? '-');
+			paddedLine(' Exclution list', e.exclusionList ? e.exclusionList.join(', ') : '-');
+			paddedLine(' Validation function', e.requestValidationFunction ?? '-');
+			paddedLine(' After request handler', transactionMode.length > 0 ? transactionMode : '-');
+			paddedLine(' Error style', e.errorStyle);
 		});
 	}
 

@@ -68,10 +68,10 @@ describe('server/config', () => {
 
 		showConfig(config);
 
-		expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringMatching(/Static route:\s+\/static/));
-		expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringMatching(/Directory path:\s+\/var\/www\/static/));
-		expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringMatching(/Static route:\s+\/images/));
-		expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringMatching(/Directory path:\s+\/var\/www\/images/));
+		expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringMatching(/Route:\s+\/static/));
+		expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringMatching(/Path:\s+\/var\/www\/static/));
+		expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringMatching(/Route:\s+\/images/));
+		expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringMatching(/Path:\s+\/var\/www\/images/));
 	});
 
 	it('should show PL/SQL routes with string transactionMode', () => {
