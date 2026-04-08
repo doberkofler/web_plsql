@@ -218,7 +218,19 @@ The following mod_plsql DAD configuration translates to the configuration option
   "rollback" this automatically rolls back any open transaction after each request.
   "transactionCallbackType" this allows defining a custom handler as a JavaScript function.
 - The option `auth` allows for custom authentication strategies.
-  
+- The option `setupExtensions` allows for injecting custom Express routes and middleware.
+  This hook is executed after the database connection pools are initialized but before the static file routes and SPA fallback are mounted.
+
+  ```typescript
+  setupExtensions: async (app, pools) => {
+      // app is the Express application
+      // pools is an array of initialized Oracle connection pools
+      app.get('/api-ext/test', (req, res) => {
+          res.json({ status: 'ok', poolsCount: pools.length });
+      });
+  }
+  ```
+
   **Basic Authentication**:
   ```typescript
   auth: {

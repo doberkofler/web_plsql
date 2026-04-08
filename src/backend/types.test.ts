@@ -1,7 +1,31 @@
 import {describe, it, expect} from 'vitest';
-import {z$configPlSqlHandlerType} from './types.js';
+import {z$configPlSqlHandlerType, z$configType} from './types.js';
 
 describe('backend/types', () => {
+	it('should validate valid setupExtensions callback', () => {
+		const config = {
+			port: 8080,
+			routeStatic: [],
+			routePlSql: [],
+			loggerFilename: 'test.log',
+			setupExtensions: (_app: unknown, _pools: unknown) => undefined,
+		};
+		const result = z$configType.safeParse(config);
+		expect(result.success).toBe(true);
+	});
+
+	it('should fail non-function setupExtensions callback', () => {
+		const config = {
+			port: 8080,
+			routeStatic: [],
+			routePlSql: [],
+			loggerFilename: 'test.log',
+			setupExtensions: 'invalid',
+		};
+		const result = z$configType.safeParse(config);
+		expect(result.success).toBe(false);
+	});
+
 	it('should validate valid transaction callback', () => {
 		const config = {
 			defaultPage: 'p',

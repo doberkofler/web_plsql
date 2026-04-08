@@ -1,7 +1,7 @@
 import z from 'zod';
 import {configStaticSchema} from '../common/configStaticSchema.ts';
 import type {Connection, Pool} from 'oracledb';
-import type {CookieOptions, Request} from 'express';
+import type {CookieOptions, Express, Request} from 'express';
 import type {Readable} from 'node:stream';
 import type {Cache} from './util/cache.ts';
 
@@ -148,6 +148,12 @@ export const z$configType = z.strictObject({
 	adminPassword: z.string().optional(),
 	/** Developer mode (skips frontend build check, enables CORS) */
 	devMode: z.boolean().optional(),
+	/** Callback function to setup custom Express extensions */
+	setupExtensions: z
+		.custom<(app: Express, pools: Pool[]) => void | Promise<void>>((val) => typeof val === 'function', {
+			message: 'Invalid setupExtensions callback',
+		})
+		.optional(),
 });
 export type configType = z.infer<typeof z$configType>;
 

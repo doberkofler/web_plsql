@@ -178,6 +178,23 @@ describe('server/server', () => {
 			expect(shutdownUtils.installShutdown).toHaveBeenCalled();
 			await webServer.shutdown();
 		});
+
+		it('should call setupExtensions if provided', async () => {
+			const server = (http.createServer as Mock)();
+			server.on.mockImplementation(function (event: string, callback: any) {
+				if (event === 'listening') {
+					process.nextTick(callback);
+				}
+				return server;
+			});
+
+			const setupExtensions = vi.fn<(app: unknown, pools: unknown) => void>();
+			const configWithExtensions = {...validConfig, setupExtensions};
+
+			const webServer = await startServer(configWithExtensions);
+			expect(setupExtensions).toHaveBeenCalledWith(expect.anything(), webServer.connectionPools);
+			await webServer.shutdown();
+		});
 	});
 
 	describe('loadConfig', () => {
