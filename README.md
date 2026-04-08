@@ -1,7 +1,7 @@
   [![NPM Version][npm-image]][npm-url]
   [![NPM Downloads][downloads-image]][downloads-url]
   [![Node.js CI](https://github.com/doberkofler/web_plsql/actions/workflows/node.js.yml/badge.svg)](https://github.com/doberkofler/web_plsql/actions/workflows/node.js.yml)
-  [![Coverage Status](https://coveralls.io/repos/github/doberkofler/web_plsql/badge.svg?branch=master)](https://coveralls.io/github/doberkofler/web_plsql?branch=master)
+  [![Coverage Status](https://coveralls.io/repos/github/doberkofler/web_plsql/badge.svg?branch=main)](https://coveralls.io/github/doberkofler/web_plsql?branch=main)
 
 # Oracle PL/SQL Gateway Middleware for the Express web framework for Node.js
 This Express Middleware is a bridge between a PL/SQL application running in an Oracle Database and an Express web server for Node.js.
@@ -14,7 +14,7 @@ Please feel free to try and suggest any improvements. Your thoughts and ideas ar
 ![Dashboard](docs/images/admin_console.png)
 
 # Release History
-See the [changelog](https://github.com/doberkofler/web_plsql/blob/master/CHANGELOG.md).
+See the [changelog](https://github.com/doberkofler/web_plsql/blob/main/CHANGELOG.md).
 
 # Prerequisites
 The connection to the Oracle Database uses the node-oracledb Driver for Oracle Database. 
@@ -65,13 +65,13 @@ There are 2 options on how to use the web_plsql express middleware:
 ## Use the predefined `startServer` function
 
 The `startServer` API uses a `configType` configuration object. You can review the complete type definitions in the source code:
-[src/backend/types.ts](https://github.com/doberkofler/web_plsql/blob/master/src/backend/types.ts)
+[src/backend/types.ts](https://github.com/doberkofler/web_plsql/blob/main/src/backend/types.ts)
 
 ## Hand Craft Express Server with Composable Middleware
 
 The web_plsql API exports composable middleware components that can be integrated into any Express application.
 Start by having a look at the build-in server code:
-[src/backend/server/server.ts](https://github.com/doberkofler/web_plsql/blob/master/src/backend/server/server.ts)
+[src/backend/server/server.ts](https://github.com/doberkofler/web_plsql/blob/main/src/backend/server/server.ts)
 
 ### AdminContext Requirement
 
