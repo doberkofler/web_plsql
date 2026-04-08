@@ -1,4 +1,4 @@
-# [1.5.0](https://github.com/doberkofler/web_plsql/compare/v1.4.0...v1.5.0) (2026-04-08)
+# [1.6.0](https://github.com/doberkofler/web_plsql/compare/v1.5.0...v1.6.0) (2026-04-08)
 
 
 ### Features
