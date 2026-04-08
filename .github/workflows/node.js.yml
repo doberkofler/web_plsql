@@ -1,47 +1,50 @@
-# This workflow will do a clean installation of node dependencies, cache/restore them, build the source code and run tests across different versions of node
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-nodejs
-
 name: Node.js CI
 
 on:
-    push:
-        branches: ['master']
-    pull_request:
-        branches: ['master']
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
 
 jobs:
-    build:
-        runs-on: ubuntu-latest
+  build:
+    runs-on: ubuntu-latest
 
-        strategy:
-            matrix:
-                node-version: [24.x, 25.x]
+    strategy:
+      matrix:
+        node-version: [24.x, 25.x]
 
-        steps:
-            - uses: actions/checkout@v4
-            - name: Use Node.js ${{ matrix.node-version }}
-              uses: actions/setup-node@v4
-              with:
-                  node-version: ${{ matrix.node-version }}
-                  cache: 'npm'
-            - run: npm ci
-            - name: Install Playwright Browsers
-              run: npx playwright install chromium --with-deps
-            - name: Run CI (lint, types, build, test, coverage)
-              run: npm run ci
-            - name: Coveralls
-              uses: coverallsapp/github-action@v2
-              with:
-                  github-token: ${{ secrets.GITHUB_TOKEN }}
-                  flag-name: node-${{ matrix.node-version }}
-                  parallel: true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
-    finish:
-        needs: build
-        runs-on: ubuntu-latest
-        steps:
-            - name: Coveralls Finished
-              uses: coverallsapp/github-action@v2
-              with:
-                  github-token: ${{ secrets.GITHUB_TOKEN }}
-                  parallel-finished: true
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+          run_install: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: "pnpm"
+
+      - name: Verify pnpm
+        run: pnpm --version
+
+      # NOTE: We must install the Playwright dependencies because we will run the web integration tests 
+      - name: Install Playwright Browsers & Deps
+        run: npx playwright install --with-deps chromium
+        
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run CI (lint, types, build, test, coverage)
+        run: npm run ci
+
+      - name: Coveralls GitHub Action
+        uses: coverallsapp/github-action@v2
+
+      - name: Integration test
+        run: pnpm run integration-test
