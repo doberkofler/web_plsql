@@ -289,12 +289,7 @@ export const invokeProcedure = async (
 			if (err instanceof ProcedureError) {
 				const errorString = err.toString();
 				// Check for ORA-04068, ORA-04061, ORA-04065, ORA-06550
-				if (
-					errorString.includes('ORA-04068') ||
-					errorString.includes('ORA-04061') ||
-					errorString.includes('ORA-04065') ||
-					errorString.includes('ORA-06550')
-				) {
+				if (errorString.includes('ORA-04068') || errorString.includes('ORA-04061') || errorString.includes('ORA-04065') || errorString.includes('ORA-06550')) {
 					debug(`invokeProcedure: detected invalidation error (${errorString}). Clearing caches.`);
 
 					// Clear name resolution cache for the input name

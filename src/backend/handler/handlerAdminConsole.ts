@@ -1,7 +1,6 @@
 import {Router, type Request, type Response, type NextFunction, type RequestHandler} from 'express';
 import {existsSync} from 'node:fs';
 import path from 'node:path';
-import {fileURLToPath} from 'node:url';
 import expressStaticGzip from 'express-static-gzip';
 import type {AdminContext} from '../server/adminContext.ts';
 import type {PoolSnapshot} from '../util/statsManager.ts';
@@ -14,8 +13,7 @@ import {createAdminRouter} from './handlerAdmin.ts';
  * @throws {Error} if project root cannot be found
  */
 export const resolveAdminStaticDir = (): string => {
-	const __filename = fileURLToPath(import.meta.url);
-	const __dirname = path.dirname(__filename);
+	const __dirname = import.meta.dirname;
 
 	let projectRoot = __dirname;
 	while (!existsSync(path.join(projectRoot, 'package.json')) && projectRoot !== '/') {

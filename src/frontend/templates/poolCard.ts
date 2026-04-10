@@ -41,8 +41,8 @@ export function poolCard(p: PoolInfo): string {
             </div>
 
             ${
-				stats
-					? `
+							stats
+								? `
                 <div class="mt-4 pt-4 border-t">
                     <div class="stat-row text-sm" title="Cumulative number of requests handled by this pool since server start">
                         <span>Total Requests</span>
@@ -54,8 +54,8 @@ export function poolCard(p: PoolInfo): string {
                     </div>
                 </div>
             `
-					: ''
-			}
+								: ''
+						}
         </div>
     `;
 }
