@@ -1,5 +1,5 @@
 import {assert, describe, it} from 'vitest';
-import {humanDuration, stringToNumber, stringToInteger} from '../../../src/backend/util/util.ts';
+import {humanDuration, stringToNumber, stringToInteger, centerText} from '../../../src/backend/util/util.ts';
 
 const TESTS_NUMBER = [
 	{value: 0, expectedNumber: 0, expectedInteger: 0},
@@ -55,5 +55,43 @@ describe('util', () => {
 			const computed = stringToInteger(test.value);
 			assert.strictEqual(computed, test.expectedInteger);
 		});
+	});
+});
+
+describe('centerText', () => {
+	it('returns string of exactly `width` chars', () => {
+		assert.lengthOf(centerText('hi', 10), 10);
+	});
+
+	it('splits even padding equally', () => {
+		assert.strictEqual(centerText('ab', 6), '  ab  ');
+	});
+
+	it('odd padding: extra space on right', () => {
+		assert.strictEqual(centerText('a', 4), ' a  ');
+	});
+
+	it('no-op when text.length === width', () => {
+		assert.strictEqual(centerText('exact', 5), 'exact');
+	});
+
+	it('empty string fills with padding', () => {
+		assert.strictEqual(centerText('', 4), '    ');
+	});
+
+	it('respects custom padding char', () => {
+		assert.strictEqual(centerText('x', 5, '-'), '--x--');
+	});
+
+	it('custom padding char, odd total: extra on right', () => {
+		assert.strictEqual(centerText('x', 4, '-'), '-x--');
+	});
+
+	it('throws RangeError when width < text.length', () => {
+		assert.throws(() => centerText('toolong', 3), RangeError);
+	});
+
+	it('RangeError message contains both values', () => {
+		assert.throws(() => centerText('toolong', 3), /width \(3\) < text\.length \(7\)/);
 	});
 });

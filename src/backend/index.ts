@@ -20,4 +20,5 @@ export {handlerAdminConsole, type AdminConsoleConfig} from './handler/handlerAdm
 export {createSpaFallback} from './handler/handlerSpaFallback.ts';
 
 // util
+export {logError} from './util/logError.ts';
 export * from './util/file.ts';

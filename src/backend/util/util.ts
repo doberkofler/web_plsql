@@ -64,3 +64,24 @@ export const stringToInteger = (value: unknown): number | null => {
 
 	return num;
 };
+
+/**
+ * Centers text within a fixed width by padding both sides with spaces.
+ * If padding is odd, the extra space goes to the right.
+ *
+ * @param text - The string to center
+ * @param width - Total output width in characters
+ * @returns Padded string of exactly `width` characters
+ * @throws If `width` is less than `text.length`
+ */
+export const centerText = (text: string, width: number, padding = ' '): string => {
+	if (width < text.length) {
+		throw new RangeError(`width (${width}) < text.length (${text.length})`);
+	}
+
+	const total = width - text.length;
+	const left = Math.floor(total / 2);
+	const right = total - left;
+
+	return padding.repeat(left) + text + padding.repeat(right);
+};
