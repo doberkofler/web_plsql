@@ -16,6 +16,7 @@ describe('handler/plsql/sendResponse', () => {
 			end: vi.fn<(...args: unknown[]) => unknown>(),
 			status: vi.fn<(...args: unknown[]) => unknown>().mockReturnThis(),
 			send: vi.fn<(...args: unknown[]) => unknown>(),
+			on: vi.fn<(...args: unknown[]) => unknown>(),
 		}) as unknown as Response;
 
 	const createEmptyPage = (): pageType => ({
@@ -255,5 +256,67 @@ describe('handler/plsql/sendResponse', () => {
 		await sendResponse(req, res, page);
 
 		assert.ok(res.set.mock.calls.some((call: any) => call[0] === 'Content-Type' && call[1] === 'text/plain'));
+	});
+
+	it('should handle body streaming', async () => {
+		const pipeMock = vi.fn<(...args: unknown[]) => unknown>();
+		const res = {
+			...createMockRes(),
+			on: vi.fn<(...args: unknown[]) => unknown>(),
+		} as any;
+
+		const mockStream = new Readable({
+			read() {
+				this.push('body content');
+				this.push(null);
+			},
+		});
+
+		(mockStream.pipe as any) = pipeMock.mockImplementation((_destination: any) => {
+			setTimeout(() => mockStream.emit('end'), 10);
+			return res;
+		});
+
+		const page = createEmptyPage();
+		page.body = mockStream;
+
+		const req = {} as any;
+
+		await sendResponse(req, res, page);
+
+		expect(pipeMock).toHaveBeenCalledWith(res);
+	});
+
+	it('should handle file streaming when end is emitted immediately', async () => {
+		const res = {
+			...createMockRes(),
+			on: vi.fn<(...args: unknown[]) => unknown>(),
+		} as any;
+
+		const mockStream = new Readable({
+			read() {
+				return;
+			},
+		});
+
+		const pipeMock = vi.fn<(...args: unknown[]) => unknown>().mockImplementation((_destination: unknown) => {
+			mockStream.emit('end');
+			return res;
+		});
+
+		(mockStream.pipe as any) = pipeMock;
+
+		const page = createEmptyPage();
+		page.file.fileType = 'B';
+		page.file.fileSize = 9;
+		page.file.fileBlob = mockStream;
+		page.head.contentType = 'application/octet-stream';
+
+		const req = {} as any;
+
+		await sendResponse(req, res, page);
+
+		expect(pipeMock).toHaveBeenCalledWith(res);
+		expect(res.writeHead).toHaveBeenCalled();
 	});
 });
