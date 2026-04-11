@@ -24,6 +24,7 @@ import {
 	getJsonFile,
 	installShutdown,
 	z$configType,
+	type configInputType,
 	type configType,
 	type configPlSqlType,
 	oracledb,
@@ -75,7 +76,7 @@ export const createServer = (app: Express, ssl?: sslConfig): http.Server | https
  * @param ssl - ssl configuration.
  * @returns Promise resolving to the web server object.
  */
-export const startServer = async (config: configType, ssl?: sslConfig): Promise<webServer> => {
+export const startServer = async (config: configInputType, ssl?: sslConfig): Promise<webServer> => {
 	debug('startServer: BEGIN', config, ssl);
 
 	const internalConfig = z$configType.parse(config);
@@ -123,6 +124,9 @@ export const startServer = async (config: configType, ssl?: sslConfig): Promise<
 			user: i.user,
 			password: i.password,
 			connectString: i.connectString,
+			poolMin: internalConfig.oracle.poolMin,
+			poolMax: internalConfig.oracle.poolMax,
+			poolIncrement: internalConfig.oracle.poolIncrement,
 		});
 
 		const handler = handlerWebPlSql(pool, i as configPlSqlType, adminContext);

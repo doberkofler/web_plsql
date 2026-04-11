@@ -21,7 +21,14 @@ export const showConfig = (config: configType): void => {
 	paddedLine('Access log', config.loggerFilename.length > 0 ? config.loggerFilename : '-');
 	paddedLine('Upload file size limit', typeof config.uploadFileSizeLimit === 'number' ? `${config.uploadFileSizeLimit} bytes` : '-');
 
+	console.log();
+	console.log('Oracle connection pool');
+	paddedLine('poolMin', config.oracle.poolMin);
+	paddedLine('poolMax', config.oracle.poolMax);
+	paddedLine('poolIncrement', config.oracle.poolIncrement);
+
 	if (config.routeStatic.length > 0) {
+		console.log();
 		config.routeStatic.forEach((e, i) => {
 			console.log(`Static route #${i + 1}:`);
 			paddedLine(' Route', e.route);
@@ -30,6 +37,7 @@ export const showConfig = (config: configType): void => {
 	}
 
 	if (config.routePlSql.length > 0) {
+		console.log();
 		config.routePlSql.forEach((e, i) => {
 			console.log(`PL/SQL route #${i + 1}:`);
 

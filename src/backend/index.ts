@@ -1,5 +1,5 @@
 // types
-export {z$configType, type configType, type configPlSqlType} from './types.ts';
+export {z$configType, type configInputType, type configType, type configPlSqlType} from './types.ts';
 
 // database
 export * as oracledb from './util/oracledb-provider.ts';

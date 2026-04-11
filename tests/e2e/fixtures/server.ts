@@ -1,7 +1,7 @@
 import {test as base} from '@playwright/test';
 import type {webServer} from '../../../src/backend/server/server.ts';
 import {startServer} from '../../../src/backend/server/server.ts';
-import type {configType} from '../../../src/backend/types.ts';
+import type {configInputType} from '../../../src/backend/types.ts';
 
 // Enable mock oracle
 process.env.MOCK_ORACLE = 'true';
@@ -11,7 +11,7 @@ type ServerFixture = {
 	baseURL: string;
 };
 
-const config: configType = {
+const config: configInputType = {
 	port: 8082,
 	routeStatic: [],
 	routePlSql: [

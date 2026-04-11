@@ -1,6 +1,6 @@
 import {describe, it, expect, beforeAll, afterAll, vi} from 'vitest';
 import {startServer} from '../server/server.ts';
-import type {configType} from '../types.ts';
+import type {configInputType} from '../types.ts';
 import request from 'supertest';
 import {load as cheerioLoad} from 'cheerio';
 import {existsSync} from 'node:fs';
@@ -24,7 +24,7 @@ vi.mock('oracledb', () => {
 describe('Admin Console Asset Loading', () => {
 	let serverInstance: any;
 
-	const validConfig: configType = {
+	const validConfig: configInputType = {
 		port: 8081, // Use different port for tests
 		routeStatic: [],
 		routePlSql: [

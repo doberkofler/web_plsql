@@ -75,7 +75,7 @@ import {createServer, startServer, loadConfig} from '../server/server.ts';
 import oracledb from 'oracledb';
 import * as fileUtils from '../util/file.ts';
 import * as shutdownUtils from '../util/shutdown.ts';
-import type {configType} from '../types.ts';
+import type {configInputType} from '../types.ts';
 import http from 'node:http';
 import https from 'node:https';
 
@@ -115,7 +115,7 @@ vi.mock('../handler/handlerAdmin.ts', () => ({
 }));
 
 describe('server/server', () => {
-	const validConfig: configType = {
+	const validConfig: configInputType = {
 		port: 0,
 		adminRoute: '/admin',
 		loggerFilename: '',
@@ -207,7 +207,14 @@ describe('server/server', () => {
 			};
 			vi.mocked(fileUtils.getJsonFile).mockReturnValue(mockConfig as any);
 			const config = loadConfig('myconfig.json');
-			expect(config).toEqual(mockConfig);
+			expect(config).toEqual({
+				...mockConfig,
+				oracle: {
+					poolMin: 10,
+					poolMax: 100,
+					poolIncrement: 10,
+				},
+			});
 		});
 	});
 

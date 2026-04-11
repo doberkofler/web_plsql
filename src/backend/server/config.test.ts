@@ -1,6 +1,6 @@
 import {describe, it, expect, vi, beforeEach, afterEach} from 'vitest';
 import {showConfig} from '../server/config.ts';
-import type {configType} from '../types.ts';
+import {z$configType, type configInputType} from '../types.ts';
 import type {MockInstance} from 'vitest';
 
 describe('server/config', () => {
@@ -20,7 +20,7 @@ describe('server/config', () => {
 	});
 
 	it('should show basic configuration', () => {
-		const config: configType = {
+		const config: configInputType = {
 			port: 8080,
 			adminRoute: '/admin',
 			adminUser: 'admin',
@@ -30,7 +30,7 @@ describe('server/config', () => {
 			routePlSql: [],
 		};
 
-		showConfig(config);
+		showConfig(z$configType.parse(config));
 
 		expect(consoleLogSpy).toHaveBeenCalled();
 		expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringMatching(/Server port:\s+8080/));
@@ -40,14 +40,14 @@ describe('server/config', () => {
 	});
 
 	it('should handle missing optional config fields', () => {
-		const config: configType = {
+		const config: configInputType = {
 			port: 3000,
 			loggerFilename: '',
 			routeStatic: [],
 			routePlSql: [],
 		};
 
-		showConfig(config);
+		showConfig(z$configType.parse(config));
 
 		expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringMatching(/Server port:\s+3000/));
 		expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringMatching(/Admin route:\s+\/admin/));
@@ -56,7 +56,7 @@ describe('server/config', () => {
 	});
 
 	it('should show static routes', () => {
-		const config: configType = {
+		const config: configInputType = {
 			port: 8080,
 			loggerFilename: '',
 			routeStatic: [
@@ -66,7 +66,7 @@ describe('server/config', () => {
 			routePlSql: [],
 		};
 
-		showConfig(config);
+		showConfig(z$configType.parse(config));
 
 		expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringMatching(/Route:\s+\/static/));
 		expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringMatching(/Path:\s+\/var\/www\/static/));
@@ -75,7 +75,7 @@ describe('server/config', () => {
 	});
 
 	it('should show PL/SQL routes with string transactionMode', () => {
-		const config: configType = {
+		const config: configInputType = {
 			port: 8080,
 			loggerFilename: '',
 			routeStatic: [],
@@ -97,7 +97,7 @@ describe('server/config', () => {
 			],
 		};
 
-		showConfig(config);
+		showConfig(z$configType.parse(config));
 
 		expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringMatching(/Route:\s+http:\/\/localhost:8080\/pls/));
 		expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringMatching(/Oracle user:\s+scott/));
@@ -106,7 +106,7 @@ describe('server/config', () => {
 	});
 
 	it('should show PL/SQL routes with function transactionMode', () => {
-		const config: configType = {
+		const config: configInputType = {
 			port: 8080,
 			loggerFilename: '',
 			routeStatic: [],
@@ -130,13 +130,12 @@ describe('server/config', () => {
 					connectString: 'localhost/xe',
 					documentTable: 'docs',
 					defaultPage: 'home',
-					transactionMode: 123 as any,
 					errorStyle: 'basic',
 				},
 			],
 		};
 
-		showConfig(config);
+		showConfig(z$configType.parse(config));
 
 		expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringMatching(/After request handler:\s+custom callback/));
 		expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringMatching(/After request handler:\s+-/));

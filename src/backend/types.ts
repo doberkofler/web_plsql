@@ -154,8 +154,21 @@ export const z$configType = z.strictObject({
 			message: 'Invalid setupExtensions callback',
 		})
 		.optional(),
+	oracle: z
+		.strictObject({
+			poolMin: z.int().min(10).default(10),
+			poolMax: z.int().min(10).default(100),
+			poolIncrement: z.int().min(1).default(10),
+		})
+		.optional()
+		.default({
+			poolMin: 10,
+			poolMax: 100,
+			poolIncrement: 10,
+		}),
 });
-export type configType = z.infer<typeof z$configType>;
+export type configInputType = z.input<typeof z$configType>;
+export type configType = z.output<typeof z$configType>;
 
 /**
  * Environment variables as string key-value pairs

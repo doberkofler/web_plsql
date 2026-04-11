@@ -1,6 +1,6 @@
 import {describe, it, expect, vi} from 'vitest';
 import {startServer} from './server.js';
-import type {configType} from '../types.js';
+import type {configInputType} from '../types.js';
 
 const mocks = vi.hoisted(() => {
 	return {
@@ -73,7 +73,7 @@ vi.mock('express-static-gzip', () => ({
 
 describe('server/server_extra', () => {
 	it('should mount logger, spa fallback and handle plsql stats', async () => {
-		const config: configType = {
+		const config: configInputType = {
 			port: 3000,
 			loggerFilename: 'access.log',
 			devMode: true,
