@@ -59,4 +59,37 @@ describe('handler/plsql/sendResponse_extra', () => {
 
 		expect(pipeMock).toHaveBeenCalledWith(res);
 	});
+
+	it('should handle file streaming when end is emitted immediately', async () => {
+		const res = {
+			...createMockRes(),
+			on: vi.fn<(...args: unknown[]) => unknown>(),
+		} as any;
+
+		const mockStream = new Readable({
+			read() {
+				return;
+			},
+		});
+
+		const pipeMock = vi.fn<(...args: unknown[]) => unknown>().mockImplementation((_destination: unknown) => {
+			mockStream.emit('end');
+			return res;
+		});
+
+		(mockStream.pipe as any) = pipeMock;
+
+		const page = createEmptyPage();
+		page.file.fileType = 'B';
+		page.file.fileSize = 9;
+		page.file.fileBlob = mockStream;
+		page.head.contentType = 'application/octet-stream';
+
+		const req = {} as any;
+
+		await sendResponse(req, res, page);
+
+		expect(pipeMock).toHaveBeenCalledWith(res);
+		expect(res.writeHead).toHaveBeenCalled();
+	});
 });

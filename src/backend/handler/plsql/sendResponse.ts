@@ -11,6 +11,83 @@ import type {Request, Response} from 'express';
 import type {pageType} from '../../types.ts';
 
 /**
+ * Pipe a readable to the response and await completion.
+ * Listeners are attached before piping to avoid races.
+ *
+ * @param readable - The source readable stream.
+ * @param res - The HTTP response stream.
+ */
+const pipeReadableToResponse = async (readable: stream.Readable, res: Response): Promise<void> => {
+	await new Promise<void>((resolve, reject) => {
+		let settled = false;
+		const canAddResponseListener = typeof res.on === 'function';
+		const canRemoveResponseListener = typeof res.removeListener === 'function';
+
+		const cleanup = () => {
+			readable.removeListener('end', onReadableEnd);
+			readable.removeListener('close', onReadableClose);
+			readable.removeListener('error', onReadableError);
+			if (canRemoveResponseListener) {
+				res.removeListener('finish', onResponseFinish);
+				res.removeListener('close', onResponseClose);
+			}
+		};
+
+		const resolveOnce = () => {
+			if (settled) {
+				return;
+			}
+			settled = true;
+			cleanup();
+			resolve();
+		};
+
+		const rejectOnce = (error: Error) => {
+			if (settled) {
+				return;
+			}
+			settled = true;
+			cleanup();
+			reject(error);
+		};
+
+		const onReadableEnd = () => {
+			resolveOnce();
+		};
+
+		const onReadableClose = () => {
+			resolveOnce();
+		};
+
+		const onReadableError = (error: Error) => {
+			rejectOnce(error);
+		};
+
+		const onResponseFinish = () => {
+			resolveOnce();
+		};
+
+		const onResponseClose = () => {
+			resolveOnce();
+		};
+
+		readable.on('end', onReadableEnd);
+		readable.on('close', onReadableClose);
+		readable.on('error', onReadableError);
+		if (canAddResponseListener) {
+			res.on('finish', onResponseFinish);
+			res.on('close', onResponseClose);
+		}
+
+		try {
+			readable.pipe(res);
+		} catch (error: unknown) {
+			rejectOnce(error instanceof Error ? error : new Error(String(error)));
+		}
+	});
+};
+
+/**
  *	Send "default" response to the browser
  *	@param _req - The req object represents the HTTP request.
  *	@param res - The res object represents the HTTP response that an Express app sends when it gets an HTTP request.
@@ -85,17 +162,7 @@ export const sendResponse = async (_req: Request, res: Response, page: pageType)
 			}
 			/* v8 ignore stop */
 
-			const streamComplete = new Promise<void>((resolve, reject) => {
-				if (page.file.fileBlob instanceof stream.Readable) {
-					page.file.fileBlob.pipe(res);
-					page.file.fileBlob.on('end', () => resolve());
-					/* v8 ignore next - error handler */
-					page.file.fileBlob.on('error', (err: Error) => reject(err));
-					/* v8 ignore next - error handler */
-					res.on('close', () => resolve());
-				}
-			});
-			await streamComplete;
+			await pipeReadableToResponse(page.file.fileBlob, res);
 		} else {
 			/* v8 ignore start */
 			if (debug.enabled) {
@@ -146,17 +213,7 @@ export const sendResponse = async (_req: Request, res: Response, page: pageType)
 	/* v8 ignore stop */
 
 	if (page.body instanceof stream.Readable) {
-		const streamComplete = new Promise<void>((resolve, reject) => {
-			if (page.body instanceof stream.Readable) {
-				page.body.pipe(res);
-				page.body.on('end', () => resolve());
-				/* v8 ignore next - error handler */
-				page.body.on('error', (err: Error) => reject(err));
-				/* v8 ignore next - error handler */
-				res.on('close', () => resolve());
-			}
-		});
-		await streamComplete;
+		await pipeReadableToResponse(page.body, res);
 	} else {
 		res.send(page.body);
 	}
