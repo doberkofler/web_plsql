@@ -1,0 +1,23 @@
+{
+	"npm": {
+		"publish": false
+	},
+	"git": {
+		"requireCleanWorkingDir": true,
+		"commit": true,
+		"commitMessage": "chore(release): ${version}",
+		"tag": true,
+		"tagName": "v${version}",
+		"push": true,
+		"pushArgs": ["--follow-tags"]
+	},
+	"github": {
+		"release": true,
+		"autoGenerate": true
+	},
+	"hooks": {
+		"before:init": "pnpm run ci",
+		"after:bump": "pnpm run create-changelog",
+		"before:git:commit": "git add CHANGELOG.md"
+	}
+}

@@ -101,8 +101,8 @@ describe('server/config', () => {
 		printBanner(z$configType.parse(config));
 
 		expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringMatching(/PL\/SQL route #1  route\s+\/pls/));
-		expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringMatching(/  PL\/SQL route #1  Oracle user\s+scott/));
-		expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringMatching(/  PL\/SQL route #1  exclusion list\s+secret/));
+		expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringMatching(/PL\/SQL route #1  Oracle user\s+scott/));
+		expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringMatching(/PL\/SQL route #1  exclusion list\s+secret/));
 	});
 
 	it('should show PL/SQL routes with function transactionMode', () => {

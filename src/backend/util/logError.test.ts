@@ -60,4 +60,19 @@ describe('logError', () => {
 			}),
 		);
 	});
+
+	it('handles non-string, non-error objects', () => {
+		logError({some: 'object'});
+
+		expect(errorToString).not.toHaveBeenCalled();
+		expect(logToFile).toHaveBeenCalledWith('');
+		expect(printError).toHaveBeenCalledWith('');
+		expect(jsonLogger.log).toHaveBeenCalledWith(
+			expect.objectContaining({
+				type: 'error',
+				message: '',
+				timestamp: expect.any(String),
+			}),
+		);
+	});
 });

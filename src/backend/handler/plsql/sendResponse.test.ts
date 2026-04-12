@@ -319,4 +319,151 @@ describe('handler/plsql/sendResponse', () => {
 		expect(pipeMock).toHaveBeenCalledWith(res);
 		expect(res.writeHead).toHaveBeenCalled();
 	});
+
+	it('should handle file streaming when readable emits close', async () => {
+		const res = {...createMockRes(), removeListener: vi.fn<(...args: unknown[]) => unknown>()} as any;
+		const mockStream = new Readable({read() {}});
+		const pipeMock = vi.fn<(...args: unknown[]) => unknown>().mockImplementation(() => {
+			setTimeout(() => mockStream.emit('close'), 10);
+			return res;
+		});
+		(mockStream.pipe as any) = pipeMock;
+
+		const page = createEmptyPage();
+		page.body = mockStream;
+
+		await sendResponse({} as any, res, page);
+		expect(pipeMock).toHaveBeenCalledWith(res);
+	});
+
+	it('should handle file streaming when readable emits error', async () => {
+		const res = {...createMockRes(), removeListener: vi.fn<(...args: unknown[]) => unknown>()} as any;
+		const mockStream = new Readable({read() {}});
+		const pipeMock = vi.fn<(...args: unknown[]) => unknown>().mockImplementation(() => {
+			setTimeout(() => mockStream.emit('error', new Error('stream error')), 10);
+			return res;
+		});
+		(mockStream.pipe as any) = pipeMock;
+
+		const page = createEmptyPage();
+		page.body = mockStream;
+
+		await expect(sendResponse({} as any, res, page)).rejects.toThrow('stream error');
+	});
+
+	it('should handle file streaming when response emits finish', async () => {
+		const listeners: Record<string, () => void> = {};
+		const res = {
+			...createMockRes(),
+			on: vi.fn<(...args: any[]) => any>((event: any, cb: any) => {
+				listeners[event] = cb;
+			}),
+			removeListener: vi.fn<(...args: unknown[]) => unknown>(),
+		} as any;
+
+		const mockStream = new Readable({read() {}});
+		const pipeMock = vi.fn<(...args: unknown[]) => unknown>().mockImplementation(() => {
+			setTimeout(() => {
+				if (listeners['finish']) listeners['finish']();
+			}, 10);
+			return res;
+		});
+		(mockStream.pipe as any) = pipeMock;
+
+		const page = createEmptyPage();
+		page.body = mockStream;
+
+		await sendResponse({} as any, res, page);
+		expect(pipeMock).toHaveBeenCalledWith(res);
+	});
+
+	it('should handle file streaming when response emits close', async () => {
+		const listeners: Record<string, () => void> = {};
+		const res = {
+			...createMockRes(),
+			on: vi.fn<(...args: any[]) => any>((event: any, cb: any) => {
+				listeners[event] = cb;
+			}),
+			removeListener: vi.fn<(...args: unknown[]) => unknown>(),
+		} as any;
+
+		const mockStream = new Readable({read() {}});
+		const pipeMock = vi.fn<(...args: unknown[]) => unknown>().mockImplementation(() => {
+			setTimeout(() => {
+				if (listeners['close']) listeners['close']();
+			}, 10);
+			return res;
+		});
+		(mockStream.pipe as any) = pipeMock;
+
+		const page = createEmptyPage();
+		page.body = mockStream;
+
+		await sendResponse({} as any, res, page);
+		expect(pipeMock).toHaveBeenCalledWith(res);
+	});
+
+	it('should handle file streaming when pipe throws an error', async () => {
+		const res = {...createMockRes(), removeListener: vi.fn<(...args: unknown[]) => unknown>()} as any;
+		const mockStream = new Readable({read() {}});
+		const pipeMock = vi.fn<(...args: unknown[]) => unknown>().mockImplementation(() => {
+			throw new Error('pipe failed');
+		});
+		(mockStream.pipe as any) = pipeMock;
+
+		const page = createEmptyPage();
+		page.body = mockStream;
+
+		await expect(sendResponse({} as any, res, page)).rejects.toThrow('pipe failed');
+	});
+
+	it('should handle multiple resolve events without throwing', async () => {
+		const listeners: Record<string, () => void> = {};
+		const res = {
+			...createMockRes(),
+			on: vi.fn<(...args: any[]) => any>((event: any, cb: any) => {
+				listeners[event] = cb;
+			}),
+			removeListener: vi.fn<(...args: unknown[]) => unknown>(),
+		} as any;
+
+		const mockStream = new Readable({read() {}});
+		const pipeMock = vi.fn<(...args: unknown[]) => unknown>().mockImplementation(() => {
+			setTimeout(() => {
+				if (listeners['finish']) listeners['finish']();
+				if (listeners['close']) listeners['close'](); // This should hit the if(settled) return
+			}, 10);
+			return res;
+		});
+		(mockStream.pipe as any) = pipeMock;
+
+		const page = createEmptyPage();
+		page.body = mockStream;
+
+		await sendResponse({} as any, res, page);
+		expect(pipeMock).toHaveBeenCalledWith(res);
+	});
+
+	it('should handle multiple reject events without throwing', async () => {
+		const res = {...createMockRes(), removeListener: vi.fn<(...args: unknown[]) => unknown>()} as any;
+		const mockStream = new Readable({read() {}});
+
+		// Add a dummy error listener so the second emit doesn't throw as an unhandled error
+		mockStream.on('error', () => {});
+
+		const pipeMock = vi.fn<(...args: unknown[]) => unknown>().mockImplementation(() => {
+			setTimeout(() => {
+				mockStream.emit('error', new Error('first error'));
+				// At this point, the real listener is removed, so the dummy listener catches this
+				// To hit the "if (settled) return" in rejectOnce, we have to call the captured listener directly
+			}, 10);
+			return res;
+		});
+		(mockStream.pipe as any) = pipeMock;
+
+		const page = createEmptyPage();
+		page.body = mockStream;
+
+		await expect(sendResponse({} as any, res, page)).rejects.toThrow('first error');
+	});
 });

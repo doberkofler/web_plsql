@@ -62,7 +62,8 @@
 		"image-build": "cd docker && docker build --no-cache --progress=plain --tag=web_plsql .",
 		"image-save": "cd docker && docker save web_plsql > web_plsql.tar",
 		"pack:dev": "VERSION=$(node -p 'require(\"./package.json\").version'); npm pack; mv web_plsql-$VERSION.tgz web_plsql-dev.tgz",
-		"prepare": "husky"
+		"prepare": "husky",
+		"release": "release-it"
 	},
 	"dependencies": {
 		"chalk": "5.6.2",
@@ -106,6 +107,7 @@
 		"oxfmt": "0.44.0",
 		"oxlint": "1.59.0",
 		"oxlint-tsgolint": "0.20.0",
+		"release-it": "19.2.4",
 		"shx": "0.4.0",
 		"stylelint": "17.6.0",
 		"stylelint-config-standard": "40.0.0",

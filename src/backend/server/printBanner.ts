@@ -51,13 +51,13 @@ const padTo = (s: string, w: number): string => {
 const truncateTo = (s: string, w: number): string => (w > 0 ? sliceAnsi(s, 0, w) : '');
 
 /* Mid-box horizontal divider. */
-const divider = (): string => IS_TTY ? chalk.dim(BOX.ml + BOX.h.repeat(W - 2) + BOX.mr) : '-'.repeat(W);
+const divider = (): string => (IS_TTY ? chalk.dim(BOX.ml + BOX.h.repeat(W - 2) + BOX.mr) : '-'.repeat(W));
 
 /* Opening border. */
-const borderOpen = (): string => IS_TTY ? chalk.dim(BOX.tl + BOX.h.repeat(W - 2) + BOX.tr) : divider();
+const borderOpen = (): string => (IS_TTY ? chalk.dim(BOX.tl + BOX.h.repeat(W - 2) + BOX.tr) : divider());
 
 /* Closing border. */
-const borderClose = (): string => IS_TTY ? chalk.dim(BOX.bl + BOX.h.repeat(W - 2) + BOX.br) : divider();
+const borderClose = (): string => (IS_TTY ? chalk.dim(BOX.bl + BOX.h.repeat(W - 2) + BOX.br) : divider());
 
 /**
  * Single key/value row.

@@ -48,9 +48,6 @@ describe('util/shutdown', () => {
 
 		// Second instance for non-Error case
 		installShutdown(handler);
-		// Need to find the latest call since we cleared mocks
-		// Actually clearAllMocks clears invocations, but spy remains.
-		// Wait, clearAllMocks clears .mock.calls.
 
 		rejectionCall = processOnSpy.mock.calls.find((call) => call[0] === 'unhandledRejection');
 		rejectionHandler = rejectionCall ? (rejectionCall[1] as any) : null;
@@ -60,10 +57,32 @@ describe('util/shutdown', () => {
 			rejectionHandler('some reason');
 			expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('Unhandled promise rejection'), 'some reason');
 			expect(handler).toHaveBeenCalledTimes(1);
+
+			// Test that subsequent calls return early because isShuttingDown = true
+			rejectionHandler('some other reason');
+			expect(handler).toHaveBeenCalledTimes(1); // Still 1
 		}
 	});
 
-	it('should handle SIGTERM', () => {
+	it('should handle unhandledRejection catch block', async () => {
+		const error = new Error('handler failed');
+		const handler = vi.fn<() => Promise<void>>().mockRejectedValue(error);
+		installShutdown(handler);
+
+		const rejectionCall = processOnSpy.mock.calls.find((call) => call[0] === 'unhandledRejection');
+		const rejectionHandler = rejectionCall ? (rejectionCall[1] as any) : null;
+
+		const processExitSpy = vi.spyOn(process, 'exit').mockImplementation(() => undefined as never);
+
+		if (rejectionHandler) {
+			rejectionHandler(new Error('test error'));
+			await new Promise(process.nextTick); // let the catch block execute
+			expect(consoleErrorSpy).toHaveBeenCalledWith('Error during shutdown:', error);
+			expect(processExitSpy).toHaveBeenCalledWith(1);
+		}
+	});
+
+	it('should handle SIGTERM and early return if already shutting down', async () => {
 		const handler = vi.fn<() => Promise<void>>().mockResolvedValue(undefined);
 		installShutdown(handler);
 
@@ -73,11 +92,33 @@ describe('util/shutdown', () => {
 		if (sigtermHandler) {
 			sigtermHandler();
 			expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Graceful shutdown'));
-			expect(handler).toHaveBeenCalled();
+			expect(handler).toHaveBeenCalledTimes(1);
+
+			// Should return early
+			sigtermHandler();
+			expect(handler).toHaveBeenCalledTimes(1);
 		}
 	});
 
-	it('should handle SIGINT', () => {
+	it('should handle SIGTERM catch block', async () => {
+		const error = new Error('handler failed');
+		const handler = vi.fn<() => Promise<void>>().mockRejectedValue(error);
+		installShutdown(handler);
+
+		const sigtermCall = processOnSpy.mock.calls.find((call) => call[0] === 'SIGTERM');
+		const sigtermHandler = sigtermCall ? (sigtermCall[1] as any) : null;
+
+		const processExitSpy = vi.spyOn(process, 'exit').mockImplementation(() => undefined as never);
+
+		if (sigtermHandler) {
+			sigtermHandler();
+			await new Promise(process.nextTick); // let the catch block execute
+			expect(consoleErrorSpy).toHaveBeenCalledWith('Error during shutdown:', error);
+			expect(processExitSpy).toHaveBeenCalledWith(1);
+		}
+	});
+
+	it('should handle SIGINT and early return if already shutting down', async () => {
 		const handler = vi.fn<() => Promise<void>>().mockResolvedValue(undefined);
 		installShutdown(handler);
 
@@ -87,7 +128,29 @@ describe('util/shutdown', () => {
 		if (sigintHandler) {
 			sigintHandler();
 			expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Graceful shutdown'));
-			expect(handler).toHaveBeenCalled();
+			expect(handler).toHaveBeenCalledTimes(1);
+
+			// Should return early
+			sigintHandler();
+			expect(handler).toHaveBeenCalledTimes(1);
+		}
+	});
+
+	it('should handle SIGINT catch block', async () => {
+		const error = new Error('handler failed');
+		const handler = vi.fn<() => Promise<void>>().mockRejectedValue(error);
+		installShutdown(handler);
+
+		const sigintCall = processOnSpy.mock.calls.find((call) => call[0] === 'SIGINT');
+		const sigintHandler = sigintCall ? (sigintCall[1] as any) : null;
+
+		const processExitSpy = vi.spyOn(process, 'exit').mockImplementation(() => undefined as never);
+
+		if (sigintHandler) {
+			sigintHandler();
+			await new Promise(process.nextTick); // let the catch block execute
+			expect(consoleErrorSpy).toHaveBeenCalledWith('Error during shutdown:', error);
+			expect(processExitSpy).toHaveBeenCalledWith(1);
 		}
 	});
 
