@@ -4,11 +4,25 @@ import sliceAnsi from 'slice-ansi';
 import {getVersion} from '../version.ts';
 import type {configType} from '../types.ts';
 
+// ── Icons
+// Authoritative form is the hex escape; emoji in comments are for readability only.
+// ICON_GEAR uses U+2699 without VS-16 (U+FE0F) intentionally — the variation selector
+// forces emoji presentation and makes string-width report width=2. Without it the
+// character is "ambiguous" and resolves to width=1 via the ambiguousIsNarrow option below.
+const ICON_GLOBE = '\u{1F310}'; // 🌐
+const ICON_KEY = '\u{1F511}'; // 🔑
+const ICON_DOC = '\u{1F4C4}'; // 📄
+const ICON_PACKAGE = '\u{1F4E6}'; // 📦
+const ICON_LINK = '\u{1F517}'; // 🔗
+const ICON_FOLDER = '\u{1F4C1}'; // 📁
+const ICON_GEAR = '\u{1F527}'; // 🔧
+const ICON_HOME = '\u{1F3E0}'; // 🏠
+
+// ── Layout
+// Each row: │(1) space(1) label(35) sep(1) value(40) space(1) │(1) = 80
 const W = 80;
-const INNER_W = W - 4;
 const LABEL_W = 35;
-const VALUE_W = INNER_W - LABEL_W - 1;
-const GEAR_ICON = '⚙️ ';
+const VALUE_W = W - LABEL_W - 5; // 5 = left-border + left-space + separator + right-space + right-border
 
 const BOX = {
 	h: '─',
@@ -21,132 +35,106 @@ const BOX = {
 	mr: '┤',
 } as const;
 
-/*
- * Returns the visible terminal width of a string.
- */
-const displayWidth = (value: string): number => {
-	// The gear icon (⚙️) is evaluated as 2 columns by string-width,
-	// but it renders as 1 grid cell wide in most terminals (macOS/Linux).
-	// We replace it with a 1-cell placeholder ('x') to get accurate measurements.
-	const normalized = value.replaceAll('⚙️', 'x');
-	return stringWidth(normalized, {ambiguousIsNarrow: true});
+/* Returns the visible terminal column-width of `s`. */
+const displayWidth = (s: string): number => stringWidth(s, {ambiguousIsNarrow: true});
+
+/* Pads `s` with trailing spaces to `w` visible columns. Returns `s` unchanged if already ≥ `w`. */
+const padTo = (s: string, w: number): string => {
+	const delta = w - displayWidth(s);
+	return delta > 0 ? s + ' '.repeat(delta) : s;
 };
 
-/*
- * Pads a string to a target visible width.
- */
-const padEndDisplay = (value: string, targetWidth: number): string => {
-	const pad = targetWidth - displayWidth(value);
-	if (pad <= 0) {
-		return value;
-	}
+/* Truncates `s` to at most `w` visible columns. */
+const truncateTo = (s: string, w: number): string => (w > 0 ? sliceAnsi(s, 0, w) : '');
 
-	return value + ' '.repeat(pad);
-};
-
-/*
- * Truncates a string to the target visible width.
- */
-const truncateDisplay = (value: string, targetWidth: number): string => {
-	if (targetWidth <= 0) {
-		return '';
-	}
-
-	return sliceAnsi(value, 0, targetWidth);
-};
-
-/*
- * Divider (mid-section separator).
- */
+/* Mid-box horizontal divider. */
 const divider = (): string => chalk.dim(BOX.ml + BOX.h.repeat(W - 2) + BOX.mr);
 
-/*
- * Bottom border.
- */
+/* Closing border. */
 const bottom = (): string => chalk.dim(BOX.bl + BOX.h.repeat(W - 2) + BOX.br);
 
-/*
- * Key/value row inside the box.
+/**
+ * Single key/value row.
+ * @param key   - Label text.
+ * @param value - Display value; null/undefined/empty renders as a dim dash.
+ * @param icon  - Optional leading icon (must be a single-cell or double-cell glyph).
+ * @returns Formatted string.
  */
 const row = (key: string, value: string | number | null | undefined, icon?: string): string => {
 	const left = icon ? `${icon} ${key}` : `  ${key}`;
-	const label = padEndDisplay(left, LABEL_W);
-
+	const label = padTo(left, LABEL_W);
 	const hasValue = value !== null && value !== undefined && value !== '';
 	const valueText = hasValue ? String(value) : '—';
-	const valueColor = hasValue ? chalk.white : chalk.dim;
+	const colorFn = hasValue ? chalk.white : chalk.dim;
+	const valueCell = padTo(truncateTo(valueText, VALUE_W), VALUE_W);
 
-	const valueCropped = truncateDisplay(valueText, VALUE_W);
-	const valuePadded = padEndDisplay(valueCropped, VALUE_W);
-
-	const inner = chalk.dim(label) + ' ' + valueColor(valuePadded);
-	return chalk.dim(BOX.v) + ' ' + inner + ' ' + chalk.dim(BOX.v);
+	return chalk.dim(BOX.v) + ' ' + chalk.dim(label) + ' ' + colorFn(valueCell) + ' ' + chalk.dim(BOX.v);
 };
 
 /**
  * Renders the server startup banner to stdout.
- * @param config - The config.
+ * @param cfg - Server configuration.
  */
 export const printBanner = (cfg: configType): void => {
-	const lines: string[] = [chalk.dim(BOX.tl + BOX.h.repeat(W - 2) + BOX.tr)];
+	const adminRoute = cfg.adminRoute ?? '/admin';
+	const baseUrl = `http://localhost:${cfg.port}`;
+	const lines: string[] = [];
 
-	// ── header
-	{
-		const title = `NODE PL/SQL SERVER ${getVersion()}`;
-		const pad = W - 2 - title.length;
-		const inner = ' '.repeat(Math.floor(pad / 2)) + chalk.bold.cyan(title) + ' '.repeat(Math.ceil(pad / 2));
-		lines.push(chalk.dim(BOX.v) + inner + chalk.dim(BOX.v));
-	}
+	// ── top border + title
+	const title = `NODE PL/SQL SERVER ${getVersion()}`;
+	const pad = W - 2 - displayWidth(title);
+	lines.push(chalk.dim(BOX.tl + BOX.h.repeat(W - 2) + BOX.tr));
+	lines.push(chalk.dim(BOX.v) + ' '.repeat(Math.floor(pad / 2)) + chalk.bold.cyan(title) + ' '.repeat(Math.ceil(pad / 2)) + chalk.dim(BOX.v));
 	lines.push(divider());
 
 	// ── server
-	lines.push(row('Port', cfg.port, '🌐'));
-	lines.push(row('Admin route', `${cfg.adminRoute ?? '/admin'}${cfg.adminUser ? ' (authenticated)' : ''}`, '🔑'));
-	lines.push(row('Access log', cfg.loggerFilename, '📄'));
-	lines.push(row('Upload limit', typeof cfg.uploadFileSizeLimit === 'number' ? `${cfg.uploadFileSizeLimit} bytes` : null, '📦'));
+	lines.push(row('Port', cfg.port, ICON_GLOBE));
+	lines.push(row('Admin route', `${adminRoute}${cfg.adminUser ? ' (authenticated)' : ''}`, ICON_KEY));
+	lines.push(row('Access log', cfg.loggerFilename, ICON_DOC));
+	lines.push(row('Upload limit', typeof cfg.uploadFileSizeLimit === 'number' ? `${cfg.uploadFileSizeLimit} bytes` : null, ICON_PACKAGE));
 	lines.push(divider());
 
-	// ── pool
-	lines.push(row('Oracle pool  min', cfg.oracle.poolMin, '🔗'));
-	lines.push(row('Oracle pool  max', cfg.oracle.poolMax, '🔗'));
-	lines.push(row('Oracle pool  increment', cfg.oracle.poolIncrement, '🔗'));
+	// ── connection pool
+	lines.push(row('Oracle pool  min', cfg.oracle.poolMin, ICON_LINK));
+	lines.push(row('Oracle pool  max', cfg.oracle.poolMax, ICON_LINK));
+	lines.push(row('Oracle pool  increment', cfg.oracle.poolIncrement, ICON_LINK));
 
 	// ── static routes
 	if (cfg.routeStatic.length > 0) {
 		lines.push(divider());
 		cfg.routeStatic.forEach((r, i) => {
-			lines.push(row(`Static route #${i + 1}  route`, r.route, '📁'));
+			lines.push(row(`Static route #${i + 1}  route`, r.route, ICON_FOLDER));
 			lines.push(row(`Static route #${i + 1}  path`, r.directoryPath));
 		});
 	}
 
-	// ── plsql routes
+	// ── PL/SQL routes
 	if (cfg.routePlSql.length > 0) {
 		lines.push(divider());
 		cfg.routePlSql.forEach((r, i) => {
-			const transactionMode = typeof r.transactionMode === 'string' ? r.transactionMode : r.transactionMode ? 'custom' : '';
+			const txMode = typeof r.transactionMode === 'string' ? r.transactionMode : r.transactionMode ? 'custom' : '';
+			const n = `PL/SQL route #${i + 1}`;
 
-			lines.push(row(`PL/SQL route #${i + 1}  route`, r.route, GEAR_ICON));
-			lines.push(row(`PL/SQL route #${i + 1}  Oracle user`, r.user));
-			lines.push(row(`PL/SQL route #${i + 1}  Oracle server`, r.connectString));
-			lines.push(row(`PL/SQL route #${i + 1}  document table`, r.documentTable));
-			lines.push(row(`PL/SQL route #${i + 1}  default page`, r.defaultPage));
-			lines.push(row(`PL/SQL route #${i + 1}  path alias`, r.pathAlias ?? ''));
-			lines.push(row(`PL/SQL route #${i + 1}  path alias proc`, r.pathAliasProcedure ?? ''));
-			lines.push(row(`PL/SQL route #${i + 1}  exclusion list`, r.exclusionList ? r.exclusionList.join(', ') : ''));
-			lines.push(row(`PL/SQL route #${i + 1}  validation fn`, r.requestValidationFunction ?? ''));
-			lines.push(row(`PL/SQL route #${i + 1}  session mode`, transactionMode));
-			lines.push(row(`PL/SQL route #${i + 1}  auth`, typeof r.auth === 'string' ? r.auth : ''));
-			lines.push(row(`PL/SQL route #${i + 1}  error style`, r.errorStyle));
+			lines.push(row(`${n}  route`, r.route, ICON_GEAR));
+			lines.push(row(`${n}  Oracle user`, r.user));
+			lines.push(row(`${n}  Oracle server`, r.connectString));
+			lines.push(row(`${n}  document table`, r.documentTable));
+			lines.push(row(`${n}  default page`, r.defaultPage));
+			lines.push(row(`${n}  path alias`, r.pathAlias ?? ''));
+			lines.push(row(`${n}  path alias proc`, r.pathAliasProcedure ?? ''));
+			lines.push(row(`${n}  exclusion list`, r.exclusionList?.join(', ') ?? ''));
+			lines.push(row(`${n}  validation fn`, r.requestValidationFunction ?? ''));
+			lines.push(row(`${n}  session mode`, txMode));
+			lines.push(row(`${n}  auth`, typeof r.auth === 'string' ? r.auth : ''));
+			lines.push(row(`${n}  error style`, r.errorStyle));
 		});
 	}
 
 	// ── footer: quick-access URLs
-	const baseUrl = `http://localhost:${cfg.port}`;
 	lines.push(divider());
-	lines.push(row('Admin console', `${baseUrl}${cfg.adminRoute ?? '/admin'}`, '🏠'));
+	lines.push(row('Admin console', `${baseUrl}${adminRoute}`, ICON_HOME));
 	cfg.routePlSql.forEach((r) => {
-		lines.push(row(r.route, `${baseUrl}${r.route}`, GEAR_ICON));
+		lines.push(row(r.route, `${baseUrl}${r.route}`, ICON_GEAR));
 	});
 	lines.push(bottom());
 

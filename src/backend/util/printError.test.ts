@@ -1,4 +1,3 @@
-import process from 'node:process';
 import {describe, expect, it, vi, beforeEach, afterEach} from 'vitest';
 import {printError} from './printError.ts';
 
@@ -14,7 +13,7 @@ describe('printError', () => {
 	});
 
 	it('writes a formatted error block to stderr', () => {
-		const writeSpy = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
+		const writeSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
 
 		printError('Something failed badly', {route: '/health'});
 

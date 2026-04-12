@@ -1,15 +1,12 @@
 import process from 'node:process';
+import chalk from 'chalk';
 
-/** ANSI escape codes — no external deps */
+// Named aliases — chalk 16-color approximations, original ansi256 noted
 const C = {
-	red: '\x1b[38;5;196m',
-	orange: '\x1b[38;5;214m',
-	gray: '\x1b[38;5;245m',
-	dimGray: '\x1b[38;5;240m',
-	white: '\x1b[38;5;255m',
-	reset: '\x1b[0m',
-	bold: '\x1b[1m',
-	dim: '\x1b[2m',
+	red: chalk.redBright.bold, // ansi256(196)
+	gray: chalk.gray, // ansi256(245)
+	dimGray: chalk.blackBright, // ansi256(240)
+	white: chalk.whiteBright, // ansi256(255)
 } as const;
 
 /**
@@ -24,11 +21,9 @@ export const printError = (message: string, meta?: Record<string, string>): void
 		.replace('T', ' ')
 		.replace(/(\.\d{3})Z$/, '.$1 UTC');
 
-	const sep = `${C.dimGray}${'─'.repeat(48)}${C.reset}`;
-
-	const header = `${C.red}${C.bold}✖ ERROR${C.reset}  ${C.dimGray}${ts}${C.reset}`;
-
-	const body = `${C.white}${message}${C.reset}`;
+	const sep = C.dimGray('─'.repeat(48));
+	const header = `${C.red('✖ ERROR')}  ${C.dimGray(ts)}`;
+	const body = C.white(message);
 
 	const defaultMeta: Record<string, string> = {
 		pid: String(process.pid),
@@ -37,8 +32,8 @@ export const printError = (message: string, meta?: Record<string, string>): void
 	};
 
 	const footer = Object.entries(defaultMeta)
-		.map(([k, v]) => `${C.dimGray}${k}${C.reset} ${C.gray}${v}${C.reset}`)
+		.map(([k, v]) => `${C.dimGray(k)} ${C.gray(v)}`)
 		.join('  ');
 
-	process.stderr.write([sep, header, body, sep, footer, ''].join('\n') + '\n');
+	console.error([sep, header, body, sep, footer].join('\n'));
 };
