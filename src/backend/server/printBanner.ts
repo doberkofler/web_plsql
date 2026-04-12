@@ -4,6 +4,9 @@ import sliceAnsi from 'slice-ansi';
 import {getVersion} from '../version.ts';
 import type {configType} from '../types.ts';
 
+// ── TTY
+const IS_TTY = process.stdout.isTTY === true;
+
 // ── Icons
 // Authoritative form is the hex escape; emoji in comments are for readability only.
 // ICON_GEAR uses U+2699 without VS-16 (U+FE0F) intentionally — the variation selector
@@ -48,10 +51,13 @@ const padTo = (s: string, w: number): string => {
 const truncateTo = (s: string, w: number): string => (w > 0 ? sliceAnsi(s, 0, w) : '');
 
 /* Mid-box horizontal divider. */
-const divider = (): string => chalk.dim(BOX.ml + BOX.h.repeat(W - 2) + BOX.mr);
+const divider = (): string => IS_TTY ? chalk.dim(BOX.ml + BOX.h.repeat(W - 2) + BOX.mr) : '-'.repeat(W);
+
+/* Opening border. */
+const borderOpen = (): string => IS_TTY ? chalk.dim(BOX.tl + BOX.h.repeat(W - 2) + BOX.tr) : divider();
 
 /* Closing border. */
-const bottom = (): string => chalk.dim(BOX.bl + BOX.h.repeat(W - 2) + BOX.br);
+const borderClose = (): string => IS_TTY ? chalk.dim(BOX.bl + BOX.h.repeat(W - 2) + BOX.br) : divider();
 
 /**
  * Single key/value row.
@@ -61,14 +67,14 @@ const bottom = (): string => chalk.dim(BOX.bl + BOX.h.repeat(W - 2) + BOX.br);
  * @returns Formatted string.
  */
 const row = (key: string, value: string | number | null | undefined, icon?: string): string => {
-	const left = icon ? `${icon} ${key}` : `  ${key}`;
+	const left = IS_TTY ? (icon ? `${icon} ${key}` : `  ${key}`) : `${key}`;
 	const label = padTo(left, LABEL_W);
 	const hasValue = value !== null && value !== undefined && value !== '';
 	const valueText = hasValue ? String(value) : '—';
 	const colorFn = hasValue ? chalk.white : chalk.dim;
 	const valueCell = padTo(truncateTo(valueText, VALUE_W), VALUE_W);
 
-	return chalk.dim(BOX.v) + ' ' + chalk.dim(label) + ' ' + colorFn(valueCell) + ' ' + chalk.dim(BOX.v);
+	return IS_TTY ? chalk.dim(BOX.v) + ' ' + chalk.dim(label) + ' ' + colorFn(valueCell) + ' ' + chalk.dim(BOX.v) : label + ' ' + valueCell;
 };
 
 /**
@@ -80,11 +86,13 @@ export const printBanner = (cfg: configType): void => {
 	const baseUrl = `http://localhost:${cfg.port}`;
 	const lines: string[] = [];
 
-	// ── top border + title
+	// ── top border
+	lines.push(borderOpen());
+
+	// ── title
 	const title = `NODE PL/SQL SERVER ${getVersion()}`;
 	const pad = W - 2 - displayWidth(title);
-	lines.push(chalk.dim(BOX.tl + BOX.h.repeat(W - 2) + BOX.tr));
-	lines.push(chalk.dim(BOX.v) + ' '.repeat(Math.floor(pad / 2)) + chalk.bold.cyan(title) + ' '.repeat(Math.ceil(pad / 2)) + chalk.dim(BOX.v));
+	lines.push(IS_TTY ? chalk.dim(BOX.v) + ' '.repeat(Math.floor(pad / 2)) + chalk.bold.cyan(title) + ' '.repeat(Math.ceil(pad / 2)) + chalk.dim(BOX.v) : title);
 	lines.push(divider());
 
 	// ── server
@@ -136,7 +144,7 @@ export const printBanner = (cfg: configType): void => {
 	cfg.routePlSql.forEach((r) => {
 		lines.push(row(r.route, `${baseUrl}${r.route}`, ICON_GEAR));
 	});
-	lines.push(bottom());
+	lines.push(borderClose());
 
 	console.log(lines.join('\n'));
 };
