@@ -1,3 +1,17 @@
+# [1.8.0](https://github.com/doberkofler/web_plsql/compare/v1.7.1...v1.8.0) (2026-04-12)
+
+
+### Bug Fixes
+
+* problem with connection allocated for too long ([fa7be71](https://github.com/doberkofler/web_plsql/commit/fa7be71373590304585d4abb1906dc39b4c0ecb2))
+
+
+### Features
+
+* add new logError api ([817ce2f](https://github.com/doberkofler/web_plsql/commit/817ce2fbc03253320ec36a90c19ffe91f729192f))
+* add oracle connection pool config to server api and increase defaults ([cdc9be9](https://github.com/doberkofler/web_plsql/commit/cdc9be9ce539ee5c24f8b3b4c383daef6f263852))
+* renamed showConfig api to printBanner and improved output ([15fee7e](https://github.com/doberkofler/web_plsql/commit/15fee7e42f3c48cf6f814ccd498b8a0f49df8716))
+
 ## [1.7.1](https://github.com/doberkofler/web_plsql/compare/v1.7.0...v1.7.1) (2026-04-08)
 
 
