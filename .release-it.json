@@ -5,7 +5,7 @@
 	"git": {
 		"requireCleanWorkingDir": true,
 		"commit": true,
-		"commitMessage": "chore(release): ${version}",
+		"commitMessage": "chore: release ${version}",
 		"tag": true,
 		"tagName": "v${version}",
 		"push": true,
