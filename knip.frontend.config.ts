@@ -18,6 +18,9 @@ const config: KnipConfig = {
 		'@types/morgan',
 		'cors',
 		'conventional-changelog-angular',
+		'chalk',
+		'slice-ansi',
+		'string-width',
 	],
 };
 

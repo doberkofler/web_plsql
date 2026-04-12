@@ -19,7 +19,7 @@ import {
 	handlerUpload,
 	handlerLogger,
 	AdminContext,
-	showConfig,
+	printBanner,
 	readFileSyncUtf8,
 	getJsonFile,
 	installShutdown,
@@ -81,7 +81,7 @@ export const startServer = async (config: configInputType, ssl?: sslConfig): Pro
 
 	const internalConfig = z$configType.parse(config);
 
-	showConfig(internalConfig);
+	printBanner(internalConfig);
 
 	// Create express app
 	const app = express();

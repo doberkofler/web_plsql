@@ -62,7 +62,7 @@ vi.mock('../index.ts', async () => {
 		handlerUpload: vi.fn<(...args: unknown[]) => unknown>(() => 'uploadMiddleware'),
 		handlerAdminConsole: vi.fn<(...args: unknown[]) => unknown>(() => 'adminConsoleMiddleware'),
 		handlerWebPlSql: mocks.handlerWebPlSql,
-		showConfig: vi.fn<(...args: unknown[]) => unknown>(),
+		printBanner: vi.fn<(...args: unknown[]) => unknown>(),
 		installShutdown: vi.fn<(...args: unknown[]) => unknown>(),
 	};
 });
