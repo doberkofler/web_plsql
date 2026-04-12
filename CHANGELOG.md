@@ -1,8 +1,10 @@
-# [1.8.0](https://github.com/doberkofler/web_plsql/compare/v1.7.1...v1.8.0) (2026-04-12)
+## [1.8.1](https://github.com/doberkofler/web_plsql/compare/v1.8.0...v1.8.1) (2026-04-12)
 
 
 ### Bug Fixes
 
+* banner when not in tty mode ([faeeff8](https://github.com/doberkofler/web_plsql/commit/faeeff88b8263222c7d3dd3d1da154a71f219a6a))
+* banner when not in tty mode ([9e45150](https://github.com/doberkofler/web_plsql/commit/9e45150484bd2b64a9e4afaee8a1f2fa5ae6be66))
 * problem with connection allocated for too long ([fa7be71](https://github.com/doberkofler/web_plsql/commit/fa7be71373590304585d4abb1906dc39b4c0ecb2))
 
 
