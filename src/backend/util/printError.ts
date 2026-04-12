@@ -3,7 +3,7 @@ import chalk from 'chalk';
 
 // Named aliases — chalk 16-color approximations, original ansi256 noted
 const C = {
-	red: chalk.redBright.bold, // ansi256(196)
+	red: chalk.ansi256(196), // chalk.redBright.bold
 	gray: chalk.gray, // ansi256(245)
 	dimGray: chalk.blackBright, // ansi256(240)
 	white: chalk.whiteBright, // ansi256(255)
