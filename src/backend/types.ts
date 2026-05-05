@@ -115,7 +115,7 @@ const z$configPlSqlConfigType = z.strictObject({
 	/** Oracle connection string (TNS or EZConnect) */
 	connectString: z.string(),
 });
-export type configPlSqlConfigType = z.infer<typeof z$configPlSqlConfigType>;
+type configPlSqlConfigType = z.infer<typeof z$configPlSqlConfigType>;
 
 /**
  * Complete PL/SQL route configuration combining handler and connection settings

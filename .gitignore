@@ -8,3 +8,4 @@ coverage/
 .eslintcache
 dist/
 test-results/
+.depvital-cache.json

@@ -18,7 +18,7 @@ type CacheStats = {
 	misses: number;
 };
 
-export type PoolCacheSnapshot = {
+type PoolCacheSnapshot = {
 	procedureName: CacheStats;
 	argument: CacheStats;
 };
