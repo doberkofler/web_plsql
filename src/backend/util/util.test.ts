@@ -92,6 +92,6 @@ describe('centerText', () => {
 	});
 
 	it('RangeError message contains both values', () => {
-		assert.throws(() => centerText('toolong', 3), /width \(3\) < text\.length \(7\)/);
+		assert.throws(() => centerText('toolong', 3), /width \(3\) < text\.length \(7\)/u);
 	});
 });

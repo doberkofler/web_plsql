@@ -70,7 +70,7 @@ const requestHandler = async (
 			if (typeof options.defaultPage === 'string' && options.defaultPage.length > 0) {
 				const currentUrl = new URL(req.originalUrl, 'http://localhost');
 				const basePath = currentUrl.pathname.endsWith('/') ? currentUrl.pathname : `${currentUrl.pathname}/`;
-				const defaultPage = options.defaultPage.replace(/^\/+/, '');
+				const defaultPage = options.defaultPage.replace(/^\/+/u, '');
 				const newUrl = `${basePath}${defaultPage}${currentUrl.search}`;
 				debug(`Redirect to the url "${newUrl}"`);
 				res.redirect(newUrl);

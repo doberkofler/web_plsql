@@ -48,7 +48,7 @@ describe('middleware', () => {
 
 		await request(serverConfig.app)
 			.get(`${PATH}/${DEFAULT_PAGE}`)
-			.expect(200, /.*<html><body><p>static<\/p><\/body><\/html>.*/);
+			.expect(200, /.*<html><body><p>static<\/p><\/body><\/html>.*/u);
 	});
 
 	it('get page with query string', async () => {
@@ -63,7 +63,7 @@ describe('middleware', () => {
 
 		await request(serverConfig.app)
 			.get(`${PATH}/${DEFAULT_PAGE}?a=1&b=2`)
-			.expect(200, /.*<html><body><p>static<\/p><\/body><\/html>.*/);
+			.expect(200, /.*<html><body><p>static<\/p><\/body><\/html>.*/u);
 	});
 
 	it('get page with query string containing duplicate names', async () => {
@@ -75,7 +75,7 @@ describe('middleware', () => {
 
 		await request(serverConfig.app)
 			.get(`${PATH}/${DEFAULT_PAGE}?a=1&a=2`)
-			.expect(200, /.*<html><body><p>static<\/p><\/body><\/html>.*/);
+			.expect(200, /.*<html><body><p>static<\/p><\/body><\/html>.*/u);
 	});
 
 	it('get page with flexible parameters', async () => {
@@ -90,7 +90,7 @@ describe('middleware', () => {
 
 		await request(serverConfig.app)
 			.get(`${PATH}/!${DEFAULT_PAGE}?a=1&b=2`)
-			.expect(200, /.*<html><body><p>static<\/p><\/body><\/html>.*/);
+			.expect(200, /.*<html><body><p>static<\/p><\/body><\/html>.*/u);
 	});
 
 	it('get page with cookies', async () => {
@@ -108,7 +108,7 @@ describe('middleware', () => {
 			.get(`${PATH}/${DEFAULT_PAGE}`)
 			.expect(200)
 			.expect('set-cookie', 'C1=V1; Domain=mozilla.org; Path=/apex; Expires=Wed, 21 Oct 2015 07:28:00 GMT; HttpOnly; Secure')
-			.expect(/.*<html><body><p>static<\/p><\/body><\/html>.*/);
+			.expect(/.*<html><body><p>static<\/p><\/body><\/html>.*/u);
 	});
 
 	it('redirect to a new url', async () => {
@@ -140,7 +140,7 @@ describe('middleware', () => {
 			.post(`${PATH}/sample.pageForm`) // Use POST instead of GET
 			.set('Content-Type', 'application/x-www-form-urlencoded')
 			.send('name=johndoe')
-			.expect(200, /.*<html><body><p>static<\/p><\/body><\/html>.*/);
+			.expect(200, /.*<html><body><p>static<\/p><\/body><\/html>.*/u);
 	});
 
 	it('get application/x-www-form-urlencoded with file', async () => {
@@ -162,7 +162,7 @@ describe('middleware', () => {
 		test.write('some text here');
 		test.write('\r\n--foo--');
 
-		await test.expect(200, /.*<html><body><p>static<\/p><\/body><\/html>.*/);
+		await test.expect(200, /.*<html><body><p>static<\/p><\/body><\/html>.*/u);
 	});
 
 	it('set status', async () => {
@@ -191,7 +191,7 @@ describe('middleware', () => {
 
 		await request(serverConfig.app)
 			.get(`${PATH}/alias`)
-			.expect(200, /.*<html><body><p>static<\/p><\/body><\/html>.*/);
+			.expect(200, /.*<html><body><p>static<\/p><\/body><\/html>.*/u);
 	});
 
 	it('should invalidate cache on database error', async () => {

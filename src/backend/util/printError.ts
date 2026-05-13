@@ -19,7 +19,7 @@ export const printError = (message: string, meta?: Record<string, string>): void
 	const ts = new Date()
 		.toISOString()
 		.replace('T', ' ')
-		.replace(/(\.\d{3})Z$/, '.$1 UTC');
+		.replace(/(\.\d{3})Z$/u, '.$1 UTC');
 
 	const sep = C.dimGray('─'.repeat(48));
 	const header = `${C.red('✖ ERROR')}  ${C.dimGray(ts)}`;

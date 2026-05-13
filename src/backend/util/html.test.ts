@@ -102,9 +102,9 @@ describe('html', () => {
 
 		it('should contain correct html structure', () => {
 			const page = getHtmlPage('test');
-			expect(page).toMatch(/<!DOCTYPE html>/);
-			expect(page).toMatch(/<html lang="en">/);
-			expect(page).toMatch(/<\/html>/);
+			expect(page).toMatch(/<!DOCTYPE html>/u);
+			expect(page).toMatch(/<html lang="en">/u);
+			expect(page).toMatch(/<\/html>/u);
 		});
 
 		it('should contain css styles', () => {

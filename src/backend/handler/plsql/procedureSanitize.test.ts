@@ -223,9 +223,9 @@ describe('handler/plsql/procedureSanitize', () => {
 		const cache = new Cache<string>();
 
 		// @ts-expect-error - testing null input
-		await expect(sanitizeProcName(null, connection, defaultOptions, cache)).rejects.toThrow();
+		await expect(sanitizeProcName(null, connection, defaultOptions, cache)).rejects.toThrow(/.*/u);
 		// @ts-expect-error - testing undefined input
-		await expect(sanitizeProcName(undefined, connection, defaultOptions, cache)).rejects.toThrow();
+		await expect(sanitizeProcName(undefined, connection, defaultOptions, cache)).rejects.toThrow(/.*/u);
 	});
 
 	it('should handle resolveProcedureName returning NULL in outBinds', async () => {

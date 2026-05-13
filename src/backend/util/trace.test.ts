@@ -93,7 +93,7 @@ describe('util/trace', () => {
 		it('should throw error if head is empty', () => {
 			assert.throws(() => {
 				toTable([], []);
-			}, /head cannot be empty/);
+			}, /head cannot be empty/u);
 		});
 
 		it('should throw if head is empty', () => {

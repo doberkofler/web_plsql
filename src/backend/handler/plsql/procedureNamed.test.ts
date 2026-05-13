@@ -45,7 +45,7 @@ describe('handler/plsql/procedureNamed', () => {
 		it('should throw error for invalid NUMBER', () => {
 			assert.throws(() => {
 				getBinding('p1', 'abc', 'NUMBER');
-			}, /invalid value/);
+			}, /invalid value/u);
 		});
 
 		it('should handle empty string for NUMBER', () => {
@@ -68,7 +68,7 @@ describe('handler/plsql/procedureNamed', () => {
 		it('should throw error for invalid DATE', () => {
 			assert.throws(() => {
 				getBinding('p1', 'invalid-date', 'DATE');
-			}, /invalid value/);
+			}, /invalid value/u);
 		});
 
 		it('should return PL/SQL TABLE binding', () => {
@@ -91,7 +91,7 @@ describe('handler/plsql/procedureNamed', () => {
 		it('should throw error for unknown binding type', () => {
 			assert.throws(() => {
 				getBinding('p1', 'val', 'NON_EXISTENT_TYPE');
-			}, /invalid binding type/);
+			}, /invalid binding type/u);
 		});
 	});
 
@@ -183,7 +183,7 @@ describe('handler/plsql/procedureNamed', () => {
 		it('should throw error for non-string DATE value', () => {
 			assert.throws(() => {
 				getBinding('p1', 123, 'DATE');
-			}, /invalid value "123" for type "DATE"/);
+			}, /invalid value "123" for type "DATE"/u);
 		});
 	});
 

@@ -69,14 +69,14 @@ describe('handler/plsql/upload', () => {
 
 		it('should throw if readFile fails', async () => {
 			vi.mocked(fileUtils.readFile).mockRejectedValue(new Error('read failed'));
-			await expect(uploadFile(mockFile, 'DOCTAB', mockConn)).rejects.toThrow(/Unable to load file/);
+			await expect(uploadFile(mockFile, 'DOCTAB', mockConn)).rejects.toThrow(/Unable to load file/u);
 		});
 
 		it('should throw if database insert fails', async () => {
 			vi.mocked(fileUtils.readFile).mockResolvedValue(Buffer.from('test'));
 
 			(mockConn.execute as any).mockRejectedValue(new Error('db error'));
-			await expect(uploadFile(mockFile, 'DOCTAB', mockConn)).rejects.toThrow(/Unable to insert file/);
+			await expect(uploadFile(mockFile, 'DOCTAB', mockConn)).rejects.toThrow(/Unable to insert file/u);
 		});
 
 		it('should throw if removeFile fails', async () => {
@@ -84,7 +84,7 @@ describe('handler/plsql/upload', () => {
 
 			(mockConn.execute as any).mockResolvedValue({});
 			vi.mocked(fileUtils.removeFile).mockRejectedValue(new Error('remove failed'));
-			await expect(uploadFile(mockFile, 'DOCTAB', mockConn)).rejects.toThrow(/Unable to remove file/);
+			await expect(uploadFile(mockFile, 'DOCTAB', mockConn)).rejects.toThrow(/Unable to remove file/u);
 		});
 
 		it('should upload successfully', async () => {

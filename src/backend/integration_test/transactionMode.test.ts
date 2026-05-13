@@ -27,7 +27,7 @@ describe('transaction mode', () => {
 
 		await request(serverConfig.app)
 			.get(`${PATH}/${DEFAULT_PAGE}`)
-			.expect(200, /.*<html><body><p>static<\/p><\/body><\/html>.*/);
+			.expect(200, /.*<html><body><p>static<\/p><\/body><\/html>.*/u);
 
 		assert.strictEqual(callbackInvokations, 1);
 

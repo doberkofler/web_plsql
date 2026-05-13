@@ -55,7 +55,7 @@ describe('Admin Console Asset Loading', () => {
 	it('should serve admin console HTML with correct asset paths', async () => {
 		const response = await request(serverInstance.app).get('/admin/');
 		expect(response.status).toBe(200);
-		expect(response.headers['content-type']).toMatch(/html/);
+		expect(response.headers['content-type']).toMatch(/html/u);
 
 		// Parse HTML
 		const $ = cheerioLoad(response.text);
@@ -71,7 +71,7 @@ describe('Admin Console Asset Loading', () => {
 
 			// If it's an absolute path (starts with /), it MUST start with /admin/
 			if (asset.url.startsWith('/')) {
-				expect(asset.url, `Absolute asset path "${asset.url}" missing /admin/ prefix`).toMatch(/^\/admin\//);
+				expect(asset.url, `Absolute asset path "${asset.url}" missing /admin/ prefix`).toMatch(/^\/admin\//u);
 			}
 		}
 	});

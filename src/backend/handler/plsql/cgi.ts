@@ -89,7 +89,7 @@ const getPath = (req: Request): {script: string; prefix: string; dad: string} =>
  * @param value - The value to trim.
  * @returns The trimmed value.
  */
-const trimPath = (value: string): string => value.replaceAll(/^\/+|\/+$/g, '');
+const trimPath = (value: string): string => value.replaceAll(/^\/+|\/+$/gu, '');
 
 /**
  * Create a CGI object

@@ -29,7 +29,7 @@ describe('util/file', () => {
 		it('should throw error if file does not exist', () => {
 			assert.throws(() => {
 				readFileSyncUtf8(NON_EXISTENT_FILE);
-			}, /Unable to read file/);
+			}, /Unable to read file/u);
 		});
 	});
 
@@ -43,7 +43,7 @@ describe('util/file', () => {
 		it('should throw error if file does not exist', async () => {
 			await assert.rejects(async () => {
 				await readFile(NON_EXISTENT_FILE);
-			}, /Unable to read file/);
+			}, /Unable to read file/u);
 		});
 	});
 
@@ -56,7 +56,7 @@ describe('util/file', () => {
 		it('should throw error if file does not exist', () => {
 			assert.throws(() => {
 				getJsonFile(NON_EXISTENT_FILE);
-			}, /Unable to load file/);
+			}, /Unable to load file/u);
 		});
 
 		it('should throw error if json is invalid', async () => {
@@ -64,7 +64,7 @@ describe('util/file', () => {
 			await fs.writeFile(invalidJsonPath, '{foo: bar}', 'utf8'); // Invalid JSON
 			assert.throws(() => {
 				getJsonFile(invalidJsonPath);
-			}, /Unable to load file/);
+			}, /Unable to load file/u);
 		});
 	});
 
@@ -138,7 +138,7 @@ describe('util/file', () => {
 		it('should throw error if file cannot be removed (e.g. non-existent)', async () => {
 			await assert.rejects(async () => {
 				await removeFile(NON_EXISTENT_FILE);
-			}, /Unable to remove file/);
+			}, /Unable to remove file/u);
 		});
 	});
 });

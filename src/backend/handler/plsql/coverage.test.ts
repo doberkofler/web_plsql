@@ -86,7 +86,7 @@ describe('handler/plsql coverage tests', () => {
 			const procCache = new Cache<string>();
 
 			// @ts-expect-error - testing null input
-			await expect(sanitizeProcName(null, mockConn, {} as configPlSqlHandlerType, procCache)).rejects.toThrow();
+			await expect(sanitizeProcName(null, mockConn, {} as configPlSqlHandlerType, procCache)).rejects.toThrow(/.*/u);
 		});
 
 		it('should throw error when resolved name is empty', async () => {

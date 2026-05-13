@@ -52,7 +52,7 @@ describe('handlerAdminConsole', () => {
 		it('should throw when project root not found', () => {
 			vi.mocked(existsSync).mockReturnValue(false);
 
-			expect(() => resolveAdminStaticDir()).toThrow(/Could not find project root/);
+			expect(() => resolveAdminStaticDir()).toThrow(/Could not find project root/u);
 		});
 	});
 
@@ -82,7 +82,7 @@ describe('handlerAdminConsole', () => {
 			const adminContext = new AdminContext(mockConfig);
 			adminContext.pools.push(mockPool);
 			adminContext.caches.push(mockCache as any);
-			expect(() => handlerAdminConsole({adminRoute: '/admin', staticDir: '/non-existent'}, adminContext)).toThrow(/Admin console not built/);
+			expect(() => handlerAdminConsole({adminRoute: '/admin', staticDir: '/non-existent'}, adminContext)).toThrow(/Admin console not built/u);
 		});
 
 		it('should use default /admin route when adminRoute is omitted', () => {
@@ -95,7 +95,7 @@ describe('handlerAdminConsole', () => {
 
 		it('should throw if adminRoute does not start with /', () => {
 			const adminContext = new AdminContext(mockConfig);
-			expect(() => handlerAdminConsole({adminRoute: 'admin', staticDir: '/tmp/dist'}, adminContext)).toThrow(/adminRoute must start with \//);
+			expect(() => handlerAdminConsole({adminRoute: 'admin', staticDir: '/tmp/dist'}, adminContext)).toThrow(/adminRoute must start with \//u);
 		});
 	});
 
