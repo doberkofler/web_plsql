@@ -72,7 +72,7 @@ export const stringToInteger = (value: unknown): number | null => {
  * @param text - The string to center
  * @param width - Total output width in characters
  * @returns Padded string of exactly `width` characters
- * @throws If `width` is less than `text.length`
+ * @throws {RangeError} If `width` is less than `text.length`
  */
 export const centerText = (text: string, width: number, padding = ' '): string => {
 	if (width < text.length) {

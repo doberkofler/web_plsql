@@ -278,7 +278,7 @@ const generateJsonResponse = (procedureName: string, params: Record<string, unkn
  * @param errorType - Type of error to simulate.
  * @param params - Query parameters (for extracting ms for slow).
  * @returns Delay info for slow simulation.
- * @throws Error for other error types.
+ * @throws {Error} Error for other error types.
  */
 const simulateError = (errorType: string, params: Record<string, unknown>): {delay?: number} => {
 	switch (errorType) {
