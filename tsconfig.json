@@ -35,5 +35,6 @@
 		"allowUnusedLabels": false,
 		"forceConsistentCasingInFileNames": true
 	},
+	"include": ["src/**/*", "tests/**/*"],
 	"exclude": ["node_modules", "coverage", "examples"]
 }
