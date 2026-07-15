@@ -1,3 +1,5 @@
+## [1.8.6](https://github.com/doberkofler/web_plsql/compare/v1.8.5...v1.8.6) (2026-07-15)
+
 ## [1.8.5](https://github.com/doberkofler/web_plsql/compare/v1.8.4...v1.8.5) (2026-06-27)
 
 ## [1.8.4](https://github.com/doberkofler/web_plsql/compare/v1.8.3...v1.8.4) (2026-06-24)
@@ -8,7 +10,6 @@
 
 ## [1.8.1](https://github.com/doberkofler/web_plsql/compare/v1.8.0...v1.8.1) (2026-04-12)
 
-
 ### Bug Fixes
 
 * banner when not in tty mode ([faeeff8](https://github.com/doberkofler/web_plsql/commit/faeeff88b8263222c7d3dd3d1da154a71f219a6a))
@@ -16,11 +17,9 @@
 
 # [1.8.0](https://github.com/doberkofler/web_plsql/compare/v1.7.1...v1.8.0) (2026-04-12)
 
-
 ### Bug Fixes
 
 * problem with connection allocated for too long ([fa7be71](https://github.com/doberkofler/web_plsql/commit/fa7be71373590304585d4abb1906dc39b4c0ecb2))
-
 
 ### Features
 
@@ -30,13 +29,11 @@
 
 ## [1.7.1](https://github.com/doberkofler/web_plsql/compare/v1.7.0...v1.7.1) (2026-04-08)
 
-
 ### Bug Fixes
 
 * [DEP0169] DeprecationWarning: url.parse() behavior is not standardized and prone to errors ([e4b5a3f](https://github.com/doberkofler/web_plsql/commit/e4b5a3f5e4e897a80131d2358132b6550abaf3ee))
 
 # [1.7.0](https://github.com/doberkofler/web_plsql/compare/v1.6.0...v1.7.0) (2026-04-08)
-
 
 ### Features
 
@@ -44,25 +41,21 @@
 
 # [1.6.0](https://github.com/doberkofler/web_plsql/compare/v1.4.0...v1.6.0) (2026-04-08)
 
-
 ### Features
 
 * improve config display ([7194c0c](https://github.com/doberkofler/web_plsql/commit/7194c0cbf84f39062cdfefa67dd86fc37ac50d70))
 
 # [1.4.0](https://github.com/doberkofler/web_plsql/compare/v1.3.2...v1.4.0) (2026-02-26)
 
-
 ### Bug Fixes
 
 * if headers have already been sent, we cannot show the error page ([e959134](https://github.com/doberkofler/web_plsql/commit/e959134741c9bdb3b0f968eb1f31104ad752b142))
-
 
 ### Features
 
 * add custom authentication ([5b7b262](https://github.com/doberkofler/web_plsql/commit/5b7b262b3eaeaee501035ab06a094ac120199af5))
 
 ## [1.3.2](https://github.com/doberkofler/web_plsql/compare/v1.3.1...v1.3.2) (2026-02-22)
-
 
 ### Bug Fixes
 
@@ -75,7 +68,6 @@
 # [1.2.0](https://github.com/doberkofler/web_plsql/compare/v1.0.0...v1.2.0) (2026-02-09)
 
 # [1.0.0](https://github.com/doberkofler/web_plsql/compare/v0.17.0...v1.0.0) (2026-02-07)
-
 
 ### Features
 
