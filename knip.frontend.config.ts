@@ -5,23 +5,7 @@ const config: KnipConfig = {
 	entry: [],
 	project: ['src/frontend/**/*.ts'],
 	ignore: [],
-	ignoreDependencies: [
-		'compression',
-		'cookie-parser',
-		'express-static-gzip',
-		'morgan',
-		'rotating-file-stream',
-		'tailwindcss',
-		'@types/compression',
-		'@types/cookie-parser',
-		'@types/cors',
-		'@types/morgan',
-		'cors',
-		'conventional-changelog-angular',
-		'chalk',
-		'slice-ansi',
-		'string-width',
-	],
+	ignoreDependencies: ['express-static-gzip', 'tailwindcss', 'conventional-changelog-angular', 'chalk', 'slice-ansi', 'string-width'],
 };
 
 export default config;
