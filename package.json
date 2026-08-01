@@ -84,7 +84,7 @@
 	"devDependencies": {
 		"@commitlint/cli": "21.2.1",
 		"@commitlint/config-conventional": "21.2.0",
-		"@playwright/test": "1.62.0",
+		"@playwright/test": "1.62.1",
 		"@tailwindcss/vite": "4.3.3",
 		"@types/compression": "1.8.1",
 		"@types/cookie-parser": "1.4.10",
@@ -116,7 +116,7 @@
 		"tailwindcss": "4.3.3",
 		"tsdown": "0.22.14",
 		"typescript": "7.0.2",
-		"vite": "8.1.5",
+		"vite": "8.2.0",
 		"vite-plugin-compression2": "2.5.3",
 		"vitest": "4.1.10"
 	},
