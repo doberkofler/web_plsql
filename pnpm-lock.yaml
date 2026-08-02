@@ -88,8 +88,8 @@ importers:
         specifier: 26.1.2
         version: 26.1.2
       '@types/oracledb':
-        specifier: 7.0.1
-        version: 7.0.1
+        specifier: 7.0.2
+        version: 7.0.2
       '@types/supertest':
         specifier: 7.2.1
         version: 7.2.1
@@ -1434,8 +1434,8 @@ packages:
   '@types/node@26.1.2':
     resolution: {integrity: sha512-Vu4a5UFA9rIIFJ7rB/Vaafh9lrCQszopTCx6KjFboXTGQbPNasehVR5TEiithSDGyd1DEiUByggTZsg8jukeIg==}
 
-  '@types/oracledb@7.0.1':
-    resolution: {integrity: sha512-0A6m9YE4yu73KXehr5D6cbyALUzZoANGY4bG5cAPQIpJoJG4eMVPbR1Vau8ycnC25V/+F4Au1pdFSy8ODOAD0w==}
+  '@types/oracledb@7.0.2':
+    resolution: {integrity: sha512-yAMn1N+yTyKpJpJ4EDf5Mfgas81dF3pchxZXlK0A4FG6+Jhvv5jaXdl0KmHbdg1ookCqPEYjzLo+7UBmsz9QWg==}
 
   '@types/parse-path@7.1.0':
     resolution: {integrity: sha512-EULJ8LApcVEPbrfND0cRQqutIOdiIgJ1Mgrhpy755r14xMohPTEpkV/k28SJvuOs9bHRFW8x+KeDAEPiGQPB9Q==}
@@ -5041,7 +5041,7 @@ snapshots:
     dependencies:
       undici-types: 8.3.0
 
-  '@types/oracledb@7.0.1':
+  '@types/oracledb@7.0.2':
     dependencies:
       '@types/node': 26.1.2
 
