@@ -38,7 +38,9 @@ export async function withLoading<T>(btn: HTMLButtonElement, action: () => Promi
 export function bindLoadingButton(id: string, action: () => Promise<void>): HTMLButtonElement | null {
 	const btn = document.getElementById(id) as HTMLButtonElement | null;
 	if (btn) {
-		btn.addEventListener('click', () => void withLoading(btn, action));
+		btn.addEventListener('click', () => {
+			withLoading(btn, action);
+		});
 	}
 	return btn;
 }
