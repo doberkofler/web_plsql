@@ -130,8 +130,8 @@ importers:
         specifier: 7.0.2001
         version: 7.0.2001
       release-it:
-        specifier: 21.0.1
-        version: 21.0.1(@types/node@26.2.0)(magicast@0.5.4)(supports-color@10.2.2)
+        specifier: 21.0.2
+        version: 21.0.2(@types/node@26.2.0)(magicast@0.5.4)(supports-color@10.2.2)
       shx:
         specifier: 0.4.0
         version: 0.4.0
@@ -3434,8 +3434,8 @@ packages:
     resolution: {integrity: sha512-sZuz1dYW/ZsfG17WSAG7eS85r5a0dDsvg+7BiiYR5o6lKCAtUrEwdmRmaGF6rwVj3LcmAeYkOWKEPlbPzN3Y3A==}
     engines: {node: ^12.0.0 || ^14.0.0 || >=16.0.0}
 
-  release-it@21.0.1:
-    resolution: {integrity: sha512-xbPuv2tau3gb0Xw0NVqV3QjOhytFvbsBZDqzmURqlwtgNpFIlIbpDbuZG64ptytFOX4H/7k65bbPSLTwAL34/g==}
+  release-it@21.0.2:
+    resolution: {integrity: sha512-QwyDnWiQNB4d8Hc2b5FLMHcsKz9S2O1dMNnPB7w+0knsL5r8+qbnznDA1X7Bw5D863+Ud7eRHc71Cfth5Tlrgg==}
     engines: {node: ^22.21.0 || >=24.0.0}
     hasBin: true
 
@@ -6942,7 +6942,7 @@ snapshots:
       '@eslint-community/regexpp': 4.12.2
       refa: 0.12.1
 
-  release-it@21.0.1(@types/node@26.2.0)(magicast@0.5.4)(supports-color@10.2.2):
+  release-it@21.0.2(@types/node@26.2.0)(magicast@0.5.4)(supports-color@10.2.2):
     dependencies:
       '@inquirer/prompts': 8.5.2(@types/node@26.2.0)
       '@octokit/rest': 22.0.1

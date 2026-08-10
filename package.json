@@ -108,7 +108,7 @@
 		"oxfmt": "0.62.0",
 		"oxlint": "1.77.0",
 		"oxlint-tsgolint": "7.0.2001",
-		"release-it": "21.0.1",
+		"release-it": "21.0.2",
 		"shx": "0.4.0",
 		"stylelint": "17.14.1",
 		"stylelint-config-standard": "40.0.0",
