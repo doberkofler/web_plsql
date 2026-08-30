@@ -121,7 +121,7 @@
 		"vitest": "4.1.11"
 	},
 	"peerDependencies": {
-		"oracledb": "7.0.0"
+		"oracledb": "^7.0.0"
 	},
 	"engines": {
 		"node": ">=24"
