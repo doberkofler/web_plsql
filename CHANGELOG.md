@@ -1,3 +1,9 @@
+# [1.9.0](https://github.com/doberkofler/web_plsql/compare/v1.8.18...v1.9.0) (2026-08-30)
+
+### Bug Fixes
+
+* allow all oracledb 7 versions ([db6f752](https://github.com/doberkofler/web_plsql/commit/db6f7527b160c37a7d188268b6dee02d3e0236ff))
+
 ## [1.8.18](https://github.com/doberkofler/web_plsql/compare/v1.8.17...v1.8.18) (2026-08-23)
 
 ## [1.8.17](https://github.com/doberkofler/web_plsql/compare/v1.8.16...v1.8.17) (2026-08-20)
