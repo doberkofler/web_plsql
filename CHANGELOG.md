@@ -1,3 +1,5 @@
+## [1.9.1](https://github.com/doberkofler/web_plsql/compare/v1.9.0...v1.9.1) (2026-08-31)
+
 # [1.9.0](https://github.com/doberkofler/web_plsql/compare/v1.8.18...v1.9.0) (2026-08-30)
 
 ### Bug Fixes
