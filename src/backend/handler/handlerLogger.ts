@@ -7,7 +7,7 @@ import morgan from 'morgan';
 import type {RequestHandler} from 'express';
 
 /**
- * Create the upload middleware.
+ * Create the HTTP access log middleware.
  * @param filename - Output filename.
  * @returns Request handler.
  */

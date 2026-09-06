@@ -24,7 +24,7 @@ describe('server/config', () => {
 			port: 8080,
 			adminRoute: '/admin',
 			adminUser: 'admin',
-			loggerFilename: 'access.log',
+			accessLogFilename: 'access.log',
 			uploadFileSizeLimit: 1024,
 			routeStatic: [],
 			routePlSql: [],
@@ -42,7 +42,6 @@ describe('server/config', () => {
 	it('should handle missing optional config fields', () => {
 		const config: configInputType = {
 			port: 3000,
-			loggerFilename: '',
 			routeStatic: [],
 			routePlSql: [],
 		};
@@ -58,7 +57,6 @@ describe('server/config', () => {
 	it('should show static routes', () => {
 		const config: configInputType = {
 			port: 8080,
-			loggerFilename: '',
 			routeStatic: [
 				{route: '/static', directoryPath: '/var/www/static'},
 				{route: '/images', directoryPath: '/var/www/images'},
@@ -78,7 +76,6 @@ describe('server/config', () => {
 	it('should show PL/SQL routes with string transactionMode', () => {
 		const config: configInputType = {
 			port: 8080,
-			loggerFilename: '',
 			routeStatic: [],
 			routePlSql: [
 				{
@@ -108,7 +105,6 @@ describe('server/config', () => {
 	it('should show PL/SQL routes with function transactionMode', () => {
 		const config: configInputType = {
 			port: 8080,
-			loggerFilename: '',
 			routeStatic: [],
 			routePlSql: [
 				{
@@ -144,7 +140,6 @@ describe('server/config', () => {
 	it('keeps text columns aligned and separated', () => {
 		const config: configInputType = {
 			port: 8082,
-			loggerFilename: '',
 			routeStatic: [],
 			routePlSql: [
 				{

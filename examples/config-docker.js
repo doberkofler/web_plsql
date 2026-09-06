@@ -25,5 +25,5 @@ void startHttpServer({
 			errorStyle: 'debug', // PlsqlErrorStyle
 		},
 	],
-	loggerFilename: 'access.log', // PlsqlLogEnable and PlsqlLogDirectory
+	accessLogFilename: 'access.log', // Omit to disable access logging
 });

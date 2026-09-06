@@ -25,7 +25,6 @@ const config: configInputType = {
 			errorStyle: 'debug',
 		},
 	],
-	loggerFilename: '',
 	adminRoute: '/admin',
 };
 

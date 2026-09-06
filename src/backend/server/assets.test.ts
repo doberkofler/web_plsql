@@ -38,7 +38,6 @@ describe('Admin Console Asset Loading', () => {
 				errorStyle: 'debug',
 			},
 		],
-		loggerFilename: '',
 		adminRoute: '/admin',
 	};
 

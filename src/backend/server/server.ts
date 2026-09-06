@@ -86,6 +86,11 @@ export const startServer = async (config: configInputType, ssl?: sslConfig): Pro
 	// Create express app
 	const app = express();
 
+	// Access logging must precede every handler that can finish a response.
+	if (internalConfig.accessLogFilename) {
+		app.use(handlerLogger(internalConfig.accessLogFilename));
+	}
+
 	// Default middleware
 	if (internalConfig.devMode) {
 		app.use(
@@ -140,11 +145,6 @@ export const startServer = async (config: configInputType, ssl?: sslConfig): Pro
 			});
 			handler(req, res, next);
 		});
-	}
-
-	// Access log
-	if (internalConfig.loggerFilename.length > 0) {
-		app.use(handlerLogger(internalConfig.loggerFilename));
 	}
 
 	// Execute custom extensions before static/SPA routes capture the request

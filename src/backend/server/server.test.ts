@@ -118,7 +118,6 @@ describe('server/server', () => {
 	const validConfig: configInputType = {
 		port: 0,
 		adminRoute: '/admin',
-		loggerFilename: '',
 		uploadFileSizeLimit: 1024,
 		routeStatic: [],
 		routePlSql: [
@@ -201,7 +200,6 @@ describe('server/server', () => {
 		it('should load config from file', () => {
 			const mockConfig = {
 				port: 8080,
-				loggerFilename: '',
 				routeStatic: [],
 				routePlSql: [],
 			};

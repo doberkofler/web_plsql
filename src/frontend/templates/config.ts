@@ -115,7 +115,7 @@ export function renderConfig(config: Partial<ServerConfig>): string {
 	html += renderStatRow('Admin Route', config.adminRoute ?? '/admin', true, 'text-accent', 'The URL path for the administration console');
 	html += renderStatRow('Admin User', config.adminUser ?? '(Not authenticated)', true, 'text-accent', 'The username required for admin access');
 	html += renderStatRow('Admin Password', config.adminPassword ?? '(None)', true, 'text-accent', 'The password required for admin access');
-	html += renderStatRow('Logger Filename', config.loggerFilename ?? '(Logging disabled)', true, 'text-accent', 'The path to the server log file');
+	html += renderStatRow('Access Log Filename', config.accessLogFilename ?? '(Logging disabled)', true, 'text-accent', 'The path to the HTTP access log file');
 
 	if (typeof config.uploadFileSizeLimit === 'number') {
 		const limit = config.uploadFileSizeLimit;

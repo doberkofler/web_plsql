@@ -181,7 +181,7 @@ The following mod_plsql DAD configuration translates to the configuration option
 		},
 	],
 	uploadFileSizeLimit: 50 * 1024 * 1024, // 50MB
-	loggerFilename: 'access.log', // PlsqlLogEnable and PlsqlLogDirectory
+	accessLogFilename: 'access.log', // Omit to disable access logging
 }
 ```
 
@@ -202,8 +202,8 @@ The following mod_plsql DAD configuration translates to the configuration option
 - PlsqlDefaultPage -> routePlSql[].defaultPage
 - PlsqlDocumentTablename -> routePlSql[].documentTable
 - PlsqlErrorStyle -> routePlSql[].errorStyle
-- PlsqlLogEnable -> loggerFilename
-- PlsqlLogDirectory -> loggerFilename
+- PlsqlLogEnable -> presence of accessLogFilename
+- PlsqlLogDirectory -> accessLogFilename
 - PlsqlPathAlias -> routePlSql[].pathAlias
 - PlsqlPathAliasProcedure -> routePlSql[].pathAliasProcedure
 - PlsqlRequestValidationFunction -> routePlSql[].requestValidationFunction
@@ -213,6 +213,7 @@ The following mod_plsql DAD configuration translates to the configuration option
 - Real-time monitoring and management via a built-in Admin Console.
 
 ## Options that are only available in web_plsql
+- The optional `accessLogFilename` enables HTTP access logging in Morgan's combined format. Omit this option to disable access logging. When provided, it must be a non-empty filename.
 - The option `transactionModeType` specifies an optional transaction mode.
   "commit" this automatically commits any open transaction after each request. This is the defaults because this is what mod_plsql and ohs are doing.
   "rollback" this automatically rolls back any open transaction after each request.

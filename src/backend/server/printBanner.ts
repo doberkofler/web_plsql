@@ -98,7 +98,7 @@ export const printBanner = (cfg: configType): void => {
 	// ── server
 	lines.push(row('Port', cfg.port, ICON_GLOBE));
 	lines.push(row('Admin route', `${adminRoute}${cfg.adminUser ? ' (authenticated)' : ''}`, ICON_KEY));
-	lines.push(row('Access log', cfg.loggerFilename, ICON_DOC));
+	lines.push(row('Access log', cfg.accessLogFilename, ICON_DOC));
 	lines.push(row('Upload limit', typeof cfg.uploadFileSizeLimit === 'number' ? `${cfg.uploadFileSizeLimit} bytes` : null, ICON_PACKAGE));
 	lines.push(divider());
 

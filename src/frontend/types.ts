@@ -113,7 +113,7 @@ const serverConfigSchema = z.strictObject({
 	adminRoute: z.string().optional(),
 	adminUser: z.string().optional(),
 	adminPassword: z.string().optional(),
-	loggerFilename: z.string(),
+	accessLogFilename: z.string().min(1).optional(),
 	uploadFileSizeLimit: z.number().optional(),
 	routePlSql: z.array(routeConfigSchema),
 	routeStatic: z.array(configStaticSchema),
@@ -227,7 +227,7 @@ export type ServerConfig = {
 	adminRoute?: string;
 	adminUser?: string;
 	adminPassword?: string;
-	loggerFilename: string;
+	accessLogFilename?: string;
 	uploadFileSizeLimit?: number;
 	routePlSql: RouteConfig[];
 	routeStatic: RouteConfig[];

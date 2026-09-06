@@ -138,8 +138,8 @@ export const z$configType = z.strictObject({
 	routePlSql: z.array(z$configPlSqlType),
 	/** Maximum allowed size for file uploads (bytes) */
 	uploadFileSizeLimit: z.number().optional(),
-	/** Path to the log file */
-	loggerFilename: z.string(),
+	/** Path to the access log file; omit to disable access logging */
+	accessLogFilename: z.string().trim().min(1).optional(),
 	/** URL route prefix for the admin console */
 	adminRoute: z.string().optional(),
 	/** Username for admin console authentication */

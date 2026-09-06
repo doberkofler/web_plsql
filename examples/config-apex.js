@@ -21,5 +21,5 @@ void startServer({
 			errorStyle: 'debug',
 		},
 	],
-	loggerFilename: 'access.log',
+	accessLogFilename: 'access.log',
 });

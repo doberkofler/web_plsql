@@ -48,7 +48,6 @@ const startDevServer = async (): Promise<void> => {
 				errorStyle: 'debug' as const,
 			},
 		],
-		loggerFilename: '',
 		adminRoute: '/admin',
 	};
 

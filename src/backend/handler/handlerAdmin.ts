@@ -204,9 +204,9 @@ export const createAdminRouter = (adminContext: AdminContext): Router => {
 		try {
 			const limit = Number(req.query.limit) || 100;
 			const filter = typeof req.query.filter === 'string' ? req.query.filter : '';
-			const logFile = adminContext.config?.loggerFilename ?? 'access.log';
+			const logFile = adminContext.config?.accessLogFilename;
 
-			if (!adminContext.config?.loggerFilename) {
+			if (!logFile) {
 				res.json({message: 'Access logging not enabled'});
 				return;
 			}

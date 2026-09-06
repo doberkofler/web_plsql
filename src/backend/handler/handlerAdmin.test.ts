@@ -37,7 +37,7 @@ describe('handler/handlerAdmin', () => {
 		const mockConfig = {
 			port: 8080,
 			adminRoute: '/admin',
-			loggerFilename: 'access.log',
+			accessLogFilename: 'access.log',
 			routeStatic: [],
 			routePlSql: [
 				{
@@ -115,7 +115,7 @@ describe('handler/handlerAdmin', () => {
 	describe('GET /api/logs/access', () => {
 		it('should return message when access logging is disabled', async () => {
 			if (adminContext.config) {
-				adminContext.config.loggerFilename = '';
+				delete adminContext.config.accessLogFilename;
 			}
 			const res = await request(app).get('/admin/api/logs/access');
 			expect(res.body.message).toBe('Access logging not enabled');

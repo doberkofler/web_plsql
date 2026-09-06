@@ -75,7 +75,7 @@ describe('server/server_extra', () => {
 	it('should mount logger, spa fallback and handle plsql stats', async () => {
 		const config: configInputType = {
 			port: 3000,
-			loggerFilename: 'access.log',
+			accessLogFilename: 'access.log',
 			devMode: true,
 			routeStatic: [
 				{
@@ -111,6 +111,16 @@ describe('server/server_extra', () => {
 		// Verify app.use was called with these middlewares
 		expect(mocks.useMock).toHaveBeenCalledWith('loggerMiddleware');
 		expect(mocks.useMock).toHaveBeenCalledWith('/app', 'spaFallbackMiddleware');
+		const loggerIndex = mocks.useMock.mock.calls.findIndex((call) => call[0] === 'loggerMiddleware');
+		const uploadIndex = mocks.useMock.mock.calls.findIndex((call) => call[0] === 'uploadMiddleware');
+		const adminIndex = mocks.useMock.mock.calls.findIndex((call) => call[0] === 'adminConsoleMiddleware');
+		const plSqlIndex = mocks.useMock.mock.calls.findIndex((call) => Array.isArray(call[0]) && call[0].includes('/pls'));
+		const staticIndex = mocks.useMock.mock.calls.findIndex((call) => call[1] === 'staticMiddleware');
+		expect(loggerIndex).toBeGreaterThanOrEqual(0);
+		expect(loggerIndex).toBeLessThan(uploadIndex);
+		expect(loggerIndex).toBeLessThan(adminIndex);
+		expect(loggerIndex).toBeLessThan(plSqlIndex);
+		expect(loggerIndex).toBeLessThan(staticIndex);
 
 		// Find the PL/SQL middleware
 		const plSqlCall = mocks.useMock.mock.calls.find((call) => {

@@ -2,12 +2,22 @@ import {describe, it, expect} from 'vitest';
 import {z$configPlSqlHandlerType, z$configType} from './types.js';
 
 describe('backend/types', () => {
+	it('should allow access logging to be disabled by omitting accessLogFilename', () => {
+		const result = z$configType.safeParse({port: 8080, routeStatic: [], routePlSql: []});
+		expect(result.success).toBe(true);
+	});
+
+	it.each(['', '   '])('should reject an empty access log filename', (accessLogFilename) => {
+		const result = z$configType.safeParse({port: 8080, routeStatic: [], routePlSql: [], accessLogFilename});
+		expect(result.success).toBe(false);
+	});
+
 	it('should validate valid setupExtensions callback', () => {
 		const config = {
 			port: 8080,
 			routeStatic: [],
 			routePlSql: [],
-			loggerFilename: 'test.log',
+			accessLogFilename: 'test.log',
 			setupExtensions: (_app: unknown, _pools: unknown) => undefined,
 		};
 		const result = z$configType.safeParse(config);
@@ -19,7 +29,7 @@ describe('backend/types', () => {
 			port: 8080,
 			routeStatic: [],
 			routePlSql: [],
-			loggerFilename: 'test.log',
+			accessLogFilename: 'test.log',
 			setupExtensions: 'invalid',
 		};
 		const result = z$configType.safeParse(config);
