@@ -1,4 +1,5 @@
 import oracledb from 'oracledb';
+import {createPool as createMockPool} from './oracledb-mock.ts';
 
 const USE_MOCK = process.env.MOCK_ORACLE === 'true';
 
@@ -10,8 +11,7 @@ const USE_MOCK = process.env.MOCK_ORACLE === 'true';
 // Runtime switch for createPool
 export async function createPool(config: oracledb.PoolAttributes): Promise<oracledb.Pool> {
 	if (USE_MOCK) {
-		const mock = await import('./oracledb-mock.ts');
-		return mock.createPool(config);
+		return await createMockPool(config);
 	}
 	return await oracledb.createPool(config);
 }
