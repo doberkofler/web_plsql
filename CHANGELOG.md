@@ -1,3 +1,13 @@
+# [1.12.0](https://github.com/doberkofler/web_plsql/compare/v1.10.0...v1.12.0) (2026-09-11)
+
+### Bug Fixes
+
+* remove ineffective dynamic import ([1f3080c](https://github.com/doberkofler/web_plsql/commit/1f3080ca8b9af0a48a2547e3a7db2665f6c7c240))
+
+### Features
+
+* **server:** add raw request extension hook ([7e70d66](https://github.com/doberkofler/web_plsql/commit/7e70d66cb6a574980b49613eb2b3bac23e841c16))
+
 # [1.10.0](https://github.com/doberkofler/web_plsql/compare/v1.9.1...v1.10.0) (2026-09-06)
 
 ## [1.9.1](https://github.com/doberkofler/web_plsql/compare/v1.9.0...v1.9.1) (2026-08-31)
