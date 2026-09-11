@@ -232,6 +232,44 @@ The following mod_plsql DAD configuration translates to the configuration option
   }
   ```
 
+## Raw Extensions
+
+The programmatic `setupRawExtensions` hook installs Express routes before upload handling, body parsing, cookie parsing, response compression, the admin console, and PL/SQL routes. It is awaited during startup before Oracle pools are created and receives only the Express application.
+
+```typescript
+await startServer({
+	port: 8080,
+	routePlSql: [],
+	routeStatic: [],
+	setupRawExtensions: (app) => {
+		app.post('/services/stream', async (req, res) => {
+			const chunks: Buffer[] = [];
+
+			for await (const chunk of req) {
+				chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+			}
+
+			res.type('application/octet-stream').send(Buffer.concat(chunks));
+		});
+	},
+});
+```
+
+| Hook | Position |
+| --- | --- |
+| `setupRawExtensions` | Before standard parsers |
+| `setupExtensions` | After PL/SQL routes and parsers |
+
+Raw extensions operate directly on the request stream:
+
+- Raw handlers must implement their own body size limits.
+- Raw handlers must implement their own parsing and error handling.
+- Do not consume the request stream and then call `next()`.
+- Prefer exact, disjoint route namespaces.
+- Raw handlers execute before the admin and pause middleware.
+- Responses are not processed by the global compression middleware unless the consumer installs compression itself.
+- Configuration loaded from JSON cannot contain callbacks; `setupRawExtensions` and `setupExtensions` are programmatic configuration only.
+
   **Basic Authentication**:
   ```typescript
   auth: {

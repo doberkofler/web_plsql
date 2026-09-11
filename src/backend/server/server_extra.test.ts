@@ -11,6 +11,10 @@ const mocks = vi.hoisted(() => {
 	};
 });
 
+vi.mock('cors', () => ({default: vi.fn<() => string>(() => 'corsMiddleware')}));
+vi.mock('cookie-parser', () => ({default: vi.fn<() => string>(() => 'cookieMiddleware')}));
+vi.mock('compression', () => ({default: vi.fn<() => string>(() => 'compressionMiddleware')}));
+
 // Mock express
 vi.mock('express', () => {
 	const app = {
@@ -98,6 +102,12 @@ describe('server/server_extra', () => {
 			adminRoute: '/admin',
 			adminUser: 'admin',
 			adminPassword: 'password',
+			setupRawExtensions: (app) => {
+				app.use('rawExtensionMiddleware');
+			},
+			setupExtensions: (app) => {
+				app.use('extensionMiddleware');
+			},
 		};
 
 		const {adminContext} = await startServer(config);
@@ -112,15 +122,29 @@ describe('server/server_extra', () => {
 		expect(mocks.useMock).toHaveBeenCalledWith('loggerMiddleware');
 		expect(mocks.useMock).toHaveBeenCalledWith('/app', 'spaFallbackMiddleware');
 		const loggerIndex = mocks.useMock.mock.calls.findIndex((call) => call[0] === 'loggerMiddleware');
+		const corsIndex = mocks.useMock.mock.calls.findIndex((call) => call[0] === 'corsMiddleware');
+		const rawExtensionIndex = mocks.useMock.mock.calls.findIndex((call) => call[0] === 'rawExtensionMiddleware');
 		const uploadIndex = mocks.useMock.mock.calls.findIndex((call) => call[0] === 'uploadMiddleware');
+		const jsonIndex = mocks.useMock.mock.calls.findIndex((call) => call[0] === 'jsonMiddleware');
+		const urlencodedIndex = mocks.useMock.mock.calls.findIndex((call) => call[0] === 'urlencodedMiddleware');
+		const cookieIndex = mocks.useMock.mock.calls.findIndex((call) => call[0] === 'cookieMiddleware');
+		const compressionIndex = mocks.useMock.mock.calls.findIndex((call) => call[0] === 'compressionMiddleware');
 		const adminIndex = mocks.useMock.mock.calls.findIndex((call) => call[0] === 'adminConsoleMiddleware');
 		const plSqlIndex = mocks.useMock.mock.calls.findIndex((call) => Array.isArray(call[0]) && call[0].includes('/pls'));
+		const extensionIndex = mocks.useMock.mock.calls.findIndex((call) => call[0] === 'extensionMiddleware');
 		const staticIndex = mocks.useMock.mock.calls.findIndex((call) => call[1] === 'staticMiddleware');
 		expect(loggerIndex).toBeGreaterThanOrEqual(0);
-		expect(loggerIndex).toBeLessThan(uploadIndex);
-		expect(loggerIndex).toBeLessThan(adminIndex);
-		expect(loggerIndex).toBeLessThan(plSqlIndex);
-		expect(loggerIndex).toBeLessThan(staticIndex);
+		expect(loggerIndex).toBeLessThan(corsIndex);
+		expect(corsIndex).toBeLessThan(rawExtensionIndex);
+		expect(rawExtensionIndex).toBeLessThan(uploadIndex);
+		expect(uploadIndex).toBeLessThan(jsonIndex);
+		expect(jsonIndex).toBeLessThan(urlencodedIndex);
+		expect(urlencodedIndex).toBeLessThan(cookieIndex);
+		expect(cookieIndex).toBeLessThan(compressionIndex);
+		expect(compressionIndex).toBeLessThan(adminIndex);
+		expect(adminIndex).toBeLessThan(plSqlIndex);
+		expect(plSqlIndex).toBeLessThan(extensionIndex);
+		expect(extensionIndex).toBeLessThan(staticIndex);
 
 		// Find the PL/SQL middleware
 		const plSqlCall = mocks.useMock.mock.calls.find((call) => {

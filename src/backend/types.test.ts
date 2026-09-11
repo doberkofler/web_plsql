@@ -12,6 +12,43 @@ describe('backend/types', () => {
 		expect(result.success).toBe(false);
 	});
 
+	it('should validate a synchronous setupRawExtensions callback', () => {
+		const result = z$configType.safeParse({
+			port: 8080,
+			routeStatic: [],
+			routePlSql: [],
+			setupRawExtensions: (_app: unknown) => undefined,
+		});
+		expect(result.success).toBe(true);
+	});
+
+	it('should validate an asynchronous setupRawExtensions callback', () => {
+		const result = z$configType.safeParse({
+			port: 8080,
+			routeStatic: [],
+			routePlSql: [],
+			setupRawExtensions: async (_app: unknown) => undefined,
+		});
+		expect(result.success).toBe(true);
+	});
+
+	it('should allow setupRawExtensions to be omitted', () => {
+		const result = z$configType.safeParse({port: 8080, routeStatic: [], routePlSql: []});
+		expect(result.success).toBe(true);
+	});
+
+	it('should reject a non-function setupRawExtensions callback', () => {
+		const result = z$configType.safeParse({
+			port: 8080,
+			routeStatic: [],
+			routePlSql: [],
+			setupRawExtensions: 'invalid',
+		});
+		expect(result.success).toBe(false);
+		if (result.success) throw new Error('Expected setupRawExtensions validation to fail');
+		expect(result.error.issues[0]?.path).toEqual(['setupRawExtensions']);
+	});
+
 	it('should validate valid setupExtensions callback', () => {
 		const config = {
 			port: 8080,

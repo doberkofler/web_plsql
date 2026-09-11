@@ -148,6 +148,12 @@ export const z$configType = z.strictObject({
 	adminPassword: z.string().optional(),
 	/** Developer mode (skips frontend build check, enables CORS) */
 	devMode: z.boolean().optional(),
+	/** Callback for custom Express routes that require the untouched request stream */
+	setupRawExtensions: z
+		.custom<(app: Express) => void | Promise<void>>((val) => typeof val === 'function', {
+			message: 'Invalid setupRawExtensions callback',
+		})
+		.optional(),
 	/** Callback function to setup custom Express extensions */
 	setupExtensions: z
 		.custom<(app: Express, pools: Pool[]) => void | Promise<void>>((val) => typeof val === 'function', {

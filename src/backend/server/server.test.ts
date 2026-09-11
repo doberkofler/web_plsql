@@ -1,7 +1,7 @@
 import {describe, it, expect, vi, beforeEach} from 'vitest';
 import express from 'express';
 import type {Mock} from 'vitest';
-import type {RequestHandler} from 'express';
+import type {Express, RequestHandler} from 'express';
 
 vi.mock('node:http', () => {
 	type MockServer = {
@@ -117,6 +117,7 @@ vi.mock('../handler/handlerAdmin.ts', () => ({
 describe('server/server', () => {
 	const validConfig: configInputType = {
 		port: 0,
+		devMode: true,
 		adminRoute: '/admin',
 		uploadFileSizeLimit: 1024,
 		routeStatic: [],
@@ -192,6 +193,87 @@ describe('server/server', () => {
 
 			const webServer = await startServer(configWithExtensions);
 			expect(setupExtensions).toHaveBeenCalledWith(expect.anything(), webServer.connectionPools);
+			await webServer.shutdown();
+		});
+
+		it('should call setupRawExtensions once with only the returned Express application', async () => {
+			const server = (http.createServer as Mock)();
+			server.on.mockImplementation(function (event: string, callback: () => void) {
+				if (event === 'listening') process.nextTick(callback);
+				return server;
+			});
+			const setupRawExtensions = vi.fn<(app: Express) => void>();
+
+			const webServer = await startServer({...validConfig, setupRawExtensions});
+
+			expect(setupRawExtensions).toHaveBeenCalledTimes(1);
+			expect(setupRawExtensions.mock.calls[0]).toEqual([webServer.app]);
+			await webServer.shutdown();
+		});
+
+		it('should await setupRawExtensions before creating pools or starting the HTTP server', async () => {
+			let finishSetup: (() => void) | undefined;
+			let markSetupStarted: (() => void) | undefined;
+			const setupStarted = new Promise<void>((resolve) => {
+				markSetupStarted = resolve;
+			});
+			const setupRawExtensions = () =>
+				new Promise<void>((resolveSetup) => {
+					finishSetup = resolveSetup;
+					markSetupStarted?.();
+				});
+			const startPromise = startServer({...validConfig, setupRawExtensions});
+
+			await setupStarted;
+			expect(oracledb.createPool).not.toHaveBeenCalled();
+			expect(http.createServer).not.toHaveBeenCalled();
+			expect(finishSetup).toBeDefined();
+			finishSetup?.();
+			const webServer = await startPromise;
+			await webServer.shutdown();
+		});
+
+		it.each([
+			[
+				'synchronous',
+				() => {
+					throw new Error('raw setup failed');
+				},
+			],
+			[
+				'asynchronous',
+				async () => {
+					throw new Error('raw setup failed');
+				},
+			],
+		])('should reject when %s setupRawExtensions initialization fails without listening', async (_kind, setupRawExtensions) => {
+			await expect(startServer({...validConfig, setupRawExtensions})).rejects.toThrow('raw setup failed');
+			expect(oracledb.createPool).not.toHaveBeenCalled();
+			expect(http.createServer).not.toHaveBeenCalled();
+		});
+
+		it('should keep passing initialized Oracle pools to setupExtensions', async () => {
+			const server = (http.createServer as Mock)();
+			server.on.mockImplementation(function (event: string, callback: () => void) {
+				if (event === 'listening') process.nextTick(callback);
+				return server;
+			});
+			const pool = {close: vi.fn<(...args: unknown[]) => unknown>()};
+			vi.mocked(oracledb.createPool).mockResolvedValueOnce(pool as any);
+			const setupExtensions = vi.fn<(app: Express, pools: unknown[]) => void>();
+			let webServerReference: {app: Express; pools: unknown[]} | undefined;
+
+			const webServer = await startServer({
+				...validConfig,
+				setupExtensions: (app, pools) => {
+					webServerReference = {app, pools};
+					setupExtensions(app, pools);
+				},
+			});
+
+			expect(oracledb.createPool).toHaveBeenCalledBefore(setupExtensions);
+			expect(setupExtensions).toHaveBeenCalledWith(webServer.app, webServer.connectionPools);
+			expect(webServerReference).toEqual({app: webServer.app, pools: webServer.connectionPools});
 			await webServer.shutdown();
 		});
 	});
