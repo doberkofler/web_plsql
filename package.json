@@ -74,7 +74,7 @@
 		"debug": "4.4.3",
 		"express": "5.2.1",
 		"express-static-gzip": "3.0.2",
-		"morgan": "1.12.0",
+		"morgan": "1.12.1",
 		"multer": "2.3.0",
 		"rotating-file-stream": "3.2.10",
 		"slice-ansi": "9.0.0",
