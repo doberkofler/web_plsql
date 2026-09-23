@@ -113,6 +113,7 @@ export const printBanner = (cfg: configType): void => {
 		cfg.routeStatic.forEach((r, i) => {
 			lines.push(row(`Static route #${i + 1}  route`, r.route, ICON_FOLDER));
 			lines.push(row(`Static route #${i + 1}  path`, r.directoryPath));
+			lines.push(row(`Static route #${i + 1}  mode`, r.staticMode));
 		});
 	}
 

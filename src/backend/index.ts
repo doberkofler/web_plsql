@@ -1,5 +1,6 @@
 // types
 export {z$configType, type configInputType, type configType, type configPlSqlType} from './types.ts';
+export type {StaticMode} from '../common/configStaticSchema.ts';
 
 // database
 export * as oracledb from './util/oracledb-provider.ts';

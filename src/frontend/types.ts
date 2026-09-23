@@ -1,5 +1,5 @@
 import {z} from 'zod';
-import {configStaticSchema} from '../common/configStaticSchema.ts';
+import {configStaticSchema, type StaticMode} from '../common/configStaticSchema.ts';
 export {logEntrySchema, type logEntryType} from '../common/logEntrySchema.ts';
 export {type procedureTraceEntry} from '../common/procedureTraceEntry.ts';
 
@@ -217,6 +217,7 @@ export type RouteConfig = {
 	errorStyle?: string;
 	// Static specific
 	directoryPath?: string;
+	staticMode?: StaticMode;
 };
 
 /**

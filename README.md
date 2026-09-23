@@ -68,9 +68,24 @@ There are 2 options on how to use the web_plsql express middleware:
 The `startServer` API uses a `configType` configuration object. You can review the complete type definitions in the source code:
 [src/backend/types.ts](https://github.com/doberkofler/web_plsql/blob/main/src/backend/types.ts)
 
-### Static asset discovery
+### Static asset serving
 
-Precompressed static assets are discovered when the server starts, so their index is a startup snapshot rather than a live view of the directory. Transient filesystem `ENOENT` errors are retried; if the static tree remains unstable, `web_plsql` starts with ordinary static serving and the global middleware compresses responses dynamically.
+Each static route supports an explicit `staticMode`:
+
+```typescript
+routeStatic: [
+	{
+		route: '/app',
+		directoryPath: '/opt/server/static',
+		staticMode: 'dynamic',
+	},
+];
+```
+
+- `dynamic` uses `express.static()`. It does not enumerate the directory at startup and is recommended for bind mounts or static trees that may change while the server runs. The global `compression()` middleware compresses eligible responses dynamically.
+- `precompressed` uses `express-static-gzip` with Brotli preferred. It discovers precompressed assets when the server starts and is intended for stable deployment artifacts.
+
+When `staticMode` is omitted, it defaults to `precompressed` for compatibility with configurations created before version 1.14.0. Modes never fall back implicitly: precompressed discovery failures remain startup errors, while dynamic mode never invokes `express-static-gzip`.
 
 ## Hand Craft Express Server with Composable Middleware
 

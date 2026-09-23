@@ -38,7 +38,7 @@ describe('handler/handlerAdmin', () => {
 			port: 8080,
 			adminRoute: '/admin',
 			accessLogFilename: 'access.log',
-			routeStatic: [],
+			routeStatic: [{route: '/static', directoryPath: '/var/www/static', staticMode: 'precompressed'}],
 			routePlSql: [
 				{
 					route: '/pls',
@@ -92,6 +92,7 @@ describe('handler/handlerAdmin', () => {
 			const res = await request(app).get('/admin/api/status?config=true');
 			expect(res.status).toBe(200);
 			expect(res.body.config).toBeDefined();
+			expect(res.body.config.routeStatic[0].staticMode).toBe('precompressed');
 			expect(res.body.config.routePlSql[0].password).toBe('********');
 
 			// Verify fields are stripped

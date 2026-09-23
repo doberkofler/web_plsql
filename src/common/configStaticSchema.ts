@@ -8,6 +8,8 @@ export const configStaticSchema = z.strictObject({
 	route: z.string(),
 	/** Local filesystem path to the static assets directory */
 	directoryPath: z.string(),
+	/** Static file serving mode */
+	staticMode: z.enum(['dynamic', 'precompressed']).default('precompressed'),
 	/**
 	 * Enable SPA fallback mode.
 	 * When true, serves index.html for unmatched routes (for React Router, Vue Router, etc.)
@@ -17,3 +19,4 @@ export const configStaticSchema = z.strictObject({
 	spaFallback: z.boolean().optional(),
 });
 export type configStaticType = z.infer<typeof configStaticSchema>;
+export type StaticMode = configStaticType['staticMode'];

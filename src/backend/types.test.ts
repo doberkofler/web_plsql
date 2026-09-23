@@ -2,6 +2,36 @@ import {describe, it, expect} from 'vitest';
 import {z$configPlSqlHandlerType, z$configType} from './types.js';
 
 describe('backend/types', () => {
+	it('should default static routes to precompressed mode', () => {
+		const result = z$configType.parse({
+			port: 8080,
+			routeStatic: [{route: '/static', directoryPath: '/var/www/static'}],
+			routePlSql: [],
+		});
+
+		expect(result.routeStatic[0]?.staticMode).toBe('precompressed');
+	});
+
+	it.each(['dynamic', 'precompressed'] as const)('should accept %s static mode', (staticMode) => {
+		const result = z$configType.safeParse({
+			port: 8080,
+			routeStatic: [{route: '/static', directoryPath: '/var/www/static', staticMode}],
+			routePlSql: [],
+		});
+
+		expect(result.success).toBe(true);
+	});
+
+	it('should reject an invalid static mode', () => {
+		const result = z$configType.safeParse({
+			port: 8080,
+			routeStatic: [{route: '/static', directoryPath: '/var/www/static', staticMode: 'automatic'}],
+			routePlSql: [],
+		});
+
+		expect(result.success).toBe(false);
+	});
+
 	it('should allow access logging to be disabled by omitting accessLogFilename', () => {
 		const result = z$configType.safeParse({port: 8080, routeStatic: [], routePlSql: []});
 		expect(result.success).toBe(true);

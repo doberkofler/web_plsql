@@ -94,6 +94,7 @@ function renderStaticRoute(r: RouteConfig, index: number): string {
 				<code class="text-lg font-bold text-bright">${r.route}</code>
 			</div>
 			${renderStatRow('Directory Path', r.directoryPath ?? '(Not set)')}
+			${renderStatRow('Static Mode', r.staticMode ?? 'precompressed')}
 		</div>
 	`;
 }

@@ -1,4 +1,4 @@
-import {afterEach, beforeEach, describe, it, expect, vi} from 'vitest';
+import {beforeEach, describe, it, expect, vi} from 'vitest';
 import {startServer} from './server.js';
 import type {configInputType} from '../types.js';
 
@@ -99,10 +99,6 @@ describe('server/server_extra', () => {
 		mocks.staticGzipMock.mockReturnValue('staticMiddleware');
 		mocks.createSpaFallback.mockReset();
 		mocks.createSpaFallback.mockReturnValue('spaFallbackMiddleware');
-	});
-
-	afterEach(() => {
-		vi.useRealTimers();
 	});
 
 	it('should mount logger, spa fallback and handle plsql stats', async () => {
@@ -214,7 +210,7 @@ describe('server/server_extra', () => {
 		expect(mocks.handlerWebPlSql).toHaveBeenCalled();
 	});
 
-	it('should mount precompressed static middleware when discovery succeeds', async () => {
+	it('should default to precompressed static middleware', async () => {
 		await startServer(staticConfig);
 
 		expect(mocks.staticGzipMock).toHaveBeenCalledOnce();
@@ -226,22 +222,24 @@ describe('server/server_extra', () => {
 		expect(mocks.expressStaticMock).not.toHaveBeenCalled();
 	});
 
-	it('should retry transient ENOENT errors and preserve static route ordering', async () => {
-		vi.useFakeTimers();
-		const enoentError = Object.assign(new Error('asset disappeared'), {code: 'ENOENT'});
-		mocks.staticGzipMock.mockImplementationOnce(() => {
-			throw enoentError;
-		});
-		mocks.staticGzipMock.mockImplementationOnce(() => {
-			throw enoentError;
+	it('should preserve Brotli-first behavior and SPA ordering in precompressed mode', async () => {
+		await startServer({
+			...staticConfig,
+			routeStatic: [
+				{
+					route: '/app',
+					directoryPath: './public',
+					staticMode: 'precompressed',
+					spaFallback: true,
+				},
+			],
 		});
 
-		const serverPromise = startServer(staticConfig);
-		await vi.advanceTimersByTimeAsync(100);
-		await vi.advanceTimersByTimeAsync(250);
-		await serverPromise;
-
-		expect(mocks.staticGzipMock).toHaveBeenCalledTimes(3);
+		expect(mocks.staticGzipMock).toHaveBeenCalledOnce();
+		expect(mocks.staticGzipMock).toHaveBeenCalledWith('./public', {
+			enableBrotli: true,
+			orderPreference: ['br'],
+		});
 		expect(mocks.useMock).toHaveBeenCalledWith('/app', 'staticMiddleware');
 		expect(mocks.expressStaticMock).not.toHaveBeenCalled();
 		const staticIndex = mocks.useMock.mock.calls.findIndex((call) => call[1] === 'staticMiddleware');
@@ -250,33 +248,31 @@ describe('server/server_extra', () => {
 		expect(staticIndex).toBeLessThan(spaIndex);
 	});
 
-	it('should fall back to ordinary static middleware after persistent ENOENT errors', async () => {
-		vi.useFakeTimers();
-		const enoentError = Object.assign(new Error('asset disappeared'), {code: 'ENOENT'});
-		mocks.staticGzipMock.mockImplementation(() => {
-			throw enoentError;
+	it('should use only ordinary static middleware and preserve SPA ordering in dynamic mode', async () => {
+		await startServer({
+			...staticConfig,
+			routeStatic: [
+				{
+					route: '/app',
+					directoryPath: './public',
+					staticMode: 'dynamic',
+					spaFallback: true,
+				},
+			],
 		});
 
-		const serverPromise = startServer(staticConfig);
-		await vi.advanceTimersByTimeAsync(100);
-		await vi.advanceTimersByTimeAsync(250);
-		await vi.advanceTimersByTimeAsync(500);
-		await expect(serverPromise).resolves.toBeDefined();
-
-		expect(mocks.staticGzipMock).toHaveBeenCalledTimes(4);
 		expect(mocks.expressStaticMock).toHaveBeenCalledOnce();
 		expect(mocks.expressStaticMock).toHaveBeenCalledWith('./public');
+		expect(mocks.staticGzipMock).not.toHaveBeenCalled();
 		expect(mocks.useMock).toHaveBeenCalledWith('/app', 'plainStaticMiddleware');
-		expect(console.warn).toHaveBeenCalledOnce();
-		expect(console.warn).toHaveBeenCalledWith(expect.stringContaining('./public'));
 		const staticIndex = mocks.useMock.mock.calls.findIndex((call) => call[1] === 'plainStaticMiddleware');
 		const spaIndex = mocks.useMock.mock.calls.findIndex((call) => call[1] === 'spaFallbackMiddleware');
 		expect(staticIndex).toBeGreaterThanOrEqual(0);
 		expect(staticIndex).toBeLessThan(spaIndex);
 	});
 
-	it('should immediately rethrow non-ENOENT static middleware errors', async () => {
-		const error = Object.assign(new Error('permission denied'), {code: 'EACCES'});
+	it('should propagate precompressed middleware startup errors unchanged', async () => {
+		const error = Object.assign(new Error('asset unavailable'), {code: 'EBADF'});
 		mocks.staticGzipMock.mockImplementation(() => {
 			throw error;
 		});

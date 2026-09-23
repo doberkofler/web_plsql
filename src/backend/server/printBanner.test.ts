@@ -68,9 +68,23 @@ describe('server/config', () => {
 
 		expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringMatching(/Static route #1  route\s+\/static/u));
 		expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringMatching(/Static route #1  path\s+\/var\/www\/static/u));
+		expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringMatching(/Static route #1  mode\s+precompressed/u));
 
 		expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringMatching(/Static route #2  route\s+\/images/u));
 		expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringMatching(/Static route #2  path\s+\/var\/www\/images/u));
+		expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringMatching(/Static route #2  mode\s+precompressed/u));
+	});
+
+	it('should show explicit dynamic static mode', () => {
+		const config: configInputType = {
+			port: 8080,
+			routeStatic: [{route: '/static', directoryPath: '/var/www/static', staticMode: 'dynamic'}],
+			routePlSql: [],
+		};
+
+		printBanner(z$configType.parse(config));
+
+		expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringMatching(/Static route #1  mode\s+dynamic/u));
 	});
 
 	it('should show PL/SQL routes with string transactionMode', () => {

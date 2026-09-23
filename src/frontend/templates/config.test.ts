@@ -112,10 +112,12 @@ describe('templates/config', () => {
 
 		it('should render static routes', () => {
 			const result = renderConfig({
-				routeStatic: [{route: '/static', directoryPath: '/path'}],
+				routeStatic: [{route: '/static', directoryPath: '/path', staticMode: 'dynamic'}],
 			});
 			expect(result).toContain('/static');
 			expect(result).toContain('/path');
+			expect(result).toContain('Static Mode');
+			expect(result).toContain('dynamic');
 		});
 
 		it('should render static routes with missing directory path', () => {
@@ -123,6 +125,7 @@ describe('templates/config', () => {
 				routeStatic: [{route: '/static'}],
 			});
 			expect(result).toContain('(Not set)');
+			expect(result).toContain('precompressed');
 		});
 
 		it('should render empty states', () => {
