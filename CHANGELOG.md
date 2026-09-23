@@ -1,3 +1,9 @@
+# [1.14.0](https://github.com/doberkofler/web_plsql/compare/v1.13.0...v1.14.0) (2026-09-23)
+
+### Features
+
+* add configurable static serving modes ([5e5294e](https://github.com/doberkofler/web_plsql/commit/5e5294ef4f48cb3476323bf0b5747575519d914c))
+
 # [1.13.0](https://github.com/doberkofler/web_plsql/compare/v1.12.4...v1.13.0) (2026-09-23)
 
 ### Bug Fixes
