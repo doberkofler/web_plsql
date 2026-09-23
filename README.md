@@ -68,6 +68,10 @@ There are 2 options on how to use the web_plsql express middleware:
 The `startServer` API uses a `configType` configuration object. You can review the complete type definitions in the source code:
 [src/backend/types.ts](https://github.com/doberkofler/web_plsql/blob/main/src/backend/types.ts)
 
+### Static asset discovery
+
+Precompressed static assets are discovered when the server starts, so their index is a startup snapshot rather than a live view of the directory. Transient filesystem `ENOENT` errors are retried; if the static tree remains unstable, `web_plsql` starts with ordinary static serving and the global middleware compresses responses dynamically.
+
 ## Hand Craft Express Server with Composable Middleware
 
 The web_plsql API exports composable middleware components that can be integrated into any Express application.

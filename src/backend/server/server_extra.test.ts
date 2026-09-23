@@ -1,10 +1,12 @@
-import {describe, it, expect, vi} from 'vitest';
+import {afterEach, beforeEach, describe, it, expect, vi} from 'vitest';
 import {startServer} from './server.js';
 import type {configInputType} from '../types.js';
 
 const mocks = vi.hoisted(() => {
 	return {
 		useMock: vi.fn<(...args: unknown[]) => unknown>(),
+		expressStaticMock: vi.fn<(...args: unknown[]) => unknown>(() => 'plainStaticMiddleware'),
+		staticGzipMock: vi.fn<(...args: unknown[]) => unknown>(() => 'staticMiddleware'),
 		handlerLogger: vi.fn<(...args: unknown[]) => unknown>(() => 'loggerMiddleware'),
 		createSpaFallback: vi.fn<(...args: unknown[]) => unknown>(() => 'spaFallbackMiddleware'),
 		handlerWebPlSql: vi.fn<(...args: unknown[]) => unknown>(() => vi.fn<(...args: unknown[]) => unknown>()),
@@ -21,9 +23,11 @@ vi.mock('express', () => {
 		use: mocks.useMock,
 		on: vi.fn<(...args: unknown[]) => unknown>(),
 	};
-	const expressFn = () => app;
-	(expressFn as any).json = vi.fn<(...args: unknown[]) => unknown>(() => 'jsonMiddleware');
-	(expressFn as any).urlencoded = vi.fn<(...args: unknown[]) => unknown>(() => 'urlencodedMiddleware');
+	const expressFn = Object.assign(() => app, {
+		json: vi.fn<(...args: unknown[]) => unknown>(() => 'jsonMiddleware'),
+		urlencoded: vi.fn<(...args: unknown[]) => unknown>(() => 'urlencodedMiddleware'),
+		static: mocks.expressStaticMock,
+	});
 	return {
 		default: expressFn,
 	};
@@ -72,10 +76,35 @@ vi.mock('../index.ts', async () => {
 });
 
 vi.mock('express-static-gzip', () => ({
-	default: vi.fn<(...args: unknown[]) => unknown>(() => 'staticMiddleware'),
+	default: mocks.staticGzipMock,
 }));
 
 describe('server/server_extra', () => {
+	const staticConfig: configInputType = {
+		port: 3000,
+		routeStatic: [
+			{
+				route: '/app',
+				directoryPath: './public',
+				spaFallback: true,
+			},
+		],
+		routePlSql: [],
+	};
+
+	beforeEach(() => {
+		mocks.expressStaticMock.mockReset();
+		mocks.expressStaticMock.mockReturnValue('plainStaticMiddleware');
+		mocks.staticGzipMock.mockReset();
+		mocks.staticGzipMock.mockReturnValue('staticMiddleware');
+		mocks.createSpaFallback.mockReset();
+		mocks.createSpaFallback.mockReturnValue('spaFallbackMiddleware');
+	});
+
+	afterEach(() => {
+		vi.useRealTimers();
+	});
+
 	it('should mount logger, spa fallback and handle plsql stats', async () => {
 		const config: configInputType = {
 			port: 3000,
@@ -183,5 +212,78 @@ describe('server/server_extra', () => {
 
 		expect(recordSpy).toHaveBeenCalled();
 		expect(mocks.handlerWebPlSql).toHaveBeenCalled();
+	});
+
+	it('should mount precompressed static middleware when discovery succeeds', async () => {
+		await startServer(staticConfig);
+
+		expect(mocks.staticGzipMock).toHaveBeenCalledOnce();
+		expect(mocks.staticGzipMock).toHaveBeenCalledWith('./public', {
+			enableBrotli: true,
+			orderPreference: ['br'],
+		});
+		expect(mocks.useMock).toHaveBeenCalledWith('/app', 'staticMiddleware');
+		expect(mocks.expressStaticMock).not.toHaveBeenCalled();
+	});
+
+	it('should retry transient ENOENT errors and preserve static route ordering', async () => {
+		vi.useFakeTimers();
+		const enoentError = Object.assign(new Error('asset disappeared'), {code: 'ENOENT'});
+		mocks.staticGzipMock.mockImplementationOnce(() => {
+			throw enoentError;
+		});
+		mocks.staticGzipMock.mockImplementationOnce(() => {
+			throw enoentError;
+		});
+
+		const serverPromise = startServer(staticConfig);
+		await vi.advanceTimersByTimeAsync(100);
+		await vi.advanceTimersByTimeAsync(250);
+		await serverPromise;
+
+		expect(mocks.staticGzipMock).toHaveBeenCalledTimes(3);
+		expect(mocks.useMock).toHaveBeenCalledWith('/app', 'staticMiddleware');
+		expect(mocks.expressStaticMock).not.toHaveBeenCalled();
+		const staticIndex = mocks.useMock.mock.calls.findIndex((call) => call[1] === 'staticMiddleware');
+		const spaIndex = mocks.useMock.mock.calls.findIndex((call) => call[1] === 'spaFallbackMiddleware');
+		expect(staticIndex).toBeGreaterThanOrEqual(0);
+		expect(staticIndex).toBeLessThan(spaIndex);
+	});
+
+	it('should fall back to ordinary static middleware after persistent ENOENT errors', async () => {
+		vi.useFakeTimers();
+		const enoentError = Object.assign(new Error('asset disappeared'), {code: 'ENOENT'});
+		mocks.staticGzipMock.mockImplementation(() => {
+			throw enoentError;
+		});
+
+		const serverPromise = startServer(staticConfig);
+		await vi.advanceTimersByTimeAsync(100);
+		await vi.advanceTimersByTimeAsync(250);
+		await vi.advanceTimersByTimeAsync(500);
+		await expect(serverPromise).resolves.toBeDefined();
+
+		expect(mocks.staticGzipMock).toHaveBeenCalledTimes(4);
+		expect(mocks.expressStaticMock).toHaveBeenCalledOnce();
+		expect(mocks.expressStaticMock).toHaveBeenCalledWith('./public');
+		expect(mocks.useMock).toHaveBeenCalledWith('/app', 'plainStaticMiddleware');
+		expect(console.warn).toHaveBeenCalledOnce();
+		expect(console.warn).toHaveBeenCalledWith(expect.stringContaining('./public'));
+		const staticIndex = mocks.useMock.mock.calls.findIndex((call) => call[1] === 'plainStaticMiddleware');
+		const spaIndex = mocks.useMock.mock.calls.findIndex((call) => call[1] === 'spaFallbackMiddleware');
+		expect(staticIndex).toBeGreaterThanOrEqual(0);
+		expect(staticIndex).toBeLessThan(spaIndex);
+	});
+
+	it('should immediately rethrow non-ENOENT static middleware errors', async () => {
+		const error = Object.assign(new Error('permission denied'), {code: 'EACCES'});
+		mocks.staticGzipMock.mockImplementation(() => {
+			throw error;
+		});
+
+		await expect(startServer(staticConfig)).rejects.toBe(error);
+
+		expect(mocks.staticGzipMock).toHaveBeenCalledOnce();
+		expect(mocks.expressStaticMock).not.toHaveBeenCalled();
 	});
 });

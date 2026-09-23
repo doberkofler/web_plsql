@@ -5,7 +5,7 @@ import http from 'node:http';
 import https from 'node:https';
 import type {Socket} from 'node:net';
 
-import express, {type Express, type Request, type Response, type NextFunction} from 'express';
+import express, {type Express, type Request, type Response, type NextFunction, type RequestHandler} from 'express';
 import type {Pool} from 'oracledb';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
@@ -51,6 +51,33 @@ export type webServer = {
 export type sslConfig = {
 	keyFilename: string;
 	certFilename: string;
+};
+
+const staticMiddlewareRetryDelays = [100, 250, 500];
+
+const isEnoentError = (error: unknown): boolean => typeof error === 'object' && error !== null && 'code' in error && error.code === 'ENOENT';
+
+const createStaticMiddleware = async (directoryPath: string): Promise<RequestHandler> => {
+	for (let attempt = 0; ; attempt++) {
+		try {
+			return expressStaticGzip(directoryPath, {
+				enableBrotli: true,
+				orderPreference: ['br'],
+			});
+		} catch (error: unknown) {
+			if (!isEnoentError(error)) {
+				throw error;
+			}
+
+			const retryDelay = staticMiddlewareRetryDelays[attempt];
+			if (retryDelay === undefined) {
+				console.warn(`Precompressed static asset discovery remained unstable for ${directoryPath}; falling back to ordinary static serving`);
+				return express.static(directoryPath);
+			}
+
+			await new Promise<void>((resolve) => setTimeout(resolve, retryDelay));
+		}
+	}
 };
 
 /**
@@ -159,16 +186,10 @@ export const startServer = async (config: configInputType, ssl?: sslConfig): Pro
 
 	// Serving static files
 	for (const i of internalConfig.routeStatic) {
-		app.use(
-			i.route,
-			expressStaticGzip(i.directoryPath, {
-				enableBrotli: true,
-				orderPreference: ['br'],
-			}),
-		);
+		app.use(i.route, await createStaticMiddleware(i.directoryPath));
 
 		// Mount SPA fallback (serves index.html for unmatched routes)
-		// IMPORTANT: Must come AFTER expressStaticGzip
+		// IMPORTANT: Must come AFTER the static middleware
 		if (i.spaFallback) {
 			app.use(i.route, createSpaFallback(i.directoryPath, i.route));
 		}
