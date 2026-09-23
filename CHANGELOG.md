@@ -1,3 +1,9 @@
+# [1.13.0](https://github.com/doberkofler/web_plsql/compare/v1.12.4...v1.13.0) (2026-09-23)
+
+### Bug Fixes
+
+* tolerate transient static asset discovery errors ([2afe827](https://github.com/doberkofler/web_plsql/commit/2afe827fa97fc57a06b1429a7be0266754c26166))
+
 ## [1.12.4](https://github.com/doberkofler/web_plsql/compare/v1.12.3...v1.12.4) (2026-09-20)
 
 ## [1.12.3](https://github.com/doberkofler/web_plsql/compare/v1.12.2...v1.12.3) (2026-09-12)
