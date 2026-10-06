@@ -150,19 +150,11 @@ describe('middleware', () => {
 			lines: ['Content-Type: text/html\n', '\n', '<html><body><p>static</p></body></html>\n'],
 		});
 
-		const test = request(serverConfig.app).post(`${PATH}/sample.pageForm`);
-		test.set('Content-Type', 'multipart/form-data; boundary=foo');
-		test.write('--foo\r\n');
-		test.write('Content-Disposition: form-data; name="user_name"\r\n');
-		test.write('\r\n');
-		test.write('Tobi');
-		test.write('\r\n--foo\r\n');
-		test.write('Content-Disposition: form-data; name="text"; filename="test/server.ts"\r\n');
-		test.write('\r\n');
-		test.write('some text here');
-		test.write('\r\n--foo--');
-
-		await test.expect(200, /.*<html><body><p>static<\/p><\/body><\/html>.*/u);
+		await request(serverConfig.app)
+			.post(`${PATH}/sample.pageForm`)
+			.field('user_name', 'Tobi')
+			.attach('text', Buffer.from('some text here'), 'server.ts')
+			.expect(200, /.*<html><body><p>static<\/p><\/body><\/html>.*/u);
 	});
 
 	it('set status', async () => {
