@@ -69,7 +69,11 @@ describe('setupRawExtensions actual Express behavior', () => {
 
 	it('provides the original JSON bytes before standard middleware and can complete the response', async () => {
 		const serialized = '{"event":"raw","sequence":1}';
-		const response = await request(serverInstance.app).post('/raw-json').set('Content-Type', 'application/json').set('Cookie', 'session=raw').send(serialized);
+		const response = await request(serverInstance.app)
+			.post('/raw-json')
+			.set('Content-Type', 'application/json')
+			.set('Cookie', 'session=raw')
+			.send(serialized);
 
 		expect(response.status).toBe(202);
 		expect(response.headers['x-raw-handler']).toBe('true');

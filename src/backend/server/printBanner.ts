@@ -92,7 +92,9 @@ export const printBanner = (cfg: configType): void => {
 	// ── title
 	const title = `NODE PL/SQL SERVER ${getVersion()}`;
 	const pad = W - 2 - displayWidth(title);
-	lines.push(IS_TTY ? chalk.dim(BOX.v) + ' '.repeat(Math.floor(pad / 2)) + chalk.bold.cyan(title) + ' '.repeat(Math.ceil(pad / 2)) + chalk.dim(BOX.v) : title);
+	lines.push(
+		IS_TTY ? chalk.dim(BOX.v) + ' '.repeat(Math.floor(pad / 2)) + chalk.bold.cyan(title) + ' '.repeat(Math.ceil(pad / 2)) + chalk.dim(BOX.v) : title,
+	);
 	lines.push(divider());
 
 	// ── server
