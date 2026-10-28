@@ -106,8 +106,8 @@
 		"husky": "9.1.7",
 		"knip": "6.43.0",
 		"oracledb": "26.0.0",
-		"oxfmt": "0.74.0",
-		"oxlint": "1.89.0",
+		"oxfmt": "0.75.0",
+		"oxlint": "1.90.0",
 		"oxlint-tsgolint": "7.0.2005",
 		"release-it": "21.1.1",
 		"shx": "0.4.0",
@@ -118,7 +118,7 @@
 		"tsdown": "0.23.2",
 		"typescript": "6.0.3",
 		"vite": "8.3.5",
-		"vite-plugin-compression2": "2.5.3",
+		"vite-plugin-compression2": "2.5.4",
 		"vitest": "5.0.5"
 	},
 	"peerDependencies": {
