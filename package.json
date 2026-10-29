@@ -115,7 +115,7 @@
 		"stylelint-config-standard": "40.0.0",
 		"supertest": "7.3.1",
 		"tailwindcss": "4.3.3",
-		"tsdown": "0.23.2",
+		"tsdown": "0.23.3",
 		"typescript": "6.0.3",
 		"vite": "8.3.5",
 		"vite-plugin-compression2": "2.5.4",
