@@ -1,3 +1,5 @@
+## [1.14.7](https://github.com/doberkofler/web_plsql/compare/v1.14.6...v1.14.7) (2026-11-02)
+
 ## [1.14.6](https://github.com/doberkofler/web_plsql/compare/v1.14.5...v1.14.6) (2026-10-24)
 
 ## [1.14.5](https://github.com/doberkofler/web_plsql/compare/v1.14.4...v1.14.5) (2026-10-22)
