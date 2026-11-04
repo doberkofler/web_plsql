@@ -23,7 +23,6 @@
 		"no-descending-specificity": null,
 		"rule-empty-line-before": null,
 		"no-duplicate-selectors": null,
-		"declaration-block-single-line-max-declarations": null,
 		"selector-pseudo-element-colon-notation": "double",
 		"media-feature-range-notation": null,
 		"declaration-property-value-keyword-no-deprecated": null,
